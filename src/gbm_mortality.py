@@ -16,7 +16,7 @@ INPUT_VARS = ['age', 'sex', 'emop', 'bmi', 'andur',
               'preop_potassium']
 
 # Load operations
-df = pd.read_csv('../dataset/operations.csv')
+df = pd.read_csv('C:\\Users\\pc\\Desktop\\dataset\\operations.csv')
 
 # find the first operation for each patient
 df.sort_values('orin_time', inplace=True)
@@ -34,7 +34,7 @@ df['bmi'] = np.nan
 df.loc[valid_mask, 'bmi'] = df.loc[valid_mask, 'weight'] / (df.loc[valid_mask, 'height'] / 100) ** 2
 
 # Load labs
-df_lab = pd.read_csv('../dataset/labs.csv')
+df_lab = pd.read_csv("C:\\Users\\pc\\Desktop\\dataset\\labs.csv")
 for item_name in ('hb', 'platelet', 'aptt', 'wbc', 'ptinr', 'glucose', 'bun', 'albumin', 'ast', 'alt', 'creatinine', 'sodium', 'potassium'):
     df = pd.merge_asof(df.sort_values('orin_time'),
                     df_lab.loc[df_lab['item_name'] == item_name].sort_values('chart_time'),

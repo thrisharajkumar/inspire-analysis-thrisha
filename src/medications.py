@@ -89,7 +89,7 @@ def parse_atc_code( atc_code,  atc_code_lookup):
     return f"{level1_name}|{level2_name}|{level3_name}|{level4_name}|{level5_name}"
 
 
-def read_atc_codes(filepath='../codes/WHO_ATC-DDD_2024-07-31.csv'):
+def read_atc_codes(filepath='C:\\Users\\pc\\Documents\\GitHub\\inspire-analysis-thrisha\\codes\\WHO_ATC-DDD_2024-07-31.csv'):
     atc_code_lookup = dict()
     with open(filepath, newline="", encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
@@ -111,7 +111,7 @@ def main():
     # csv_file = sys.argv[1]
 
     atc_code_lookup = dict()
-    with open("./dataset/WHO_ATC-DDD_2024-07-31.csv", newline="", encoding="utf-8") as csvfile:
+    with open("C:\\Users\\pc\\Documents\\GitHub\\inspire-analysis-thrisha\\codes\\WHO_ATC-DDD_2024-07-31.csv", newline="", encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
         # row keys = [atc_code , atc_name, ddd, uom adm_r, note]
         for row in reader:
@@ -124,7 +124,7 @@ def main():
     print(parse_atc_code("M01AE01", atc_code_lookup))
     print(parse_atc_code("G03AC", atc_code_lookup))
 
-    with open("./dataset/medications.csv", newline="", encoding="utf-8-sig") as csvfile:
+    with open("C:\\Users\\pc\\Desktop\\dataset\\medications.csv", newline="", encoding="utf-8-sig") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             drug_name1= row["drug_name"]
@@ -142,7 +142,7 @@ def main():
                 code = make_atc_code(atc_code1, atc_code_lookup)
 
 
-    #medications_df = pd.read_csv("./dataset/WHO ATC-DDD 2024-07-31.csv")
+    #medications_df = pd.read_csv("C:\\Users\\pc\\Documents\\GitHub\\inspire-analysis-thrisha\\codes\\WHO_ATC-DDD_2024-07-31.csv")
     #print(medications_df)
 
 
