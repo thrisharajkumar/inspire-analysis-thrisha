@@ -6,7 +6,6 @@ import sys
 import pandas as pd
 import os
 from stopwatch import Stopwatch
-from sortedcontainers import SortedDict
 
 import seaborn as sns
 import matplotlib.pyplot as plt

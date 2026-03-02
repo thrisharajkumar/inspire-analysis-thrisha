@@ -28,8 +28,8 @@ def count_lines(filename):
 
 def analyse_vitals():
     # Load data
-    vitals_df = pd.read_csv("C:\\Users\\pc\\Desktop\\dataset\\vitals.csv")
-    operations_df = pd.read_csv("C:\\Users\\pc\\Desktop\\dataset\\operations.csv")
+    vitals_df = pd.read_csv("./dataset/vitals.csv")
+    operations_df = pd.read_csv("./dataset/operations.csv")
 
     # Convert chart_time to numeric or datetime if needed
     vitals_df['chart_time'] = pd.to_numeric(vitals_df['chart_time'], errors='coerce')
@@ -118,7 +118,7 @@ def main():
     #     return
     # csv_file = sys.argv[1]
 
-    #medications_df = pd.read_csv("C:\\Users\\pc\\Desktop\\dataset\\medications.csv")
+    #medications_df = pd.read_csv("./dataset/medications.csv")
     #print(medications_df)
 
     analyse_vitals()

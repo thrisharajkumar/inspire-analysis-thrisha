@@ -1,5 +1,3 @@
-#Real data pipeline for DNN mortality prediction using transformer models
-
 import pandas as pd
 import numpy as np
 from scapy.layers.tls.crypto.groups import modp2048
@@ -17,7 +15,6 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_curve, auc
 import random
-import os
 import dnn_mortality_data
 import charts
 
@@ -568,52 +565,17 @@ def get_device():
 
 
 # Modified main function
-def main(dataset_dir=None):
-    """
-    Main training pipeline for mortality prediction using transformer models.
-    
-    Parameters
-    ----------
-    dataset_dir : str, optional
-        Path to INSPIRE dataset directory containing CSV files or pre-processed subject JSON files.
-        If None, uses default paths:
-        - For CSV files: ../inspire_dataset
-        - For JSON subjects: ../inspire_subjects
-        If you want to use REAL data instead of synthetic, provide the dataset directory path.
-    """
+def main():
 
     #---------------------------------------------------------------#
-    # Load data (either real or generated based on dataset_dir)
-    #---------------------------------------------------------------#
+    # Sample data for multiple subjects (replace with your actual data)
+    # These parameters are only for generating data
+    # They are not molde hyper-parameters
+    # ---------------------------------------------------------------#
+    num_subjects = 5000 # 300 # 1000
     feature_columns = ['glucose', 'potassium', 'sodium', 'creatinine']
-    
-    if dataset_dir is None:
-        # Default paths - try common locations
-        if os.path.exists("../inspire_dataset"):
-            dataset_dir = "../inspire_dataset"
-        elif os.path.exists("../inspire_subjects"):
-            dataset_dir = "../inspire_subjects"
-        else:
-            # Fall back to synthetic data if no real dataset found
-            print("WARNING: No dataset directory provided and default paths not found.")
-            print("To use REAL data, call with: main(dataset_dir='path/to/inspire/data')")
-            print("Using synthetic data for demonstration...")
-            num_subjects = 5000 # 300 # 1000
-            proportion_died = 0.20
-            # This would call an older synthetic function - for now just create dummy data
-            raise ValueError(
-                "Please provide dataset_dir parameter with path to INSPIRE dataset.\n"
-                "Example: main(dataset_dir='C:\\path\\to\\inspire_dataset')\n"
-                "Or: main(dataset_dir='../inspire_subjects')"
-            )
-    
-    proportion_died = None  # Use actual proportions from data
-    num_subjects = None     # Use all subjects (or increase this to limit for testing)
-    
-    print(f"Loading INSPIRE dataset from: {dataset_dir}")
-    subjects_data, seq_length = dnn_mortality_data.generate_dataset(
-        dataset_dir, feature_columns, proportion_died, num_subjects
-    )
+    proportion_died = 0.20
+    subjects_data, seq_length = dnn_mortality_data.generate_dataset(num_subjects, feature_columns, proportion_died)
 
     # To stratify training and test percentages of died/survived, compute ratio
     # Used by train-text split
