@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from scapy.layers.tls.crypto.groups import modp2048
 from scipy.interpolate import interp1d
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
@@ -10,12 +11,15 @@ import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
 
+# New imports needed for train-test split and metrics
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_curve, auc, f1_score
+from sklearn.metrics import roc_curve, auc
 import random
 import dnn_mortality_data
 import charts
 
+
+from sklearn.metrics import f1_score
 
 # Step 1: Align time series to a common time grid
 def align_time_series(data, time_column='chart_time'):
@@ -48,6 +52,15 @@ def normalize_data(df, feature_columns, scaler=None):
 
 # Step 3: Create sequences for transformer input
 def create_sequences(df, seq_length, feature_columns, mask_columns):
+    """
+    Generates fixed length (seq_length) sequences from the feature_columns in df.
+    If a value was masked in df, it is also masked in the returned np.array.
+    :param df:
+    :param seq_length:
+    :param feature_columns:
+    :param mask_columns:
+    :return:
+    """
     sequences = []
     for i in range(len(df) - seq_length + 1):
         seq = df.iloc[i:i + seq_length][feature_columns + mask_columns].values
@@ -57,6 +70,12 @@ def create_sequences(df, seq_length, feature_columns, mask_columns):
 
 # Step 4: Positional encoding for transformer
 def positional_encoding(seq_global_length, model_dim):
+    """
+    Generate a sequence (length seq_length for embedding, or global for classification) of positions.
+    :param seq_global_length:
+    :param model_dim:
+    :return:
+    """
     pos = np.arange(seq_global_length)[:, np.newaxis]
     i = np.arange(model_dim)[np.newaxis, :]
     angle_rads = pos / np.power(10000, (2 * (i // 2)) / np.float32(model_dim))
@@ -65,10 +84,10 @@ def positional_encoding(seq_global_length, model_dim):
     return torch.tensor(angle_rads, dtype=torch.float32)
 
 
-# Step 5: Dataset for autoencoder (windowed sequences)
+# Step 5: Custom PyTorch Dataset for sequences (autoencoding)
 class TimeSeriesDataset(Dataset):
     def __init__(self, sequences, seq_length, model_dim):
-        self.sequences = torch.tensor(np.array(sequences), dtype=torch.float32)
+        self.sequences = torch.tensor(sequences, dtype=torch.float32)
         self.pos_enc = positional_encoding(seq_length, model_dim)
 
     def __len__(self):
@@ -78,20 +97,22 @@ class TimeSeriesDataset(Dataset):
         return self.sequences[idx], self.pos_enc
 
 
-# Dataset for full subject time series (classification)
+# Custom Dataset for full subject time series (classification)
 class SubjectDataset(Dataset):
     def __init__(self, multi_data, scaler, global_length, feature_columns, mask_columns, d_model):
         self.inputs = []
         self.labels = []
-        self.masks = []
+        self.masks = []  # Attention masks for padded regions
         self.pos_enc = positional_encoding(global_length, d_model)
         for subject_info in multi_data.values():
             df = align_time_series(subject_info['timeseries'])
             df, _ = normalize_data(df, feature_columns, scaler)
             input_data = df[feature_columns + mask_columns].values
+            # Pad if shorter than full_length
             if len(input_data) < global_length:
                 pad_length = global_length - len(input_data)
                 input_data = np.pad(input_data, ((0, pad_length), (0, 0)), mode='constant')
+                # Create attention mask: 1 for valid, 0 for padded
                 attention_mask = np.ones(len(df))
                 attention_mask = np.pad(attention_mask, (0, pad_length), mode='constant', constant_values=0)
             else:
@@ -107,7 +128,31 @@ class SubjectDataset(Dataset):
         return self.inputs[idx], self.pos_enc, self.labels[idx], self.masks[idx]
 
 
-# Transformer model
+# Plot time series (unchanged)
+def plot_time_series(df, features):
+    plt.figure(figsize=(10, 8))
+    for i, feature in enumerate(features, 1):
+        plt.subplot(len(features), 1, i)
+        interpolated = df[df[f'{feature}_mask'] == 0.0]
+        plt.scatter(interpolated.index, interpolated[feature], label=f'{feature} (interpolated)',
+                    color='blue', s=50, marker='o', alpha=0.5)
+        observed = df[df[f'{feature}_mask'] == 1.0]
+        plt.scatter(observed.index, observed[feature], label=f'{feature} (observed)',
+                    color='red', s=50, marker='o')
+        plt.title(f'{feature} Time Series')
+        plt.xlabel('Time')
+        plt.ylabel(feature)
+        plt.legend()
+        plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+
+# Transformer Model with dual modes: autoencode and classify
+# NB: This "model" is used for both "autoencoding" and "classification"!!!
+#     I think this is a bad idea that needs to be rectified, confusing to say the least.
+#     particularly when we think about freezing learn "autoencoding" weights but
+#     still learn weights to classify.
 class TimeSeriesTransformer(nn.Module):
     def __init__(self, num_features, nhead, num_layers, dim_feedforward, dropout=0.1):
         super(TimeSeriesTransformer, self).__init__()
@@ -121,36 +166,77 @@ class TimeSeriesTransformer(nn.Module):
             batch_first=True
         )
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.output_projection = nn.Linear(num_features, num_features // 2)
-
-        # FIX 1: Deeper classifier head — two layers with ReLU instead of one linear layer
-        # A single Linear(8->1) could not find the boundary in the embedding space.
-        # Two layers give the classifier more capacity to learn non-linear patterns.
-        self.classifier = nn.Sequential(
-            nn.Linear(num_features, 32),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(32, 1)
-        )
+        self.output_projection = nn.Linear(num_features, num_features // 2)  # For autoencoding
+        self.classifier = nn.Linear(num_features, 1)  # For classification
 
     def forward(self, src, pos_enc, mask=None, mode='autoencode'):
+        """
+        Input from PyTorch DataLoader (dataloader) for dataset, where each batch
+        yields (src, pos_enc, mask, labels).
+        :param src: is the input time series (shape: batch_size × seq_len × num_features)
+        :param pos_enc: is positional encoding (same shape as src)
+        :param mask: is the padding mask (if applicable)
+        :param mode: binary class labels (shape: batch_size)
+        :return:
+        """
+        # Linear transformation of input, mixing timer series with their missing values masks
         proj = self.input_projection(src)
+        # Add positional information (not learned but used to learn)
+        # Purpose: Adds temporal information, ensuring the transformer distinguishes the order
+        # of the 50 time steps,critical since the 4 time series and 4 masks evolve over time.
+        # Not an append, adds each element-wise, (32,50,8)+(32,50,8)=(32,50,8)
         proj_enc = proj + pos_enc
+        # enc_out is same dims as src but these are "contextual representations"
+        # src_key_padding_mask is only for ignoring entire time steps
+        #   individual missing/padded feature values are handled by feature masks, not global masks
+        # NB: Need to give name / denote these two types of masks!!!
         enc_out = self.transformer_encoder(proj_enc, src_key_padding_mask=mask)
+        # enc_out (shape: batch_size × seq_len × num_features)
         if mode == 'autoencode':
-            return self.output_projection(enc_out)
+            # This is not the classification embedding but the autoencoder’s attempt to reconstruct
+            # a lower-dimensional representation of the input.  Like a projection head in contrastive learning.
+            # Also, the shape is [32, 24, 8] -> [32, 24, 4]
+            # An embedding would be [32, 24, 8] -> [32, 8], where the embedding is vector of length 8
+            enc = self.output_projection(enc_out)
+            # print(f"TimeSeriesTransformer autoencode:  src={src.shape}  mask={mask}  enc_out={enc_out.shape}  enc={enc.shape}")
+            # batch = 23, seq_length = 24, num_features = 8
+            # src=torch.Size([32, 24, 8])  mask=None  enc_out=torch.Size([32, 24, 8])  enc=torch.Size([32, 24, 4])
+            # enc(shape: batch_size × seq_len × num_features//2)
+            return enc
+            # return self.output_projection(enc_out)
         elif mode == 'embed':
-            return enc_out.mean(dim=1)
-        elif mode == 'classify':
             pooled = enc_out.mean(dim=1)
+            return pooled
+        elif mode == 'classify':
+            # Get the embedding (i.e. mean pooling over time steps)
+            pooled = enc_out.mean(dim=1)
+            # Using the "learned embedding", now learn how to classify
+            # This is a very shallow (basically logistic regression) classification network
             return self.classifier(pooled)
 
 
-# Preprocessing for autoencoding
+# Preprocessing for autoencoding (windowed sequences from all subjects)
+# Very important!!! The models expect features first then masks
+# The multi_data has them interspersed, this function rearranges so features first then masks.
+# This function does quite a lot, aligns + determines masks, normalises, then sequences.
+#
+# My thought was to save the result, however the original multi_data is quite compact
+# The preprocessing expands each time series to full_length, adds masks (fairly minor),
+# and adds sequences (which greatly increase the size).
 def preprocess_for_autoencode(subjects_data, seq_length):
+    """
+    First aligns the time series in multi_data so all the same full_length with masks
+    for observed and observed values.  Then takes these longer series and breaks
+    each (including the masks) into sub-sequences of seq_length.
+    :param multi_data:
+    :param seq_length: length of sub-sequences
+    :param full_length:
+    :return: dataloader, scaler, num_features (num time series + num masks time series)
+    """
     feature_columns = ['glucose', 'potassium', 'sodium', 'creatinine']
     mask_columns = [f'{col}_mask' for col in feature_columns]
 
+    # Collect all data for fitting scaler
     all_dfs = []
     for subject in subjects_data.values():
         time_series = subject['timeseries']
@@ -159,6 +245,7 @@ def preprocess_for_autoencode(subjects_data, seq_length):
     all_data = pd.concat(all_dfs)
     scaler = StandardScaler().fit(all_data)
 
+    # Process each subject
     all_sequences = []
     for subject in subjects_data.values():
         time_series = subject['timeseries']
@@ -173,18 +260,62 @@ def preprocess_for_autoencode(subjects_data, seq_length):
     return dataloader, scaler, num_features
 
 
-# Phase 1: Train autoencoder
+# Training function for autoencoding
 def train_autoencoder(dataloader, num_features, device, epochs=10):
+    """
+    Creates and trains a model that jointly learns to encode the time series data (in dataloader).
+    :type epochs: object
+    :param dataloader: produces n time series features and n masks for those series
+    :param num_features: 2*n (total number of columns, first n are time series values, next n are the masks)
+    :param device: str to use for matrix computation
+    :param epochs:
+    :return: trained encoder model
+    """
+
+    """
+    Are the Features Learned Jointly or Separately?
+    The features (glucose, potassium, sodium, creatinine) are learned jointly in
+    the TimeSeriesTransformer. Joint Learning Implications:
+    
+        The transformer learns a shared representation that captures temporal
+        patterns and inter-feature relationships (e.g., correlations between
+        glucose and sodium levels). This is powerful for modeling multivariate
+        time series where features may influence each other.
+        
+        The masks (indicating observed vs. interpolated values) are included
+        in the input, allowing the model to potentially weigh observed data
+        more heavily or learn patterns related to missingness, but these
+        are also processed jointly with the feature values.
+    """
+
+
+    # The input to the transformer consists of sequences of length seq_length
+    # with d_model dimensions, where d_model is the total number of features
+    # (4 feature columns: glucose, potassium, sodium, creatinine) plus their
+    # corresponding masks (4 mask columns, indicating observed or
+    # interpolated values). Thus, d_model = 8 (4 features + 4 masks).
+
+    # model = TimeSeriesTransformer(
+    #     num_features=num_features,
+    #     nhead=4,
+    #     num_layers=1,
+    #     dim_feedforward=64,
+    #     dropout=0.1
+    # ).to(device)
     model = TimeSeriesTransformer(
         num_features=num_features,
-        nhead=8,
-        num_layers=5,
+        nhead=8, # 4 or 8
+        num_layers=5, # 3 or 5
         dim_feedforward=128,
         dropout=0.1
     ).to(device)
 
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    # The output of the transformer, after passing through the output_projection
+    # layer, has d_model // 2 = 4 dimensions, corresponding to the 4 feature
+    # columns (glucose, potassium, sodium, creatinine).
 
     model.train()
     for epoch in range(epochs):
@@ -193,7 +324,11 @@ def train_autoencoder(dataloader, num_features, device, epochs=10):
             batch, pos_enc = batch.to(device), pos_enc.to(device)
             optimizer.zero_grad()
             output = model(batch, pos_enc, mode='autoencode')
-            target = batch[:, :, :num_features // 2]
+            # The target for training is batch[:, :, :d_model//2], which extracts
+            # the feature columns (not the masks) from the input batch. This means
+            # the model is trained to reconstruct the input sequence of feature values,
+            # not to predict the next value in the time series.
+            target = batch[:, :, :num_features // 2]  # Feature columns
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
@@ -204,80 +339,73 @@ def train_autoencoder(dataloader, num_features, device, epochs=10):
     return model
 
 
-# Phase 2: Train classifier
+# Training function for classification with frozen encoder
 def train_classifier(class_dataloader, model, device, epochs=10, pos_weight=1.0):
+
     model.to(device)
 
-    # FIX 2: Unfreeze the full model — train everything end to end
-    # Previously the encoder was frozen after autoencoder pre-training.
-    # The autoencoder objective (reconstruct labs) is different from the
-    # classification objective (predict mortality). Freezing locked in
-    # representations that were not discriminative for death prediction.
-    # Now the full network fine-tunes together on the classification task.
-    for param in model.parameters():
-        param.requires_grad = True
+    # Model has two parts, transformer_encoder and input_projection
+    # Respectively the autoencoder (transformer_encoder) to encode time series
+    # and a classification task (input_projection)
+    # Freeze autoencoder weights, cannot be changed.
+    for param in model.transformer_encoder.parameters():
+        param.requires_grad = False
+    for param in model.input_projection.parameters():
+        param.requires_grad = False
 
-    # FIX 3: Lower learning rate for fine-tuning
-    # 0.001 caused the bouncing loss (1.59 -> 1.23 -> 1.30 -> 1.20...).
-    # 1e-4 is small enough to fine-tune without destroying the pre-trained weights.
     criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([pos_weight]).to(device))
-    optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
-
-    # FIX 4: Learning rate scheduler — reduces LR when loss plateaus
-    # This helps escape the bouncing loss pattern seen in the original output.
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3, factor=0.5)
-
+    optimizer = optim.Adam(model.classifier.parameters(), lr=0.001, weight_decay=1e-5)
     model.train()
     for epoch in range(epochs):
         total_loss = 0
         for batch, pos_enc, labels, masks in class_dataloader:
-            batch = batch.to(device)
-            pos_enc = pos_enc.to(device)
-            labels = torch.tensor(labels, dtype=torch.float32).to(device)
-            masks = masks.to(device)
+            batch, pos_enc, labels, masks = batch.to(device), pos_enc.to(device), torch.tensor(labels, dtype=torch.float32).to(device), masks.to(device)
             optimizer.zero_grad()
-            output = model(batch, pos_enc, mask=(masks == 0), mode='classify')
+            output = model(batch, pos_enc, mask=(masks == 0), mode='classify')  # Mask padded regions
             loss = criterion(output.squeeze(1), labels)
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
         avg_loss = total_loss / len(class_dataloader)
-        scheduler.step(avg_loss)
-        current_lr = optimizer.param_groups[0]['lr']
-        print(f"Classifier Epoch {epoch+1}/{epochs}, Average Loss: {avg_loss:.4f}, LR: {current_lr:.6f}")
-
+        print(f"Classifier Epoch {epoch+1}/{epochs}, Average Loss: {avg_loss:.4f}")
     return model
 
 
-# Train/test split with stratification
+# New function to split subjects into train and test sets with balanced 'not survived' percentage
 def create_train_test_split(subjects_data, train_size=0.7, not_survived_pct=0.5, random_state=42):
+    # Extract subject IDs and labels
     subject_ids = list(subjects_data.keys())
     labels = [subjects_data[pid]['label'] for pid in subject_ids]
 
+    # Separate survived (0) and not survived (1) subjects
     survived_ids = [pid for pid, label in zip(subject_ids, labels) if label == 0]
     not_survived_ids = [pid for pid, label in zip(subject_ids, labels) if label == 1]
 
+    # Calculate number of not survived subjects for test set based on desired percentage
     test_size = 1 - train_size
     total_test_subjects = int(len(subject_ids) * test_size)
     test_not_survived = int(total_test_subjects * not_survived_pct)
     test_survived = total_test_subjects - test_not_survived
 
+    # Ensure enough subjects in each class
     if test_not_survived > len(not_survived_ids) or test_survived > len(survived_ids):
         raise ValueError(f"Not enough subjects to achieve desired not_survived_pct ({not_survived_pct:.3f}) in test set.")
 
+    # Randomly sample subjects for test set
     random.seed(random_state)
     test_not_survived_ids = random.sample(not_survived_ids, test_not_survived)
     test_survived_ids = random.sample(survived_ids, test_survived)
     test_ids = test_not_survived_ids + test_survived_ids
     train_ids = [pid for pid in subject_ids if pid not in test_ids]
 
+    # Create train and test dictionaries
     train_data = {pid: subjects_data[pid] for pid in train_ids}
     test_data = {pid: subjects_data[pid] for pid in test_ids}
 
     return train_data, test_data
 
 
-# Evaluate model — AUROC, AUPRC, F1
+# New function to evaluate model and plot ROC curve
 def evaluate_model(model, test_dataloader, device):
     model.eval()
     all_probs = []
@@ -285,47 +413,71 @@ def evaluate_model(model, test_dataloader, device):
 
     with torch.no_grad():
         for batch, pos_enc, labels, masks in test_dataloader:
-            batch = batch.to(device)
-            pos_enc = pos_enc.to(device)
-            labels = torch.tensor(labels, dtype=torch.float32).to(device)
-            masks = masks.to(device)
-            output = model(batch, pos_enc, mask=(masks == 0), mode='classify')
+            batch, pos_enc, labels, masks = batch.to(device), pos_enc.to(device), torch.tensor(labels, dtype=torch.float32).to(device), masks.to(device)
+
+            print(f"DEBUG: masks.shape={masks.shape}")
+            p_masks = (masks == 0)
+            print(f"DEBUG: p_masks.shape={p_masks.shape}")
+
+            output = model(batch, pos_enc, mask=(masks == 0), mode='classify')  # Mask padded regions
             probs = torch.sigmoid(output.squeeze(1)).cpu().numpy()
+
+            print(f"EVALUATE batch.shape {batch.shape}")
+            # for prob, label in zip(probs, labels):
+            #     print(f"  prob={prob} label={label}")
+            """
+            EVALUATE batch.shape torch.Size([5, 1000, 8])
+            prob=0.4739331901073456 label=0.0
+            prob=0.4690852165222168 label=0.0
+            prob=0.47706782817840576 label=1.0
+            prob=0.4684579372406006 label=1.0
+            prob=0.48032814264297485 label=1.0
+            """
+
             all_probs.extend(probs)
             all_labels.extend(labels.cpu().numpy())
 
-    # AUROC
+    # Compute ROC curve and AUROC
     fpr, tpr, _ = roc_curve(all_labels, all_probs, pos_label=1)
     roc_auc = auc(fpr, tpr)
-    print(f"\nAUROC: {roc_auc:.4f}")
 
-    # Best F1 threshold
+    # --- Find best threshold for F1 ---
     best_thresh, best_f1 = 0, 0
-    for thresh in np.linspace(0, 1, 101):
-        y_pred = (np.array(all_probs) >= thresh).astype(int)
-        f1 = f1_score(all_labels, y_pred, zero_division=0)
+    for thresh in np.linspace(0, 1, 101):  # scan 0..1
+        y_pred = (all_probs >= thresh).astype(int)
+        f1 = f1_score(all_labels, y_pred)
         if f1 > best_f1:
             best_f1, best_thresh = f1, thresh
-    print(f"Best F1: {best_f1:.3f} at threshold {best_thresh:.2f}")
 
-    # Class distribution
-    num_died = sum(1 for l in all_labels if l == 1)
-    num_survived = sum(1 for l in all_labels if l == 0)
-    print(f"Test positives (died):    {num_died}")
-    print(f"Test negatives (survived): {num_survived}")
-    print(f"Death rate in test set:   {num_died/(num_died+num_survived):.3f}")
+    print(f"Best AUROC threshold for F1 = {best_f1:.3f} at threshold {best_thresh:.2f}")
 
-    # FIX 5: Print probability distribution to diagnose stuck-at-0.47 bug
-    prob_array = np.array(all_probs)
-    print(f"\nProbability stats:")
-    print(f"  Min:  {prob_array.min():.4f}")
-    print(f"  Max:  {prob_array.max():.4f}")
-    print(f"  Mean: {prob_array.mean():.4f}")
-    print(f"  Std:  {prob_array.std():.4f}")
-    if prob_array.std() < 0.01:
-        print("  WARNING: All probabilities nearly identical — model is not learning to discriminate.")
-    else:
-        print("  OK: Model is producing varied probabilities across patients.")
+    num_died = 0
+    num_survived = 0
+    for label, prob in zip(all_labels, all_probs):
+        if label == 1: num_died += 1
+        else: num_survived += 1
+    print(f"Test actual positive {num_died}")
+    print(f"Test actual negative {num_survived}")
+    positive_ratio = num_died / (num_died+num_survived)
+    print(f"Test proportion positive {positive_ratio:.3f} died")
+    print(f"Test proportion positive {1.0-positive_ratio:.3f} survived")
+
+
+
+    # # Plot ROC curve
+    # plt.figure(figsize=(8, 6))
+    # plt.plot(fpr, tpr, color='blue', lw=2, label=f'ROC curve (AUROC = {roc_auc:.4f})')
+    # plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
+    # plt.xlim([0.0, 1.0])
+    # plt.ylim([0.0, 1.05])
+    # plt.xlabel('False Positive Rate (FPR)')
+    # plt.ylabel('True Positive Rate (TPR)')
+    # plt.title('Receiver Operating Characteristic (ROC) Curve')
+    # plt.legend(loc='lower right')
+    # plt.grid(True)
+    # plt.show()
+    #
+    # print(f"AUROC: {roc_auc:.4f}")
 
     charts.plot_auroc(all_labels, all_probs)
     charts.plot_auprc(all_labels, all_probs)
@@ -333,144 +485,176 @@ def evaluate_model(model, test_dataloader, device):
     return roc_auc
 
 
-# Extract embeddings for t-SNE visualisation
 def extract_embeddings(model, dataloader, device):
-    model.eval()
+    """
+    Get the embeddings for the input dataloader instances.  Useful for visualising the embeddings.
+    :param model:
+    :param dataloader:
+    :param device:
+    :return:
+    """
+    model.eval()  # Set to evaluation mode
     model.to(device)
     embeddings = []
     labels_list = []
 
     with torch.no_grad():
+        # This loop results in DEBUG: masks.shape=torch.Size([10]), which causes error
+        # # This loops results in DEBUG: masks.shape=torch.Size([10, 1000]), which is correct
+        # for src, pos_enc, labels, masks in dataloader:
+        #     src, pos_enc, labels, masks = src.to(device), pos_enc.to(device), torch.tensor(labels, dtype=torch.float32).to(device), masks.to(device)
+
         for batch in dataloader:
-            src, pos_enc, labels, masks = [item.to(device) for item in batch]
+            src, pos_enc, labels, masks = [item.to(device) for item in batch]  # Move to device
+            # labels are what?
+            # Odd that the code converted labels to torch.Tensor, they are already torch.Tensor???
+            # print(f"labels type={type(labels)}") # labels type=<class 'torch.Tensor'>
+
+            # Note global mask only applicable for train/test classifier, not for embeddings?
+            print(f"DEBUG: masks.shape={masks.shape}")
+            p_masks = (masks == 0)
+            print(f"DEBUG: p_masks.shape={p_masks.shape}")
             pooled_emb = model(src, pos_enc, mask=(masks == 0), mode='embed')
-            embeddings.append(pooled_emb.cpu().numpy())
+            embeddings.append(pooled_emb.cpu().numpy())  # Collect on CPU as NumPy
             labels_list.append(labels.cpu().numpy())
 
-    embeddings = np.concatenate(embeddings, axis=0)
-    labels = np.concatenate(labels_list, axis=0)
+    embeddings = np.concatenate(embeddings, axis=0)  # Shape: (num_samples, num_features)
+    labels = np.concatenate(labels_list, axis=0)  # Shape: (num_samples,)
     return embeddings, labels
 
 
-# t-SNE visualisation
-def visualise_embeddings(embeddings, labels, title='Before classifier training'):
+def visualise_embeddings(embeddings, labels):
+    # Reduce to 2D (perplexity=30 is a common default; adjust based on dataset size)
     perplexity = 30
     if len(labels) < 30:
-        perplexity = max(5, int(0.5 * len(labels)))
+        # perplexity has to be greater than number of samples
+        perplexity = int( 0.5*len(labels) )
     tsne = TSNE(n_components=2, perplexity=perplexity, learning_rate='auto', init='pca', random_state=42)
-    embed_2d = tsne.fit_transform(embeddings)
+    embed_2d = tsne.fit_transform(embeddings)  # Shape: (num_samples, 2)
 
+    # Plot
     plt.figure(figsize=(8, 6))
     scatter = plt.scatter(embed_2d[:, 0], embed_2d[:, 1], c=labels, cmap='coolwarm', alpha=0.7)
     plt.colorbar(scatter, ticks=[0, 1], label='Class Label')
-    plt.title(f't-SNE Visualization of Time Series Embeddings\n{title}')
+    plt.title('t-SNE Visualization of Time Series Embeddings')
     plt.xlabel('t-SNE Component 1')
     plt.ylabel('t-SNE Component 2')
-    filename = f"embeddings_{title.replace(' ', '_')}.png"
-    plt.savefig(filename, dpi=300)
-    plt.close()
-    print(f"Saved: {filename}")
+    plt.savefig('embeddings.png', dpi=300)
+    # plt.show()
+
 
 
 def print_model_stats(model):
+    # Calculate total number of parameters
     total_params = sum(p.numel() for p in model.parameters())
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Total parameters:     {total_params:,}")
-    print(f"Trainable parameters: {trainable_params:,}")
+    print(f"Total number of parameters: {total_params}")
 
+    # Calculate total number of trainable parameters
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"Total trainable parameters: {trainable_params}")
 
 def get_device():
-    if torch.cuda.is_available():
-        print("Using CUDA GPU")
-        return "cuda"
-    else:
-        print("Using CPU")
-        return "cpu"
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    # BUG: "mps" no issues for autoencoding but gets nan's for classification training
+    #      "cpu" no issues for autoencoding and no issues for classification training
+    # return device
+    return "cpu"
 
 
+
+
+
+# Modified main function
 def main():
 
-    # ---------------------------------------------------------------
-    # Data generation — synthetic patients for development
-    # Replace generate_dataset() with extract_frames() for real data
-    # ---------------------------------------------------------------
-    num_subjects = 300
+    #---------------------------------------------------------------#
+    # Sample data for multiple subjects (replace with your actual data)
+    # These parameters are only for generating data
+    # They are not molde hyper-parameters
+    # ---------------------------------------------------------------#
+    num_subjects = 300 # 300 # 1000
     feature_columns = ['glucose', 'potassium', 'sodium', 'creatinine']
     proportion_died = 0.20
-    subjects_data, seq_length = dnn_mortality_data.generate_dataset(
-        num_subjects, feature_columns, proportion_died)
+    subjects_data, seq_length = dnn_mortality_data.generate_dataset(num_subjects, feature_columns, proportion_died)
 
-    print(f"USING seq_length={seq_length}")
-
-    num_died = sum(1 for s in subjects_data.values() if s['label'] == 1)
-    num_survived = sum(1 for s in subjects_data.values() if s['label'] == 0)
+    # To stratify training and test percentages of died/survived, compute ratio
+    # Used by train-text split
+    num_died = 0
+    num_survived = 0
+    for subject in subjects_data.values():
+        if subject['label'] == 1:  num_died += 1
+        else: num_survived += 1
     not_survived_pct = num_died / num_survived
     print(f"num_died     = {num_died}")
     print(f"num_survived = {num_survived}")
-    print(f"Ratio died     = {not_survived_pct:.3f}")
-    print(f"Ratio survived = {1.0 - not_survived_pct:.3f}")
+    print(f"Ratio of died     = {not_survived_pct:.3f}")
+    print(f"Ratio of survived = {1.0 - not_survived_pct:.3f}")
 
-    # ---------------------------------------------------------------
-    # Compute global length (max time range across all subjects)
-    # ---------------------------------------------------------------
+    # ---------------------------------------------------------------#
+    # Determine global full_length (max time range across all subjects)
+    # This is the (max_chart_time - min_chart_time) across all subjects.
+    # ---------------------------------------------------------------#
     max_length = 0
     for subject in subjects_data.values():
         df = align_time_series(subject['timeseries'])
         max_length = max(max_length, len(df))
     global_length = max_length
 
-    # ---------------------------------------------------------------
-    # Train / test split — stratified by mortality label
-    # ---------------------------------------------------------------
+
+
+    # ---------------------------------------------------------------#
+    # Prepare the dataset for the encoding / feature learning phase
+    # ---------------------------------------------------------------#
+
+    # Split data into train and test sets
+    # NB: the test_data is aligned/normalised in subjectDataset
+    #     but not sequenced (this is only necessary for training the autoencoder)
     train_data, test_data = create_train_test_split(
         subjects_data, train_size=2/3, not_survived_pct=not_survived_pct)
 
-    # ---------------------------------------------------------------
-    # Phase 1: Autoencoder pre-training
-    # ---------------------------------------------------------------
+    # Preprocess for autoencoding using training data (align, normalise, sequence)
+
     auto_dataloader, scaler, num_features = preprocess_for_autoencode(train_data, seq_length)
-    print(f"num_features = {num_features} (4 features + 4 masks)")
+
+    # # Demo: Print batch shapes
+    # for batch, pos_enc in auto_dataloader:
+    #     print(f"Autoencode Batch shape: {batch.shape}")
+    #     print(f"Positional encoding shape: {pos_enc.shape}")
+    #     break
 
     device = get_device()
 
-    print("\n--- Phase 1: Autoencoder pre-training ---")
+    # Train autoencoder
+    print(f"num_features = {num_features} (aka number of features/columns in data")
     model = train_autoencoder(auto_dataloader, num_features, device, epochs=10)
 
-    # ---------------------------------------------------------------
-    # Build subject datasets for classification phase
-    # ---------------------------------------------------------------
+
+    # ---------------------------------------------------------------#
+    # Prepare for the task specific / classification phase using the learned features
+    # ---------------------------------------------------------------#
     mask_columns = [f'{col}_mask' for col in feature_columns]
     train_dataset = SubjectDataset(train_data, scaler, global_length, feature_columns, mask_columns, num_features)
-    test_dataset  = SubjectDataset(test_data,  scaler, global_length, feature_columns, mask_columns, num_features)
+    test_dataset = SubjectDataset(test_data, scaler, global_length, feature_columns, mask_columns, num_features)
     train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    test_dataloader  = DataLoader(test_dataset,  batch_size=32, shuffle=False)
+    test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
-    # Visualise embeddings BEFORE classifier training
-    print("\n--- Extracting embeddings before classifier training ---")
+    # Visualise the test embeddings (they have labels)
     embeddings, labels = extract_embeddings(model, test_dataloader, device)
-    visualise_embeddings(embeddings, labels, title='Before classifier training')
+    visualise_embeddings(embeddings, labels)
 
-    # ---------------------------------------------------------------
-    # Phase 2: Classifier fine-tuning
-    # ---------------------------------------------------------------
-    num_survived_train = sum(1 for p in train_data.values() if p['label'] == 0)
-    num_died_train     = sum(1 for p in train_data.values() if p['label'] == 1)
-    pos_weight = num_survived_train / num_died_train
-    print(f"\npos_weight = {pos_weight:.2f} (survived/died ratio for class imbalance)")
+    # classify = False
+    # if not classify:
+    #     return
 
-    print("\n--- Phase 2: Classifier fine-tuning ---")
-    print_model_stats(model)
+    # Train classifier with pos_weight for imbalance (adjust based on train_data)
+    num_survived = sum(1 for p in train_data.values() if p['label'] == 0)
+    num_died     = sum(1 for p in train_data.values() if p['label'] == 1)
+    pos_weight = num_survived / num_died
     train_classifier(train_dataloader, model, device, epochs=10, pos_weight=pos_weight)
 
-    # Visualise embeddings AFTER classifier training
-    print("\n--- Extracting embeddings after classifier training ---")
-    embeddings, labels = extract_embeddings(model, test_dataloader, device)
-    visualise_embeddings(embeddings, labels, title='After classifier training')
-
-    # ---------------------------------------------------------------
-    # Evaluation
-    # ---------------------------------------------------------------
-    print("\n--- Evaluation on test set ---")
+    # ---------------------------------------------------------------#
+    # Evaluate the classifier on test set, indirectly also evaluating the learned features
+    # ---------------------------------------------------------------#
     evaluate_model(model, test_dataloader, device)
 
 
