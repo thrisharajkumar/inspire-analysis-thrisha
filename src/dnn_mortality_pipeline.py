@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from scapy.layers.tls.crypto.groups import modp2048
 from scipy.interpolate import interp1d
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
@@ -87,14 +86,16 @@ def positional_encoding(seq_global_length, model_dim):
 # Step 5: Custom PyTorch Dataset for sequences (autoencoding)
 class TimeSeriesDataset(Dataset):
     def __init__(self, sequences, seq_length, model_dim):
-        self.sequences = torch.tensor(sequences, dtype=torch.float32)
+        # self.sequences = torch.tensor(sequences, dtype=torch.float32)
+        self.sequences = np.array(sequences, dtype=np.float32)
         self.pos_enc = positional_encoding(seq_length, model_dim)
 
     def __len__(self):
         return len(self.sequences)
 
     def __getitem__(self, idx):
-        return self.sequences[idx], self.pos_enc
+        seq = torch.from_numpy(self.sequences[idx])
+        return seq, self.pos_enc
 
 
 # Custom Dataset for full subject time series (classification)
@@ -256,7 +257,8 @@ def preprocess_for_autoencode(subjects_data, seq_length):
 
     num_features = len(feature_columns) + len(mask_columns)
     dataset = TimeSeriesDataset(all_sequences, seq_length, num_features)
-    dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+    #dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=256, shuffle=True, num_workers=2, pin_memory=True)
     return dataloader, scaler, num_features
 
 
@@ -553,14 +555,19 @@ def print_model_stats(model):
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Total trainable parameters: {trainable_params}")
 
+# def get_device():
+#     device = "mps" if torch.backends.mps.is_available() else "cpu"
+#     # BUG: "mps" no issues for autoencoding but gets nan's for classification training
+#     #      "cpu" no issues for autoencoding and no issues for classification training
+#     # return device
+#     return "cpu"
+
 def get_device():
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
-    # BUG: "mps" no issues for autoencoding but gets nan's for classification training
-    #      "cpu" no issues for autoencoding and no issues for classification training
-    # return device
+    if torch.cuda.is_available():
+        return "cuda"
+    elif torch.backends.mps.is_available():
+        return "mps"
     return "cpu"
-
-
 
 
 
@@ -626,8 +633,8 @@ def main():
 
     # Train autoencoder
     print(f"num_features = {num_features} (aka number of features/columns in data")
-    model = train_autoencoder(auto_dataloader, num_features, device, epochs=10)
-
+    #model = train_autoencoder(auto_dataloader, num_features, device, epochs=10)
+    model = train_autoencoder(auto_dataloader, num_features, device, epochs=3)
 
     # ---------------------------------------------------------------#
     # Prepare for the task specific / classification phase using the learned features
@@ -650,8 +657,8 @@ def main():
     num_survived = sum(1 for p in train_data.values() if p['label'] == 0)
     num_died     = sum(1 for p in train_data.values() if p['label'] == 1)
     pos_weight = num_survived / num_died
-    train_classifier(train_dataloader, model, device, epochs=10, pos_weight=pos_weight)
-
+    #train_classifier(train_dataloader, model, device, epochs=10, pos_weight=pos_weight)
+    train_classifier(train_dataloader, model, device, epochs=3, pos_weight=pos_weight)
     # ---------------------------------------------------------------#
     # Evaluate the classifier on test set, indirectly also evaluating the learned features
     # ---------------------------------------------------------------#
