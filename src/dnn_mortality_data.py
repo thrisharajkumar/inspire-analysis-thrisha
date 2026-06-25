@@ -191,11 +191,19 @@ def get_chart_time_range(subject_id, subject_data):
 
 def load_real_subjects(json_dir, feature_columns, days_before_operation=5, min_observations=2):
     """
-    Loads every <subject_id>.json file in json_dir and returns subjects_data
+    Loads subject JSON files in one of two layouts and returns subjects_data
     in the exact shape dnn_mortality_pipeline.main() expects from
-    generate_dataset().
+    generate_dataset():
 
-    :param json_dir: folder containing one .json file per patient
+    Layout A (flat):   json_dir/<subject_id>.json
+    Layout B (labelled folders): json_dir/survived/<subject_id>.json
+                                  json_dir/died/<subject_id>.json
+        -- label is taken directly from the folder name in this layout,
+           which is more reliable than re-deriving it from inhosp_death_time
+           (and is how this specific INSPIRE export is organised).
+
+    :param json_dir: folder containing either .json files directly, or the
+                      'survived' / 'died' subfolders described above
     :param feature_columns: list of lab/ward_vital item_name strings, e.g.
                              ['glucose', 'potassium', 'sodium', 'creatinine']
     :param days_before_operation: size of the pre-operative window, in days,
@@ -206,35 +214,53 @@ def load_real_subjects(json_dir, feature_columns, days_before_operation=5, min_o
                               meaningfully)
     :return: (subjects_data, seq_length)
     """
-    json_paths = sorted(glob.glob(os.path.join(json_dir, '*.json')))
-    if len(json_paths) == 0:
-        raise FileNotFoundError(f"No .json files found in {json_dir}")
-
     minutes_before_operation = days_before_operation * 24 * 60
+
+    # Detect layout: labelled survived/died subfolders vs flat .json files
+    survived_dir = os.path.join(json_dir, 'survived')
+    died_dir = os.path.join(json_dir, 'died')
+    use_labelled_folders = os.path.isdir(survived_dir) and os.path.isdir(died_dir)
+
+    if use_labelled_folders:
+        json_paths_with_label = (
+            [(p, 0) for p in sorted(glob.glob(os.path.join(survived_dir, '*.json')))] +
+            [(p, 1) for p in sorted(glob.glob(os.path.join(died_dir, '*.json')))]
+        )
+        print(f"load_real_subjects: detected labelled folder layout "
+              f"({len(glob.glob(os.path.join(survived_dir, '*.json')))} survived, "
+              f"{len(glob.glob(os.path.join(died_dir, '*.json')))} died)")
+    else:
+        json_paths = sorted(glob.glob(os.path.join(json_dir, '*.json')))
+        json_paths_with_label = [(p, None) for p in json_paths]  # label derived per-file below
+
+    if len(json_paths_with_label) == 0:
+        raise FileNotFoundError(f"No .json files found in {json_dir} (checked flat and survived/died layouts)")
 
     subjects_data = dict()
     skipped_no_operation = 0
     skipped_sparse = 0
 
-    for path in json_paths:
+    for path, folder_label in json_paths_with_label:
         with open(path) as f:
             raw = json.load(f)
 
         subject_id = raw.get('subject_id', os.path.splitext(os.path.basename(path))[0])
 
-        timeseries, label = extract_frames_from_json(raw, feature_columns, minutes_before_operation)
+        timeseries, derived_label = extract_frames_from_json(raw, feature_columns, minutes_before_operation)
         if timeseries is None:
             skipped_no_operation += 1
             continue
+
+        # Prefer the folder-provided label when available (more reliable than
+        # re-deriving from inhosp_death_time, and is the ground truth for
+        # this export); fall back to the derived label otherwise.
+        label = folder_label if folder_label is not None else derived_label
 
         total_observations = sum(len(v) for v in timeseries.values())
         if total_observations < min_observations:
             skipped_sparse += 1
             continue
 
-        # Ensure every requested feature key exists (even if empty dict) so
-        # downstream align_time_series() always sees a consistent set of
-        # feature_columns -- matches James's timeseries_subset pattern.
         for feature_name in feature_columns:
             if feature_name not in timeseries:
                 timeseries[feature_name] = dict()
@@ -255,8 +281,6 @@ def load_real_subjects(json_dir, feature_columns, days_before_operation=5, min_o
           f"({num_died} died, {num_survived} survived) "
           f"[skipped {skipped_no_operation} no-operation, {skipped_sparse} too-sparse]")
 
-    # seq_length: 2.5% of the pre-op window length, same heuristic as
-    # generate_dataset(), with a sane floor so short windows still work.
     seq_length = max(5, int(0.025 * minutes_before_operation))
     print(f"USING seq_length={seq_length}")
 
