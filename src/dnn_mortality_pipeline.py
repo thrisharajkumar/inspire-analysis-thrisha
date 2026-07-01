@@ -281,7 +281,7 @@ def preprocess_for_autoencode(subjects_data, seq_length, feature_columns):
 def train_autoencoder(dataloader, num_features, device, epochs=10):
     model = TimeSeriesTransformer(
         num_features=num_features,
-        nhead=8,
+        nhead=7,
         num_layers=5,
         dim_feedforward=128,
         dropout=0.1
@@ -525,8 +525,8 @@ def main():
     # and synthetic data without touching anything else below.
     # ---------------------------------------------------------------#
     USE_REAL_DATA = True
-    JSON_DIR = "./inspire_subjects_json"   # folder of <subject_id>.json files
-    FEATURE_COLUMNS = ['glucose', 'potassium', 'sodium', 'creatinine']
+    JSON_DIR = "/content/inspire_subjects_small/inspire_subjects_small"  # folder of <subject_id>.json files
+    FEATURE_COLUMNS = ['glucose', 'potassium', 'sodium', 'creatinine', 'hr', 'spo2', 'nibp_sbp']
     DAYS_BEFORE_OPERATION = 5
 
     # Only used when USE_REAL_DATA = False
@@ -539,8 +539,8 @@ def main():
     # near random, ~0.47 probability for every patient regardless of label).
     UNFREEZE_ENCODER = True
 
-    AUTOENCODER_EPOCHS = 3
-    CLASSIFIER_EPOCHS = 3
+    AUTOENCODER_EPOCHS = 10
+    CLASSIFIER_EPOCHS = 20
 
     # ---------------------------------------------------------------#
     # Load data
@@ -570,7 +570,7 @@ def main():
     for subject in subjects_data.values():
         df = align_time_series(subject['timeseries'])
         max_length = max(max_length, len(df))
-    global_length = max_length
+    global_length = min(max_length, 1440)
     print(f"global_length = {global_length}")
 
     # ---------------------------------------------------------------#
