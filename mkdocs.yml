@@ -1,0 +1,42 @@
+site_name: INSPIRE DNN Mortality Pipeline
+site_description: Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.
+repo_url: https://github.com/thrisharajkumar/inspire-analysis-thrisha
+repo_name: thrisharajkumar/inspire-analysis-thrisha
+
+# notes.md lives directly inside docs/ — edit it there.
+docs_dir: docs
+site_dir: site
+
+nav:
+  - Notes: notes.md
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.top
+    - navigation.expand
+    - toc.integrate
+    - content.code.copy
+    - search.suggest
+
+markdown_extensions:
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
