@@ -8,8 +8,7 @@ docs_dir: docs
 site_dir: site
 
 nav:
-  - Home: README.md
-  - Project Notes: notes.md
+  - Home: notes.md
   - INSPIRE Project Notes: INSPIRE_Project_Notes.md
   - Feature Audit Findings: feature_audit_findings.md   # new
 theme:
