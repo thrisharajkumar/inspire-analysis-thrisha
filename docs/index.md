@@ -57,7 +57,7 @@
 1. **Data coverage (EDA phase)** — audit all 126 available parameters across `labs` (38), `ward_vitals` (16), and intra-operative `vitals` (72) for missingness, measurement frequency, and outlier prevalence. *(Whether intra-op vitals are included depends on an open scope decision — see Section 4.)*
 2. **Feature selection by organ system** — group usable parameters into renal, cardiovascular, respiratory, metabolic/hepatic, and haematological sets (Section 11), expanding from the current 7-feature pilot.
 3. **ICD-10 deep dive** — diagnosis codes vs. operation/procedure codes, multi-code patients, overlap with the existing HFRS frailty codes (Section 15).
-4. **Frailty integration** — evaluate the Hospital Frailty Risk Score (HFRS) as an auxiliary feature, stratified by scheduled vs. emergency surgery (see `docs/INSPIRE_Project_Notes.md` §11, "Frailty and Saranya's Work").
+4. **Frailty integration** — fix the HFRS time-window gap, then evaluate HFRS as a baseline and as an added feature, stratified by scheduled vs. emergency surgery (see Section 15, item 9).
 5. **Model scale-up** — move from the 29-patient development subset to the full 99,886-patient cohort.
 6. **Explainability architecture** — implement system-separated encoders so mortality predictions decompose into per-organ-system contributions (Section 14).
 7. **Benchmarking** — compare NELA, GBM (± frailty), transformer, GRU, and TCN on the same task.
@@ -827,17 +827,24 @@ Candidates to evaluate against each other:
 **8. Data distribution analysis**
 General EDA — distributions, outliers, correlations — across the full parameter set, extending the correlation work already done (`docs/INSPIRE_Project_Notes.md` §11: frailty–sodium, frailty–albumin correlations).
 
+**9. HFRS — what it is and a fix needed**
+HFRS = Hospital Frailty Risk Score (Gilbert et al. 2018, Lancet). It's 109 ICD-10 codes, each with a point value, derived from a cluster analysis of frail vs. non-frail hospital patients. Sum the points from a patient's diagnosis codes to get a score: **<5 = low, 5–15 = intermediate, >15 = high** (already correct in `subject.py:compute_hfrs()`).
+
+The published method only counts diagnoses from the **prior 2 years**, for patients aged 75+. Our current code uses **all** of a patient's diagnoses ever, no time limit, no age cutoff — this needs fixing before HFRS results can be trusted.
+
+Plan: use HFRS two ways — (1) as its own baseline, no training, like NELA, and (2) as an extra feature added to GBM/DNN. Evaluate with AUROC + AUPRC, compared with and without HFRS, and split by scheduled vs. emergency surgery (ties into item 10 below).
+
 ### Clinical structure
 
-**9. Conditional dependencies**
+**10. Conditional dependencies**
 E.g. frailty is largely uninformative once you know surgery was scheduled (a surgeon has already selected for fitness), but highly informative for emergency surgery where no such selection occurred. This hypothesis (framed in `docs/INSPIRE_Project_Notes.md` §11) needs a scheduled-vs-emergency stratified analysis to test properly, and may generalise to other conditional relationships beyond frailty.
 
-**10. Multi-operation patients**
+**11. Multi-operation patients**
 Does a patient with two or more recorded operations carry different mortality risk than a single-operation patient? Needs its own cohort split and analysis — this is a patient-level question, separate from the per-operation prediction the current pipeline makes.
 
 ### Modelling
 
-**11. DNN generalisation and robustness**
+**12. DNN generalisation and robustness**
 - Shared representation learning — how much should the organ-system encoders share vs. specialise?
 - Robustness — does the model degrade gracefully with missing/noisy inputs, or brittle?
 - Semi-supervised learning — the current autoencoder pretraining phase (Section 8) is already a step in this direction; worth exploring further given how few labelled deaths exist relative to the full cohort.
@@ -848,8 +855,9 @@ Given the current focus is interpretability tied to ICD-10 and department, a rea
 1. EDA — ICD-10 code distributions, department distributions, both vs. mortality (items 2, 3, 8)
 2. Organ-system feature categorisation for all 126 parameters (items 4, 5) — pending the scope decision in Section 4
 3. Missing data / distribution handling for whichever features EDA selects (items 6, 7)
-4. Conditional dependency and multi-operation analysis (items 9, 10)
-5. Model architecture and generalisation work (item 11), building on the current two-phase pipeline (Section 8)
+4. HFRS fix and evaluation (item 9)
+5. Conditional dependency and multi-operation analysis (items 10, 11)
+6. Model architecture and generalisation work (item 12), building on the current two-phase pipeline (Section 8)
 
 ---
 
