@@ -1,4 +1,23 @@
 """
+Departments found: ['AN', 'CTS', 'DM', 'GS', 'IM', 'NS', 'OG', 'OL', 'OS', 'OT', 'PED', 'PS', 'RAD', 'RO', 'UR']
+
+  AN    :     55 available -> sampled 55
+  CTS   :   6555 available -> sampled 300
+  DM    :      1 available -> sampled 1
+  GS    :  28035 available -> sampled 300
+  IM    :     60 available -> sampled 60
+  NS    :   7623 available -> sampled 300
+  OG    :  11253 available -> sampled 300
+  OL    :   9494 available -> sampled 300
+  OS    :  12223 available -> sampled 300
+  OT    :  11119 available -> sampled 300
+  PED   :     27 available -> sampled 27
+  PS    :   3582 available -> sampled 300
+  RAD   :    331 available -> sampled 300
+  RO    :     11 available -> sampled 11
+  UR    :   8575 available -> sampled 300
+
+Total survived patients sampled: 3154
 sample_survived_by_department.py
 
 Run this LOCALLY on your machine (Windows), pointed at your real dataset.

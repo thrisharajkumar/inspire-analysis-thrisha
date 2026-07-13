@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - docs/notes.md
+      - docs/**
       - mkdocs.yml
       - requirements-docs.txt
       - .github/workflows/deploy-docs.yml

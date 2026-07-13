@@ -8,18 +8,18 @@
 
 1. [Project Overview](#1-project-overview)
 2. [Repository Structure](#2-repository-structure)
-3. [Dataset Structure — INSPIRE](#3-dataset-structure--inspire)
-4. [Subject JSON File — Complete Format](#4-subject-json-file--complete-format)
-5. [Real Patient Example — Subject 100033460](#5-real-patient-example--subject-100033460)
+3. [Dataset Structure — INSPIRE](#3-dataset-structure-inspire)
+4. [Subject JSON File — Complete Format](#4-subject-json-file-complete-format)
+5. [Real Patient Example — Subject 100033460](#5-real-patient-example-subject-100033460)
 6. [Dataset Subset Structure on Disk](#6-dataset-subset-structure-on-disk)
 7. [Current Pipeline Architecture](#7-current-pipeline-architecture)
 8. [Current Config Values](#8-current-config-values)
 9. [Current Results](#9-current-results)
-10. [All Available Features — What Is Used vs What Exists](#10-all-available-features--what-is-used-vs-what-exists)
-11. [How to Run — Colab Workflow](#11-how-to-run--colab-workflow)
-12. [Known Issues and Fixes Applied](#13-known-issues-and-fixes-applied)
-13. [Research Direction and Next Steps](#14-research-direction-and-next-steps)
-14. [Key Papers and References](#15-key-papers-and-references)
+10. [All Available Features — What Is Used vs What Exists](#10-all-available-features-what-is-used-vs-what-exists)
+11. [How to Run — Colab Workflow](#11-how-to-run-colab-workflow)
+12. [Known Issues and Fixes Applied](#12-known-issues-and-fixes-applied)
+13. [Research Direction and Next Steps](#13-research-direction-and-next-steps)
+14. [Key Papers and References](#14-key-papers-and-references)
 
 ---
 

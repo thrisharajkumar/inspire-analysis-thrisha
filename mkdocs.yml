@@ -3,14 +3,14 @@ site_description: Predicting 30-day post-surgical mortality from clinical time s
 repo_url: https://github.com/thrisharajkumar/inspire-analysis-thrisha
 repo_name: thrisharajkumar/inspire-analysis-thrisha
 
-# notes.md lives directly inside docs/ — edit it there.
+# All nav pages live directly inside docs/ — edit them there.
 docs_dir: docs
 site_dir: site
 
 nav:
   - Home: notes.md
   - INSPIRE Project Notes: INSPIRE_Project_Notes.md
-  - Feature Audit Findings: feature_audit_findings.md   # new
+  - Feature Audit Findings: feature_audit_findings.md
 theme:
   name: material
   palette:

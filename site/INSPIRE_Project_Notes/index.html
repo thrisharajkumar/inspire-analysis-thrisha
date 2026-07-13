@@ -1,0 +1,1851 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+        <link rel="prev" href="../notes/">
+      
+      
+        <link rel="next" href="../feature_audit_findings/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>INSPIRE Project Notes - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#inspire-project-complete-understanding-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              INSPIRE Project Notes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-is-the-inspire-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What is the INSPIRE Project?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-the-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The Dataset
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. The Dataset">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-in-the-inspire-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is in the INSPIRE dataset?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-dnn_mortalitycsv-file-you-received" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The dnn_mortality.csv file you received
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#critical-data-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Critical data problems
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-time-series-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why time series matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-three-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The Three Models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The Three Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#model-1-nela-the-clinical-gold-standard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model 1 — NELA (the clinical gold standard)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-2-gbm-saranyas-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model 2 — GBM (Saranya's model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-3-dnn-transformer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model 3 — DNN Transformer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-dnn-pipeline-step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The DNN Pipeline Step by Step
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The DNN Pipeline Step by Step">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-generate-or-load-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Generate or load data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-align-the-time-series" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Align the time series
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-normalise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Normalise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-split-traintest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — Split train/test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-autoencoder-pre-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1 — Autoencoder pre-training
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-classification-fine-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2 — Classification fine-tuning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-how-the-transformer-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. How the Transformer Works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. How the Transformer Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-basic-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The basic problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-attention-means" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What attention means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positional-encoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Positional encoding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-architecture-in-this-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The architecture in this project
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-pre-training-and-transfer-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Pre-Training and Transfer Learning
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Pre-Training and Transfer Learning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-pre-train-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why pre-train at all?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-frozen-encoder-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The frozen encoder question
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-class-imbalance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Class Imbalance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Class Imbalance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-real-numbers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The real numbers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-is-a-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this is a problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-the-pipeline-handles-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the pipeline handles it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-how-we-measure-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. How We Measure Performance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. How We Measure Performance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#auroc-area-under-the-roc-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AUROC — Area Under the ROC Curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auprc-area-under-the-precision-recall-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AUPRC — Area Under the Precision-Recall Curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#f1-score-and-threshold-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        F1 Score and Threshold Selection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t-sne-visualising-whether-the-model-learned-anything" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        t-SNE — Visualising Whether the Model Learned Anything
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-the-feature-correlation-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. The Feature Correlation Matrix
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. The Feature Correlation Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-findings-from-your-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key findings from your image
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-the-t-sne-embeddings-plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. The t-SNE Embeddings Plot
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. The t-SNE Embeddings Plot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-you-are-looking-at" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you are looking at
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-plot-shows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the plot shows
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-frailty-and-saranyas-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Frailty and Saranya's Work
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Frailty and Saranya&#39;s Work">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-frailty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is frailty?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-hospital-frailty-risk-score-hfrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Hospital Frailty Risk Score (HFRS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saranyas-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saranya's comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conditional-independence-of-frailty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional independence of frailty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-inspire_analysis_departmentpy-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The inspire_analysis_department.py script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-the-code-file-by-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. The Code — File by File
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. The Code — File by File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dnn_mortality_pipelinepy-the-main-file-your-focus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dnn_mortality_pipeline.py — the main file (your focus)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dnn_mortality_datapy-data-generation-and-real-data-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dnn_mortality_data.py — data generation and real data loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gbm_mortalitypy-saranyas-baseline-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gbm_mortality.py — Saranya's baseline model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nelapy-clinical-gold-standard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        nela.py — clinical gold standard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspire_analysis_departmentpy-exploratory-analysis-by-department" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inspire_analysis_department.py — exploratory analysis by department
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frailty_hfrspy-hfrs-calculation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        frailty_hfrs.py — HFRS calculation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspire_datasetpy-loading-the-raw-inspire-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inspire_dataset.py — loading the raw INSPIRE data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-key-problems-and-what-needs-fixing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Key Problems and What Needs Fixing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Key Problems and What Needs Fixing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-1-classifier-outputs-047-for-both-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 1 — Classifier outputs ~0.47 for both classes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-2-pos_weight-mismatch-between-synthetic-and-real-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 2 — pos_weight mismatch between synthetic and real data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-3-only-4-features-used-from-100-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 3 — Only 4 features used from 100+ available
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#problem-4-mps-apple-silicon-gpu-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem 4 — MPS (Apple Silicon GPU) bug
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-what-to-explore-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. What to Explore Next
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. What to Explore Next">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#immediate-to-unblock-everything" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Immediate (to unblock everything)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#this-week" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        This week
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#longer-term" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longer term
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dnn_mortality_pipelinepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dnn_mortality_pipeline.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="inspire-project-complete-understanding-guide">INSPIRE Project — Complete Understanding Guide<a class="headerlink" href="#inspire-project-complete-understanding-guide" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>Everything you need to know about the project, explained simply and in full detail.</p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#1-what-is-the-inspire-project">What is the INSPIRE Project?</a></li>
+<li><a href="#2-the-dataset">The Dataset — What the Data Actually Is</a></li>
+<li><a href="#3-the-three-models">The Three Models Being Compared</a></li>
+<li><a href="#4-the-dnn-pipeline-step-by-step">The DNN Pipeline — Step by Step</a></li>
+<li><a href="#5-how-the-transformer-works">How the Transformer Works</a></li>
+<li><a href="#6-pre-training-and-transfer-learning">Pre-Training and Transfer Learning</a></li>
+<li><a href="#7-class-imbalance">Class Imbalance — The Core Problem</a></li>
+<li><a href="#8-how-we-measure-performance">How We Measure Performance</a></li>
+<li><a href="#9-the-feature-correlation-matrix">The Feature Correlation Matrix — What It Tells Us</a></li>
+<li><a href="#10-the-t-sne-embeddings-plot">The t-SNE Embeddings Plot — What It Tells Us</a></li>
+<li><a href="#11-frailty-and-saranyas-work">Frailty and Saranya's Work</a></li>
+<li><a href="#12-the-code-file-by-file">The Code — File by File</a></li>
+<li><a href="#13-key-problems-and-what-needs-fixing">Key Problems and What Needs Fixing</a></li>
+<li><a href="#14-what-to-explore-next">What to Explore Next</a></li>
+</ol>
+<hr />
+<h2 id="1-what-is-the-inspire-project">1. What is the INSPIRE Project?<a class="headerlink" href="#1-what-is-the-inspire-project" title="Permanent link">&para;</a></h2>
+<p><strong>The goal:</strong> Predict whether a surgical patient will die within 30 days of their operation.</p>
+<p>This matters because surgeons and anaesthetists need to assess risk before an operation. If a patient is very high risk, the surgical team can take extra precautions, involve intensive care, or have a different conversation with the patient about the risks.</p>
+<p><strong>The dataset:</strong> INSPIRE is a real Korean hospital dataset containing records from over 100,000 surgical patients collected between 2011 and 2020.</p>
+<p><strong>The research question:</strong> Can machine learning — and specifically a deep neural network that reads time series data — do a better job of predicting surgical mortality than the existing clinical tools doctors use today?</p>
+<p><strong>The comparison:</strong> Three different approaches are tested:
+- A fixed clinical scorecard (NELA)
+- A gradient boosted machine (GBM) 
+- A deep neural network with a transformer reading time series </p>
+<hr />
+<h2 id="2-the-dataset">2. The Dataset<a class="headerlink" href="#2-the-dataset" title="Permanent link">&para;</a></h2>
+<h3 id="what-is-in-the-inspire-dataset">What is in the INSPIRE dataset?<a class="headerlink" href="#what-is-in-the-inspire-dataset" title="Permanent link">&para;</a></h3>
+<p>The full INSPIRE dataset has five tables, all linked by a patient ID:</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>What it contains</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>operations.csv</code></td>
+<td>One row per surgery — age, weight, anaesthesia type, department, outcome</td>
+<td>Patient 156911 had surgery in General Surgery, survived</td>
+</tr>
+<tr>
+<td><code>labs.csv</code></td>
+<td>Blood test results over time</td>
+<td>Glucose = 5.2 at minute 100, 6.1 at minute 400</td>
+</tr>
+<tr>
+<td><code>vitals.csv</code></td>
+<td>Intraoperative measurements (during surgery)</td>
+<td>Heart rate = 72 bpm at minute 210</td>
+</tr>
+<tr>
+<td><code>ward_vitals.csv</code></td>
+<td>Pre and post-operative floor measurements</td>
+<td>Blood pressure = 130/80 the morning before surgery</td>
+</tr>
+<tr>
+<td><code>medications.csv</code></td>
+<td>9.9 million drug administrations</td>
+<td>Fentanyl 50mcg at minute 215</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-dnn_mortalitycsv-file-you-received">The <code>dnn_mortality.csv</code> file you received<a class="headerlink" href="#the-dnn_mortalitycsv-file-you-received" title="Permanent link">&para;</a></h3>
+<p>This is a pre-processed, flattened version. Each row is one patient with 19 columns.</p>
+<p><strong>Key facts:</strong>
+- <strong>97,260 patients</strong> total
+- <strong>268 deaths</strong> (0.28% death rate)
+- <strong>Target column:</strong> <code>inhosp_death_30day</code> — True if the patient died within 30 days of surgery</p>
+<p>The 19 columns are:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>age</code></td>
+<td>Patient age in years</td>
+</tr>
+<tr>
+<td><code>sex</code></td>
+<td>Male = True</td>
+</tr>
+<tr>
+<td><code>emop</code></td>
+<td>Emergency operation? 1 = yes, 0 = no (very important risk factor)</td>
+</tr>
+<tr>
+<td><code>bmi</code></td>
+<td>Body mass index</td>
+</tr>
+<tr>
+<td><code>andur</code></td>
+<td>Anaesthesia duration in minutes</td>
+</tr>
+<tr>
+<td><code>preop_hb</code></td>
+<td>Haemoglobin — carries oxygen in blood</td>
+</tr>
+<tr>
+<td><code>preop_platelet</code></td>
+<td>Platelets — blood clotting</td>
+</tr>
+<tr>
+<td><code>preop_wbc</code></td>
+<td>White blood cells — immune system, infection marker</td>
+</tr>
+<tr>
+<td><code>preop_aptt</code></td>
+<td>Blood clotting test</td>
+</tr>
+<tr>
+<td><code>preop_ptinr</code></td>
+<td>Another clotting test</td>
+</tr>
+<tr>
+<td><code>preop_glucose</code></td>
+<td>Blood sugar</td>
+</tr>
+<tr>
+<td><code>preop_bun</code></td>
+<td>Blood urea nitrogen — kidney function</td>
+</tr>
+<tr>
+<td><code>preop_albumin</code></td>
+<td>Protein made by liver — nutritional status</td>
+</tr>
+<tr>
+<td><code>preop_ast</code></td>
+<td>Liver enzyme</td>
+</tr>
+<tr>
+<td><code>preop_alt</code></td>
+<td>Liver enzyme (very similar to AST)</td>
+</tr>
+<tr>
+<td><code>preop_creatinine</code></td>
+<td>Kidney function marker</td>
+</tr>
+<tr>
+<td><code>preop_sodium</code></td>
+<td>Electrolyte balance</td>
+</tr>
+<tr>
+<td><code>preop_potassium</code></td>
+<td>Electrolyte balance</td>
+</tr>
+<tr>
+<td><code>inhosp_death_30day</code></td>
+<td><strong>The outcome we are predicting</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="critical-data-problems">Critical data problems<a class="headerlink" href="#critical-data-problems" title="Permanent link">&para;</a></h3>
+<p><strong>Massive class imbalance:</strong> Only 268 of 97,260 patients died. That is 0.28%. A model that always predicts "survived" would be 99.72% accurate but completely useless — it would miss every single death. The model needs special treatment (see Section 7).</p>
+<p><strong>Missing values:</strong> Many blood tests are not taken for every patient before surgery. For example, glucose is missing for 13,388 patients (13.8%) and albumin for 9,076 patients (9.3%). Before training any model, these gaps must be filled (imputed) or handled.</p>
+<h3 id="why-time-series-matters">Why time series matters<a class="headerlink" href="#why-time-series-matters" title="Permanent link">&para;</a></h3>
+<p>The CSV above is a <strong>snapshot</strong> — one value per feature, taken before surgery. It throws away all information about how values changed over time.</p>
+<p>The DNN pipeline uses a different approach: it reads the <strong>full time series</strong> of lab values — glucose at hour 1, hour 5, hour 12, hour 24 — and tries to learn patterns from how values evolve. A patient whose glucose is rising steadily over days before surgery may be at different risk than one whose glucose is stable, even if the final value is the same.</p>
+<p>This is the fundamental advantage the DNN is trying to demonstrate.</p>
+<hr />
+<h2 id="3-the-three-models">3. The Three Models<a class="headerlink" href="#3-the-three-models" title="Permanent link">&para;</a></h2>
+<h3 id="model-1-nela-the-clinical-gold-standard">Model 1 — NELA (the clinical gold standard)<a class="headerlink" href="#model-1-nela-the-clinical-gold-standard" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>nela.py</code></p>
+<p>NELA stands for National Emergency Laparotomy Audit. It is a fixed mathematical equation developed by UK clinicians from large studies of surgical patients.</p>
+<p><strong>How it works:</strong> You plug in 25 values for a patient (age, albumin level, blood pressure, urgency of surgery, etc.) and get back a probability of death. The equation looks like:</p>
+<div class="highlight"><pre><span></span><code>logit = -3.04678
+      + 0.06660 × age
+      + 1.13007 × (ASA class 3)
+      + 1.76293 × (ASA class 4)
+      - 0.04323 × albumin
+      + 0.38002 × log(urea)
+      ... (25 variables total)
+
+probability = 1 / (1 + e^(-logit))
+</code></pre></div>
+<p><strong>The key point:</strong> No machine learning. No training. The coefficients were set by statisticians studying thousands of patients and published in a clinical document. This is how doctors currently assess risk — using tools like this.</p>
+<p><strong>Pros:</strong> Transparent, validated, fast, requires no data to run.
+<strong>Cons:</strong> Rigid — cannot learn from new data. Only uses a snapshot. Cannot use time series. Fixed to the variables it was built with.</p>
+<p><strong>What it scores:</strong> Because it was not trained on INSPIRE data, its performance on the INSPIRE dataset gives us the baseline that any machine learning model must beat to be useful.</p>
+<hr />
+<h3 id="model-2-gbm-saranyas-model">Model 2 — GBM (Saranya's model)<a class="headerlink" href="#model-2-gbm-saranyas-model" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>gbm_mortality.py</code></p>
+<p>GBM stands for Gradient Boosted Machine - comparing versions with and without frailty scores.</p>
+<p><strong>How it works:</strong> Think of it as building hundreds of decision trees, one at a time, where each new tree focuses specifically on fixing the mistakes of all the previous trees combined. Over many iterations, this ensemble of trees becomes very good at finding patterns in tabular data.</p>
+<p>A decision tree is like a flowchart:
+- Is the patient's albumin below 30? → If yes, go left (higher risk)
+- Is the patient older than 70? → If yes, go left again (even higher risk)
+- ...and so on until you reach a prediction</p>
+<p><strong>What data it uses:</strong> The 18 pre-operative features from <code>operations.csv</code> merged with the most recent lab values before surgery. Same snapshot approach as NELA but the model learns its own rules from the data rather than using fixed coefficients.</p>
+<p><strong>current work:</strong> Adding the Hospital Frailty Risk Score (HFRS) as an extra feature to the GBM and measuring whether it improves predictions — and whether this improvement differs for scheduled vs emergency surgery.</p>
+<p><strong>Pros:</strong> Better than NELA because it learns from data. Handles feature interactions automatically.
+<strong>Cons:</strong> Still uses snapshots — ignores the temporal pattern of how values changed. Requires the original dataset to train (cannot be computed from first principles like NELA).</p>
+<hr />
+<h3 id="model-3-dnn-transformer">Model 3 — DNN Transformer<a class="headerlink" href="#model-3-dnn-transformer" title="Permanent link">&para;</a></h3>
+<p><strong>File:</strong> <code>dnn_mortality_pipeline.py</code></p>
+<p>This is a fundamentally different approach. Instead of looking at a single snapshot of lab values before surgery, it reads the full sequence of lab measurements over time and tries to learn patterns from the trajectory.</p>
+<p><strong>What data it uses:</strong> Four lab time series for each patient:
+- Glucose (blood sugar)
+- Potassium (electrolyte)
+- Sodium (electrolyte)
+- Creatinine (kidney function)</p>
+<p><strong>Why these four:</strong> They are measured frequently, available for most patients, and are clinically meaningful indicators of how sick a patient is.</p>
+<p><strong>The core idea:</strong> A patient who has a sudden spike in creatinine over the 3 days before surgery may be at much higher risk than a patient with the same absolute creatinine value but who has been stable. The transformer learns these patterns.</p>
+<hr />
+<h2 id="4-the-dnn-pipeline-step-by-step">4. The DNN Pipeline Step by Step<a class="headerlink" href="#4-the-dnn-pipeline-step-by-step" title="Permanent link">&para;</a></h2>
+<p>The pipeline runs in two completely separate phases. Think of it like this: first you teach the model to understand how labs behave generally, then you teach it what patterns predict death.</p>
+<h3 id="step-1-generate-or-load-data">Step 1 — Generate or load data<a class="headerlink" href="#step-1-generate-or-load-data" title="Permanent link">&para;</a></h3>
+<p>In development mode (without the full INSPIRE dataset), <code>dnn_mortality_data.generate_dataset()</code> creates synthetic patients:
+- 5,000 patients generated
+- 20% are assigned as "died"
+- Each patient gets random glucose, potassium, sodium, creatinine measurements over 1,000 time steps
+- For patients who died, glucose and sodium have a slight upward slope added — just enough of a signal for the model to learn something</p>
+<p>In production mode, <code>dnn_mortality_data.extract_frames()</code> reads the real INSPIRE subjects from their folder, pulling ward vitals and labs from 5 days before the last operation.</p>
+<h3 id="step-2-align-the-time-series">Step 2 — Align the time series<a class="headerlink" href="#step-2-align-the-time-series" title="Permanent link">&para;</a></h3>
+<p>Different patients have measurements at different times. Patient A might have glucose measured at minutes 100, 250, 400. Patient B at minutes 50, 300, 600. They need to be aligned to the same time grid so they can be processed together.</p>
+<p><code>align_time_series()</code> does this using <strong>linear interpolation</strong> — it draws a straight line between any two known points and estimates the values in between. Every patient ends up with values at every minute in a common time range.</p>
+<p>For every interpolated value, a <strong>mask column</strong> is added:
+- Mask = 1.0 → this value was actually measured
+- Mask = 0.0 → this value was estimated by interpolation</p>
+<p>This matters because the model should trust observed values more than interpolated ones.</p>
+<p>So the pipeline goes from 4 feature columns to <strong>8 columns total</strong>: glucose, potassium, sodium, creatinine + glucose_mask, potassium_mask, sodium_mask, creatinine_mask.</p>
+<h3 id="step-3-normalise">Step 3 — Normalise<a class="headerlink" href="#step-3-normalise" title="Permanent link">&para;</a></h3>
+<p>Each column is scaled using <code>StandardScaler</code>:
+- Subtracts the mean
+- Divides by the standard deviation
+- Result: every feature has mean 0, standard deviation 1</p>
+<p><strong>Critical rule:</strong> The scaler is fitted on training data only. Test data is transformed using the training data's mean and standard deviation. This prevents data leakage — the model must not see any statistics from the test set.</p>
+<h3 id="step-4-split-traintest">Step 4 — Split train/test<a class="headerlink" href="#step-4-split-traintest" title="Permanent link">&para;</a></h3>
+<p>67% of subjects go to training, 33% to test. The split is stratified — it ensures the proportion of deaths is roughly the same in both sets.</p>
+<h3 id="phase-1-autoencoder-pre-training">Phase 1 — Autoencoder pre-training<a class="headerlink" href="#phase-1-autoencoder-pre-training" title="Permanent link">&para;</a></h3>
+<p>The training subjects' time series are broken into <strong>sliding windows</strong> of length <code>seq_length</code> (25 time steps, derived from the data). A window slides along the whole time series one step at a time, generating many training examples from each patient.</p>
+<p>These windows are fed into the transformer with a simple objective: <strong>compress then reconstruct</strong>. The model reads 25 time steps of 8 values (4 features + 4 masks) and tries to output the 4 original feature values. If it can reconstruct them accurately, it must have learned something about how these labs behave together.</p>
+<p>No mortality labels are used in this phase. The model learns purely from the structure of the time series themselves.</p>
+<p>Loss function: Mean Squared Error (MSE) — how far off is the reconstruction?</p>
+<h3 id="phase-2-classification-fine-tuning">Phase 2 — Classification fine-tuning<a class="headerlink" href="#phase-2-classification-fine-tuning" title="Permanent link">&para;</a></h3>
+<p>The encoder weights from Phase 1 are <strong>frozen</strong> — they cannot change anymore.</p>
+<p>A new classification layer (a single <code>Linear → sigmoid</code> layer) is added on top. This is the only part that gets trained in Phase 2.</p>
+<p>Each subject's full time series is passed through the frozen encoder. The encoder's output is averaged across all time steps (mean pooling) to produce one embedding vector per patient. The classifier then learns: "given this embedding, how likely is this patient to die?"</p>
+<p>Loss function: Binary Cross Entropy with Logits, with <code>pos_weight</code> set to the ratio of survived/died to compensate for the imbalance.</p>
+<h3 id="evaluation">Evaluation<a class="headerlink" href="#evaluation" title="Permanent link">&para;</a></h3>
+<p>After training, the model is evaluated on the held-out test set:
+- <strong>AUROC</strong> — overall discrimination ability
+- <strong>AUPRC</strong> — precision-recall, more informative when deaths are rare
+- <strong>Best F1 threshold</strong> — scans thresholds from 0 to 1 to find the probability cutoff that gives the best F1 score
+- <strong>t-SNE embeddings</strong> — visualise whether died and survived patients end up in different regions of the embedding space</p>
+<hr />
+<h2 id="5-how-the-transformer-works">5. How the Transformer Works<a class="headerlink" href="#5-how-the-transformer-works" title="Permanent link">&para;</a></h2>
+<h3 id="the-basic-problem">The basic problem<a class="headerlink" href="#the-basic-problem" title="Permanent link">&para;</a></h3>
+<p>A standard neural network takes a fixed-size input (one vector of numbers) and produces an output. But a time series is a variable-length sequence — Patient A might have 500 time steps, Patient B might have 800.</p>
+<p>Transformers were designed specifically to handle sequences of variable length.</p>
+<h3 id="what-attention-means">What attention means<a class="headerlink" href="#what-attention-means" title="Permanent link">&para;</a></h3>
+<p>At each time step, the transformer needs to decide: which other time steps are most relevant to understanding what is happening right now?</p>
+<p><strong>Attention</strong> is the mechanism that does this. For every time step in the sequence, the model computes a score for every other time step — "how much should I pay attention to that one when I am processing this one?" These scores are turned into weights, and the model takes a weighted combination of all time steps.</p>
+<p>In practice, for a patient whose glucose spikes at day 3, the model might learn to pay high attention to the days immediately before and after the spike, and low attention to stable periods.</p>
+<p><strong>8 attention heads</strong> means the model runs this process 8 times in parallel, each head potentially learning to attend to different types of patterns (slow trends, sudden spikes, periodic patterns, etc.).</p>
+<h3 id="positional-encoding">Positional encoding<a class="headerlink" href="#positional-encoding" title="Permanent link">&para;</a></h3>
+<p>Transformers do not naturally know the order of inputs. Without help, they would treat time step 1 and time step 500 as interchangeable.</p>
+<p><strong>Positional encoding</strong> adds a unique numerical pattern to each time step's values, encoding its position. The formula uses sine and cosine waves at different frequencies:</p>
+<div class="highlight"><pre><span></span><code>PE(position, i) = sin(position / 10000^(2i / d_model))   for even i
+PE(position, i) = cos(position / 10000^(2i / d_model))   for odd i
+</code></pre></div>
+<p>The result is that nearby time steps get similar encodings, and distant time steps get different ones. The model can now tell "this is step 50, this is step 200" without being told explicitly.</p>
+<h3 id="the-architecture-in-this-project">The architecture in this project<a class="headerlink" href="#the-architecture-in-this-project" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Input: 8 values per time step (4 features + 4 masks)
+  ↓
+Input projection: Linear layer (8 → 8)
+  ↓
++ Positional encoding (added element-wise, not concatenated)
+  ↓
+Transformer encoder:
+  - 5 layers
+  - 8 attention heads
+  - Feedforward dimension 128
+  ↓
+Output: 8 contextual values per time step
+        (same shape in, same shape out — but now each position
+         knows about the context of all other positions)
+</code></pre></div>
+<p>For autoencoding: add an output projection layer (8 → 4) to reconstruct the 4 features.</p>
+<p>For classification: take the mean across all time steps (mean pooling) to get one 8-dimensional vector per patient, then pass through <code>Linear(8 → 1)</code> to get the mortality probability.</p>
+<hr />
+<h2 id="6-pre-training-and-transfer-learning">6. Pre-Training and Transfer Learning<a class="headerlink" href="#6-pre-training-and-transfer-learning" title="Permanent link">&para;</a></h2>
+<h3 id="why-pre-train-at-all">Why pre-train at all?<a class="headerlink" href="#why-pre-train-at-all" title="Permanent link">&para;</a></h3>
+<p>The mortality prediction task has a fundamental problem: you have very few examples of the thing you are trying to predict. In the real INSPIRE data, only 268 patients out of 97,260 died. Training a complex neural network on 268 positive examples is very difficult — the model has almost nothing to learn from.</p>
+<p>The autoencoder pre-training gets around this by using all patients. You do not need mortality labels to reconstruct lab values. Every patient — whether they died or survived — gives you a training example for the autoencoder. Once the encoder has learned the general structure of how labs behave, you use that knowledge as a starting point for the harder, label-scarce classification task.</p>
+<p>This is <strong>transfer learning</strong>: learn one task (reconstruct labs) to build general knowledge, then transfer that knowledge to another task (predict death).</p>
+<h3 id="the-frozen-encoder-question">The frozen encoder question<a class="headerlink" href="#the-frozen-encoder-question" title="Permanent link">&para;</a></h3>
+<p>After pre-training, the encoder weights are frozen and only the classifier head is trained. This is a conservative approach — it assumes the encoder already learned everything useful and just needs a new output layer.</p>
+<p><strong>The problem:</strong> The autoencoder was trained to reconstruct lab values. A good reconstruction does not necessarily mean the encoder learned features that discriminate between patients who will die and patients who will survive. These are different objectives.</p>
+<p>This is the most likely cause of the near-random classifier output (probabilities of ~0.47 for both classes) seen in the debug output.</p>
+<p><strong>Possible fixes:</strong>
+1. Fine-tune the full network (unfreeze the encoder) on the classification task
+2. Use a different pre-training objective that is more related to mortality — for example, contrastive learning where patients with similar outcomes are pushed together in embedding space
+3. Use the encoder embeddings as features for the GBM instead of the linear classifier</p>
+<hr />
+<h2 id="7-class-imbalance">7. Class Imbalance<a class="headerlink" href="#7-class-imbalance" title="Permanent link">&para;</a></h2>
+<p>This is the single most important practical problem in the project.</p>
+<h3 id="the-real-numbers">The real numbers<a class="headerlink" href="#the-real-numbers" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Patients</th>
+<th>Deaths</th>
+<th>Death rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Real INSPIRE (<code>dnn_mortality.csv</code>)</td>
+<td>97,260</td>
+<td>268</td>
+<td><strong>0.28%</strong></td>
+</tr>
+<tr>
+<td>Synthetic (used in pipeline)</td>
+<td>5,000</td>
+<td>~1,000</td>
+<td>20% (artificial)</td>
+</tr>
+</tbody>
+</table>
+<p>The synthetic data uses 20% deaths — 70 times higher than reality. This makes the model easier to train in development but means results on synthetic data do not reflect real-world performance.</p>
+<h3 id="why-this-is-a-problem">Why this is a problem<a class="headerlink" href="#why-this-is-a-problem" title="Permanent link">&para;</a></h3>
+<p>If 99.72% of patients survive, a model that always predicts "survived" achieves 99.72% accuracy. It would never flag any patient as high risk. Accuracy is completely useless as a metric here.</p>
+<h3 id="how-the-pipeline-handles-it">How the pipeline handles it<a class="headerlink" href="#how-the-pipeline-handles-it" title="Permanent link">&para;</a></h3>
+<p><code>pos_weight</code> in <code>BCEWithLogitsLoss</code>. Setting <code>pos_weight = num_survived / num_died</code> tells the loss function: "getting a death wrong is 362 times more costly than getting a survival wrong." This forces the model to try harder to predict the rare class.</p>
+<p>In the synthetic data with 20% deaths: pos_weight ≈ 4.
+In the real data: pos_weight ≈ 362.</p>
+<p>The difference between these two numbers is why the model might look fine on synthetic data but fail on real data.</p>
+<hr />
+<h2 id="8-how-we-measure-performance">8. How We Measure Performance<a class="headerlink" href="#8-how-we-measure-performance" title="Permanent link">&para;</a></h2>
+<h3 id="auroc-area-under-the-roc-curve">AUROC — Area Under the ROC Curve<a class="headerlink" href="#auroc-area-under-the-roc-curve" title="Permanent link">&para;</a></h3>
+<p>This is the main metric. AUROC answers the question: if you pick one random patient who died and one random patient who survived, what is the probability that your model gives the patient who died a higher risk score?</p>
+<ul>
+<li>0.5 = random guessing (a coin flip)</li>
+<li>0.7 = decent, better than random</li>
+<li>0.8 = good for clinical use</li>
+<li>0.9+ = excellent</li>
+<li>1.0 = perfect</li>
+</ul>
+<p>AUROC is useful because it does not depend on choosing a specific threshold and works well even with imbalanced classes.</p>
+<h3 id="auprc-area-under-the-precision-recall-curve">AUPRC — Area Under the Precision-Recall Curve<a class="headerlink" href="#auprc-area-under-the-precision-recall-curve" title="Permanent link">&para;</a></h3>
+<p>For very rare events (like 0.28% mortality), AUPRC is more informative than AUROC.</p>
+<ul>
+<li><strong>Precision:</strong> Of all the patients the model flagged as high risk, what fraction actually died?</li>
+<li><strong>Recall:</strong> Of all the patients who actually died, what fraction did the model catch?</li>
+</ul>
+<p>These two trade off against each other. AUPRC measures performance across all possible thresholds.</p>
+<p>A random model on data with 0.28% deaths has AUPRC ≈ 0.003. A good clinical model might achieve 0.2–0.4.</p>
+<h3 id="f1-score-and-threshold-selection">F1 Score and Threshold Selection<a class="headerlink" href="#f1-score-and-threshold-selection" title="Permanent link">&para;</a></h3>
+<p>The model outputs a probability (e.g., 0.73). You need to decide: above what probability do you call it a predicted death?</p>
+<p><code>evaluate_model()</code> scans thresholds from 0 to 1 and finds the one that gives the best F1 score. F1 is the harmonic mean of precision and recall — it balances both concerns.</p>
+<h3 id="t-sne-visualising-whether-the-model-learned-anything">t-SNE — Visualising Whether the Model Learned Anything<a class="headerlink" href="#t-sne-visualising-whether-the-model-learned-anything" title="Permanent link">&para;</a></h3>
+<p>t-SNE (t-distributed Stochastic Neighbour Embedding) takes the high-dimensional embedding vectors (8 dimensions in this model) and squashes them into 2D so they can be plotted.</p>
+<p>If the pre-training worked well, patients who died (red) should cluster together and patients who survived (blue) should cluster together — meaning the encoder learned representations that separate the two groups.</p>
+<hr />
+<h2 id="9-the-feature-correlation-matrix">9. The Feature Correlation Matrix<a class="headerlink" href="#9-the-feature-correlation-matrix" title="Permanent link">&para;</a></h2>
+<p>The correlation matrix (<code>FeatureCorrelationMatrix.png</code>) shows how strongly each pair of features is related. Values range from -1 (perfectly inversely related) to +1 (perfectly related).</p>
+<h3 id="key-findings-from-your-image">Key findings from your image<a class="headerlink" href="#key-findings-from-your-image" title="Permanent link">&para;</a></h3>
+<p><strong>AST and ALT: 0.90 correlation</strong>
+Both are liver enzymes. They move together because they are measuring essentially the same thing (liver damage). Using both in a GBM is redundant — you could drop <code>preop_alt</code> and lose almost no information.</p>
+<p><strong>WBC and Albumin: -0.75 correlation</strong>
+High white blood cells = infection/inflammation. Low albumin = malnutrition or liver disease. These tend to co-occur in sick patients. Strong negative correlation means they carry related but complementary information.</p>
+<p><strong>Frailty score and Sodium: -0.51 correlation</strong>
+Frail patients tend to have lower sodium. This is clinically known — sodium dysregulation is common in frailty. This is one of the strongest correlations in the matrix and suggests frailty is capturing real physiological deterioration.</p>
+<p><strong>Frailty score and Albumin: -0.36 correlation</strong>
+Low albumin is a marker of malnutrition and poor physiological reserves — exactly what frailty measures. Expected correlation.</p>
+<p><strong>What this means for the GBM:</strong>
+The strong AST–ALT redundancy (0.90) suggests you should drop one. The negative WBC–Albumin correlation means both carry signal but from different directions — keep both. The frailty–sodium correlation confirms frailty is a real physiological signal worth including.</p>
+<hr />
+<h2 id="10-the-t-sne-embeddings-plot">10. The t-SNE Embeddings Plot<a class="headerlink" href="#10-the-t-sne-embeddings-plot" title="Permanent link">&para;</a></h2>
+<p>The <code>embeddings.png</code> you received shows the t-SNE visualisation of the test subjects' encoder embeddings after pre-training.</p>
+<h3 id="what-you-are-looking-at">What you are looking at<a class="headerlink" href="#what-you-are-looking-at" title="Permanent link">&para;</a></h3>
+<p>Each dot is one patient. Blue = survived (label 0). Red/pink = died (label 1). The position is determined by the similarity of the encoder's representation — patients the encoder thinks are similar are placed close together.</p>
+<h3 id="what-the-plot-shows">What the plot shows<a class="headerlink" href="#what-the-plot-shows" title="Permanent link">&para;</a></h3>
+<p><strong>Partial separation:</strong> The red dots are noticeably concentrated in the upper half of the plot (high values on the y-axis, roughly y &gt; 8). The lower half is almost entirely blue. This is not random — there is a real tendency for died and survived patients to end up in different regions.</p>
+<p><strong>Incomplete separation:</strong> There are red dots scattered throughout the blue region, and the boundary between the two groups is not sharp. This means the encoder learned some features correlated with mortality, but not enough for the classifier to make clean predictions.</p>
+<p><strong>What this means for the near-random classifier output:</strong> The encoder has partially useful representations. The problem is that the single linear classifier head on top cannot find the right boundary in this messy embedding space. Options to fix this: a deeper classifier head (e.g., two linear layers with ReLU), fine-tuning the encoder, or different pre-training.</p>
+<p><strong>Conclusion:</strong> Pre-training was not completely wasted. There is signal in the embeddings. But the current architecture does not exploit it effectively.</p>
+<hr />
+<h2 id="11-frailty-and-saranyas-work">11. Frailty and Saranya's Work<a class="headerlink" href="#11-frailty-and-saranyas-work" title="Permanent link">&para;</a></h2>
+<h3 id="what-is-frailty">What is frailty?<a class="headerlink" href="#what-is-frailty" title="Permanent link">&para;</a></h3>
+<p>Frailty is a medical concept describing a patient with reduced physical reserves — typically older, weaker, less able to recover from physiological stress. A frail patient undergoing surgery is at significantly higher risk of complications and death.</p>
+<p>Frailty is not a single measurement. It is a composite score computed from multiple factors.</p>
+<h3 id="the-hospital-frailty-risk-score-hfrs">The Hospital Frailty Risk Score (HFRS)<a class="headerlink" href="#the-hospital-frailty-risk-score-hfrs" title="Permanent link">&para;</a></h3>
+<p>The HFRS (from Gilbert et al. 2018) assigns points to ICD-10 diagnostic codes. If a patient has any of 109 specific diagnoses in their history, they get points. The points add up to a frailty score.</p>
+<p>Examples:
+- <code>A41</code> (Septicaemia): +1.6 points
+- <code>B96</code> (Bacterial infection): +2.9 points
+- <code>D64</code> (Anaemia): +0.4 points</p>
+<p>A patient with several of these codes gets a high frailty score. The categories:
+- Low frailty: 0–5 points
+- Intermediate: 5–15 points
+- High: 15+ points</p>
+<p><strong>File:</strong> <code>frailty_hfrs.py</code> contains all 109 ICD-10 codes and their weights.</p>
+<h3 id="saranyas-comparison">Saranya's comparison<a class="headerlink" href="#saranyas-comparison" title="Permanent link">&para;</a></h3>
+<p>Her paper compares the GBM with the 18 standard pre-operative features against a version that also includes the frailty score.</p>
+<p><strong>The hypothesis:</strong> Frailty captures information about a patient's baseline health that the standard lab values and demographics miss. Including it should improve predictions.</p>
+<p><strong>The complication — Bayesian model and data sparsity:</strong>
+Adding more variables to a Bayesian model increases the number of parameters that need to be estimated. But the number of data points (especially deaths) stays the same. This means each parameter is estimated from fewer examples, increasing uncertainty (higher variance in estimates).</p>
+<p>With only 268 deaths in 97,260 patients, you have very little data to estimate the effect of frailty on mortality reliably. This is the specific tension Saranya is navigating.</p>
+<h3 id="conditional-independence-of-frailty">Conditional independence of frailty<a class="headerlink" href="#conditional-independence-of-frailty" title="Permanent link">&para;</a></h3>
+<p><strong>For scheduled surgery:</strong> When a surgeon decides to operate, they have already assessed the patient's fitness. Frail patients are either not operated on (selection bias) or the surgical plan accounts for the frailty. In this context, knowing the frailty score adds relatively little information beyond what the other pre-operative features already capture. Frailty is <strong>conditionally independent</strong> of mortality given that the surgery was scheduled — meaning: once you know the surgery was scheduled and you have the other clinical features, frailty does not tell you much extra.</p>
+<p><strong>For emergency surgery:</strong> There is no pre-selection. A frail 85-year-old can arrive in the emergency department needing urgent surgery regardless of their fitness. In this case, frailty is not conditionally independent — it is highly informative about risk <em>beyond</em> all the other features.</p>
+<p>This is why Saranya's analysis stratifies by emergency vs scheduled surgery.</p>
+<h3 id="the-inspire_analysis_departmentpy-script">The <code>inspire_analysis_department.py</code> script<a class="headerlink" href="#the-inspire_analysis_departmentpy-script" title="Permanent link">&para;</a></h3>
+<p>This script loads all INSPIRE subjects, computes HFRS frailty scores, and produces four plots broken down by surgical department (Cardiothoracic Surgery, General Surgery, Neurosurgery, Orthopaedics, etc.):
+1. Survival status by department
+2. Frailty category by department
+3. Frailty score distribution (boxplot) by department
+4. Frailty score distribution (violin plot) by department</p>
+<p>It also plots ASA physical status and anaesthesia type by department. This is exploratory data analysis — understanding how patient characteristics differ across departments before building models.</p>
+<hr />
+<h2 id="12-the-code-file-by-file">12. The Code — File by File<a class="headerlink" href="#12-the-code-file-by-file" title="Permanent link">&para;</a></h2>
+<h3 id="dnn_mortality_pipelinepy-the-main-file-your-focus"><code>dnn_mortality_pipeline.py</code> — the main file (your focus)<a class="headerlink" href="#dnn_mortality_pipelinepy-the-main-file-your-focus" title="Permanent link">&para;</a></h3>
+<p>The complete two-phase training pipeline. Major functions:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>align_time_series()</code></td>
+<td>Interpolates all time series to a common time grid, adds mask columns</td>
+</tr>
+<tr>
+<td><code>normalize_data()</code></td>
+<td>StandardScaler normalisation, fit on train only</td>
+</tr>
+<tr>
+<td><code>create_sequences()</code></td>
+<td>Breaks aligned series into sliding windows of <code>seq_length</code></td>
+</tr>
+<tr>
+<td><code>positional_encoding()</code></td>
+<td>Generates sinusoidal position encodings</td>
+</tr>
+<tr>
+<td><code>TimeSeriesDataset</code></td>
+<td>PyTorch Dataset for autoencoder (windows + position encoding)</td>
+</tr>
+<tr>
+<td><code>SubjectDataset</code></td>
+<td>PyTorch Dataset for classifier (full subject series + labels + masks)</td>
+</tr>
+<tr>
+<td><code>TimeSeriesTransformer</code></td>
+<td>The model — handles both autoencoding and classification via <code>mode</code> parameter</td>
+</tr>
+<tr>
+<td><code>preprocess_for_autoencode()</code></td>
+<td>Aligns, normalises, sequences all training subjects for Phase 1</td>
+</tr>
+<tr>
+<td><code>train_autoencoder()</code></td>
+<td>Trains the transformer to reconstruct lab values (Phase 1)</td>
+</tr>
+<tr>
+<td><code>train_classifier()</code></td>
+<td>Freezes encoder, trains classifier head on mortality labels (Phase 2)</td>
+</tr>
+<tr>
+<td><code>create_train_test_split()</code></td>
+<td>Stratified 67/33 split</td>
+</tr>
+<tr>
+<td><code>evaluate_model()</code></td>
+<td>AUROC, AUPRC, F1 threshold scan on test set</td>
+</tr>
+<tr>
+<td><code>extract_embeddings()</code></td>
+<td>Gets embedding vectors from the trained encoder</td>
+</tr>
+<tr>
+<td><code>visualise_embeddings()</code></td>
+<td>t-SNE plot of embeddings coloured by class label</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Known bug:</strong> <code>get_device()</code> detects Apple Silicon (MPS) but falls back to CPU with a comment explaining MPS produces NaN values during classifier training. This means even on a Mac, training runs on CPU.</p>
+<p><strong>Design concern noted in code comments:</strong> The <code>TimeSeriesTransformer</code> class is used for both autoencoding and classification. The code comments explicitly flag this as a confusing design that should be refactored into two separate, cleaner classes.</p>
+<h3 id="dnn_mortality_datapy-data-generation-and-real-data-loading"><code>dnn_mortality_data.py</code> — data generation and real data loading<a class="headerlink" href="#dnn_mortality_datapy-data-generation-and-real-data-loading" title="Permanent link">&para;</a></h3>
+<p>Two completely separate modes:</p>
+<p><strong>Synthetic (development):</strong>
+<code>generate_dataset(num_subjects, feature_columns, proportion_died)</code> creates fake patients with random lab values. For patients who died, glucose and sodium get a slight upward slope. This is purely for testing the pipeline without the real data.</p>
+<p><strong>Real INSPIRE (production):</strong>
+<code>extract_frames(subject, minutes_before_operation)</code> reads a real patient's ward vitals and labs from the 5 days before their last operation. Returns a dictionary of time series dictionaries.</p>
+<p><code>align_time_series()</code> in this file is more sophisticated than the one in the pipeline — it uses a <code>smooth_fade_to_mean_interpolator</code> that gracefully handles extrapolation by fading toward the mean rather than extrapolating wildly.</p>
+<h3 id="gbm_mortalitypy-saranyas-baseline-model"><code>gbm_mortality.py</code> — Saranya's baseline model<a class="headerlink" href="#gbm_mortalitypy-saranyas-baseline-model" title="Permanent link">&para;</a></h3>
+<p>Loads <code>operations.csv</code> and <code>labs.csv</code>. Defines the 30-day mortality outcome as:</p>
+<div class="highlight"><pre><span></span><code><span class="n">inhosp_death_time</span> <span class="o">&lt;</span> <span class="n">orout_time</span> <span class="o">+</span> <span class="mi">30</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">60</span>  <span class="c1"># died within 30 days of leaving operating room</span>
+</code></pre></div>
+<p>Merges the most recent lab value before each surgery using <code>merge_asof</code> (an ordered merge that looks backwards in time). Trains two models:
+- Logistic Regression (baseline)
+- XGBoost GBM (commented out — needs XGBoost installed)</p>
+<p>Produces an AUROC plot comparing ASA class alone vs Logistic Regression.</p>
+<h3 id="nelapy-clinical-gold-standard"><code>nela.py</code> — clinical gold standard<a class="headerlink" href="#nelapy-clinical-gold-standard" title="Permanent link">&para;</a></h3>
+<p>A single function <code>compute_nela_score()</code> implementing the published NELA risk equation. Takes 25 clinical parameters, returns a mortality probability. No data needed, no training.</p>
+<h3 id="inspire_analysis_departmentpy-exploratory-analysis-by-department"><code>inspire_analysis_department.py</code> — exploratory analysis by department<a class="headerlink" href="#inspire_analysis_departmentpy-exploratory-analysis-by-department" title="Permanent link">&para;</a></h3>
+<p>Loads all real INSPIRE subjects, computes frailty scores, and produces comparative plots by surgical department. Used to understand how patient populations differ across departments before modelling.</p>
+<h3 id="frailty_hfrspy-hfrs-calculation"><code>frailty_hfrs.py</code> — HFRS calculation<a class="headerlink" href="#frailty_hfrspy-hfrs-calculation" title="Permanent link">&para;</a></h3>
+<p>Contains all 109 ICD-10 code weights from Gilbert et al. 2018. The <code>compute_hfrs(subject)</code> function looks up the patient's diagnosis codes and sums up the relevant weights to produce their frailty score and category.</p>
+<h3 id="inspire_datasetpy-loading-the-raw-inspire-data"><code>inspire_dataset.py</code> — loading the raw INSPIRE data<a class="headerlink" href="#inspire_datasetpy-loading-the-raw-inspire-data" title="Permanent link">&para;</a></h3>
+<p>Reads the raw CSV files from the <code>inspire_subjects</code> folder structure, constructs <code>Subject</code> objects that provide methods like <code>get_labs()</code>, <code>get_ward_vitals()</code>, <code>inhosp_death_30day()</code>, <code>get_operations()</code>.</p>
+<hr />
+<h2 id="13-key-problems-and-what-needs-fixing">13. Key Problems and What Needs Fixing<a class="headerlink" href="#13-key-problems-and-what-needs-fixing" title="Permanent link">&para;</a></h2>
+<h3 id="problem-1-classifier-outputs-047-for-both-classes">Problem 1 — Classifier outputs ~0.47 for both classes<a class="headerlink" href="#problem-1-classifier-outputs-047-for-both-classes" title="Permanent link">&para;</a></h3>
+<p>The debug output in <code>evaluate_model()</code> shows:
+<div class="highlight"><pre><span></span><code>prob=0.47 label=0.0  (survived)
+prob=0.47 label=1.0  (died)
+</code></pre></div>
+The model cannot distinguish between the two groups. Most likely cause: the autoencoder pre-training objective (reconstruct labs) does not directly help learn mortality-discriminative features. Freezing those weights locks in that limitation.</p>
+<p><strong>Fix options:</strong>
+- Fine-tune the full model (unfreeze encoder) on mortality labels
+- Use contrastive pre-training instead of reconstruction
+- Use encoder embeddings as features for GBM instead of a linear classifier</p>
+<h3 id="problem-2-pos_weight-mismatch-between-synthetic-and-real-data">Problem 2 — pos_weight mismatch between synthetic and real data<a class="headerlink" href="#problem-2-pos_weight-mismatch-between-synthetic-and-real-data" title="Permanent link">&para;</a></h3>
+<p>The synthetic data uses 20% mortality to train. The real data has 0.28% mortality. The <code>pos_weight</code> needed for real data (≈362) is far higher than for synthetic data (≈4). The model trained on synthetic data would need extensive retuning for the real dataset.</p>
+<h3 id="problem-3-only-4-features-used-from-100-available">Problem 3 — Only 4 features used from 100+ available<a class="headerlink" href="#problem-3-only-4-features-used-from-100-available" title="Permanent link">&para;</a></h3>
+<p>The pipeline uses glucose, potassium, sodium, creatinine. The real INSPIRE dataset has 38 lab features, 74 intraoperative vital signs, 16 ward vital signs, and 1,143 medication types. Most of this information is unused.</p>
+<p><strong>Possible direction:</strong> Group all features by physiological system (cardiovascular, respiratory, renal, metabolic, hepatic) and build one embedding per system. This would both increase predictive power and improve interpretability — you could say "the renal system embedding drove this prediction."</p>
+<h3 id="problem-4-mps-apple-silicon-gpu-bug">Problem 4 — MPS (Apple Silicon GPU) bug<a class="headerlink" href="#problem-4-mps-apple-silicon-gpu-bug" title="Permanent link">&para;</a></h3>
+<p>The pipeline automatically falls back to CPU, which is slower. The NaN bug during classification training on MPS is unresolved.</p>
+<hr />
+<h2 id="14-what-to-explore-next">14. What to Explore Next<a class="headerlink" href="#14-what-to-explore-next" title="Permanent link">&para;</a></h2>
+<h3 id="immediate-to-unblock-everything">Immediate (to unblock everything)<a class="headerlink" href="#immediate-to-unblock-everything" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Get <code>embeddings.png</code> from James</strong> — you already have it from your WhatsApp images. The t-SNE plot confirms partial separation. Use this to discuss with James.</li>
+<li><strong>Run the pipeline end to end</strong> — once you understand <code>dnn_mortality_data.py</code>, run <code>dnn_mortality_pipeline.py</code> and replicate the results you see in the embeddings plot.</li>
+<li><strong>Understand the 0.47 probability problem</strong> — read the <code>evaluate_model()</code> output carefully and trace it back to why the classifier is outputting near-constant probabilities.</li>
+</ol>
+<h3 id="this-week">This week<a class="headerlink" href="#this-week" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Try unfreezing the encoder</strong> — change <code>param.requires_grad = False</code> to <code>True</code> in <code>train_classifier()</code> and train the full network end-to-end on the classification task.</li>
+<li><strong>Add more features</strong> — add haemoglobin (<code>preop_hb</code>) and albumin (<code>preop_albumin</code>) to the 4 time series. Both are clinically important and were in the correlation matrix.</li>
+<li><strong>Understand Saranya's frailty comparison</strong> — read <code>frailty_hfrs.py</code> and <code>inspire_analysis_department.py</code> to understand the HFRS computation before meeting with her.</li>
+</ol>
+<h3 id="longer-term">Longer term<a class="headerlink" href="#longer-term" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>System-level embeddings</strong> — group all 100+ features by physiological system and build one embedding per system. More information, more interpretable.</li>
+<li><strong>FFT experiment</strong> — apply Fast Fourier Transform to the lab time series before the transformer, converting them to frequency domain. This may capture periodic patterns more efficiently.</li>
+<li><strong>Real data validation</strong> — once the pipeline works well on synthetic data, run it on the real INSPIRE dataset and compare AUROC against the GBM and NELA baselines.</li>
+</ol>
+<hr />
+<p><em>Document compiled from: <code>dnn_mortality_pipeline.py</code>, <code>dnn_mortality_data.py</code>, <code>gbm_mortality.py</code>, <code>nela.py</code>, <code>frailty_hfrs.py</code>, <code>inspire_analysis_department.py</code>, <code>dnn_mortality.csv</code>, <code>FeatureCorrelationMatrix.png</code>, <code>embeddings.png</code>, and all prior conversation analysis.</em></p>
+<h3 id="dnn_mortality_pipelinepy">dnn_mortality_pipeline.py<a class="headerlink" href="#dnn_mortality_pipelinepy" title="Permanent link">&para;</a></h3>
+<p>imports 
+pandas - handles data tables - dataframes 
+numpy - fast maths on arrays 
+scripy - interpolation filling gaps in time series 
+sklearn - scaling, train/test split, AUROC, F1 
+torch - the deep learning engine (Pytorch)
+torch.nn - neural network building blocks 
+matplotli - plotting embeddings and curves 
+dnn_motatlity_data - generates or loads patient data 
+charts - draws AUROC and AUPRC plots</p>
+<p>import pandas as pd 
+import numpy as np 
+from sklearn.processing import StandardScaler
+from scipy.interpolate import interplt
+from sklearn.manifold import TSNE</p>
+<p>import torch 
+import torch.nn 
+from torch.util.data import dataloader, dataset
+import torch.optim as optim
+import matplotlib.pyplot as plt</p>
+<p>from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_curve, auc
+import random 
+import dnn_mortality_data
+from sklearn.metrics import f1_score</p>
+<p>-- functions
+align_time_series(data)</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "navigation.expand", "toc.integrate", "content.code.copy", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2233 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+      
+        <link rel="next" href="../INSPIRE_Project_Notes/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Home - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#inspire-dnn-mortality-pipeline-complete-project-readme" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-project-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Project Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-repository-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Repository Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-dataset-structure-inspire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Dataset Structure — INSPIRE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Dataset Structure — INSPIRE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-dataset-mortality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full dataset mortality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subset-used-for-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Subset used for development
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#30-day-mortality-label-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        30-day mortality label definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pre-operative-prediction-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-operative prediction window
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-subject-json-file-complete-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Subject JSON File — Complete Format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Subject JSON File — Complete Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-field-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key field reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-real-patient-example-subject-100033460" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Real Patient Example — Subject 100033460
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Real Patient Example — Subject 100033460">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#patient-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patient summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-she-died-diagnoses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why she died (diagnoses)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#her-measurements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Her measurements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-the-5-day-pre-op-window-minute-6490-to-710" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In the 5-day pre-op window (minute -6490 to 710)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lab-values-at-key-moments-showing-clinical-deterioration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab values at key moments (showing clinical deterioration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-dataset-subset-structure-on-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Dataset Subset Structure on Disk
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-current-pipeline-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Current Pipeline Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Current Pipeline Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-flow-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data flow — end to end
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-parameter-count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model parameter count
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-current-config-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Current Config Values
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Current Config Values">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-nhead-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The nhead rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-current-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Current Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-all-available-features-what-is-used-vs-what-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. All Available Features — What Is Used vs What Exists
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. All Available Features — What Is Used vs What Exists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#labs-from-labs-list-in-json-35-types-in-this-patient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Labs (from labs list in JSON) — 35 types in this patient
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ward-vitals-from-ward_vitals-list-in-json-10-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ward vitals (from ward_vitals list in JSON) — 10 types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intraoperative-vitals-from-vitals-list-in-json-27-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intraoperative vitals (from vitals list in JSON) — 27 types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to-expand-feature_columns-to-all-useful-labs-ward-vitals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        To expand FEATURE_COLUMNS to all useful labs + ward vitals:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-how-to-run-colab-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. How to Run — Colab Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. How to Run — Colab Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#every-new-session-cells-run-in-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Every new session (cells run in order):
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#after-making-changes-in-vs-code-and-pushing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        After making changes in VS Code and pushing:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-known-issues-and-fixes-applied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Known Issues and Fixes Applied
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-research-direction-and-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Research Direction and Next Steps
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Research Direction and Next Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#immediate-to-get-meaningful-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Immediate (to get meaningful results)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#core-research-contribution-4-system-embedding-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core research contribution — 4-system embedding architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#explainability-additions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Explainability additions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-models-to-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison models to run
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-key-papers-and-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Key Papers and References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Project_Notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="inspire-dnn-mortality-pipeline-complete-project-readme">INSPIRE DNN Mortality Pipeline — Complete Project README<a class="headerlink" href="#inspire-dnn-mortality-pipeline-complete-project-readme" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>This README is the single source of truth for the project. It contains everything needed to continue in a new conversation without uploading any files — the dataset structure, the code architecture, the current results, and the full research roadmap.</p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#1-project-overview">Project Overview</a></li>
+<li><a href="#2-repository-structure">Repository Structure</a></li>
+<li><a href="#3-dataset-structure-inspire">Dataset Structure — INSPIRE</a></li>
+<li><a href="#4-subject-json-file-complete-format">Subject JSON File — Complete Format</a></li>
+<li><a href="#5-real-patient-example-subject-100033460">Real Patient Example — Subject 100033460</a></li>
+<li><a href="#6-dataset-subset-structure-on-disk">Dataset Subset Structure on Disk</a></li>
+<li><a href="#7-current-pipeline-architecture">Current Pipeline Architecture</a></li>
+<li><a href="#8-current-config-values">Current Config Values</a></li>
+<li><a href="#9-current-results">Current Results</a></li>
+<li><a href="#10-all-available-features-what-is-used-vs-what-exists">All Available Features — What Is Used vs What Exists</a></li>
+<li><a href="#11-how-to-run-colab-workflow">How to Run — Colab Workflow</a></li>
+<li><a href="#12-known-issues-and-fixes-applied">Known Issues and Fixes Applied</a></li>
+<li><a href="#13-research-direction-and-next-steps">Research Direction and Next Steps</a></li>
+<li><a href="#14-key-papers-and-references">Key Papers and References</a></li>
+</ol>
+<hr />
+<h2 id="1-project-overview">1. Project Overview<a class="headerlink" href="#1-project-overview" title="Permanent link">&para;</a></h2>
+<p><strong>Goal:</strong> Predict 30-day in-hospital mortality after surgery using a deep learning transformer that reads clinical time series — and explain those predictions in language a surgeon can act on (which organ system is failing, what the specific drivers are, how confident the model is).</p>
+<p><strong>Dataset:</strong> INSPIRE — a Korean national perioperative dataset of ~99,886 surgical patients from a single centre (2011–2020). Contains labs, ward vitals, intraoperative vitals, medications, and ICD-10 diagnoses per patient, all timestamped in minutes relative to hospital admission.</p>
+<p><strong>Current state:</strong> Two-phase transformer pipeline running on real INSPIRE data. Autoencoder pretrains on unlabelled time series, classifier fine-tunes end-to-end. AUROC = 0.78 on a 29-patient real-data subset.</p>
+<p><strong>Benchmark to beat:</strong> Shickel et al. 2023 (Scientific Reports, doi:10.1038/s41598-023-27418-5) — same problem, University of Florida, 56,242 patients, AUROC = 0.92 using preoperative + intraoperative data.</p>
+<p><strong>Compared models in this project:</strong>
+- NELA score (<code>nela.py</code>) — fixed clinical equation, 25 variables, no training
+- GBM (<code>gbm_mortality.py</code>) — Saranya's XGBoost model with frailty analysis
+- DNN transformer (<code>dnn_mortality_pipeline.py</code>) — this project's main contribution</p>
+<hr />
+<h2 id="2-repository-structure">2. Repository Structure<a class="headerlink" href="#2-repository-structure" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>inspire-analysis-thrisha/
+└── src/
+    ├── dnn_mortality_pipeline.py     ← MAIN FILE — run this
+    ├── dnn_mortality_data.py         ← data loader for real JSON subjects
+    ├── charts.py                     ← AUROC and AUPRC plot functions
+    ├── gbm_mortality.py              ← Saranya&#39;s GBM baseline
+    ├── nela.py                       ← NELA clinical scorecard
+    ├── frailty_hfrs.py               ← Hospital Frailty Risk Score (HFRS)
+    ├── inspire_analysis_department.py ← exploratory plots by surgical dept
+    ├── subject.py                    ← Subject class for folder-based data
+    ├── inspire_dataset.py            ← reads the full inspire_subjects/ folder
+    └── stopwatch.py                  ← timing utility
+</code></pre></div>
+<p><strong>Data (not in repo — stored separately):</strong>
+<div class="highlight"><pre><span></span><code>inspire_subjects_small/          ← 30-patient subset used for development
+    survived/                    ← 20 JSON files (label = 0)
+    died/                        ← 10 JSON files (label = 1)
+</code></pre></div></p>
+<hr />
+<h2 id="3-dataset-structure-inspire">3. Dataset Structure — INSPIRE<a class="headerlink" href="#3-dataset-structure-inspire" title="Permanent link">&para;</a></h2>
+<h3 id="scale">Scale<a class="headerlink" href="#scale" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operations</td>
+<td>130,960 rows</td>
+<td>One row per surgery</td>
+</tr>
+<tr>
+<td>Labs</td>
+<td>1,048,575 rows</td>
+<td>Blood test results over time</td>
+</tr>
+<tr>
+<td>Ward vitals</td>
+<td>Large</td>
+<td>Bedside measurements on the ward</td>
+</tr>
+<tr>
+<td>Intraop vitals</td>
+<td>Large</td>
+<td>Minute-by-minute measurements during surgery</td>
+</tr>
+<tr>
+<td>Medications</td>
+<td>1,048,575 rows</td>
+<td>Drug administrations</td>
+</tr>
+<tr>
+<td>Diagnoses</td>
+<td>1,048,575 rows</td>
+<td>ICD-10 codes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="full-dataset-mortality">Full dataset mortality<a class="headerlink" href="#full-dataset-mortality" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Total patients:</strong> ~99,886</li>
+<li><strong>Deaths:</strong> 942</li>
+<li><strong>Death rate:</strong> 0.95%</li>
+<li><strong>pos_weight for loss function:</strong> ~105 (98,944 survived / 942 died)</li>
+</ul>
+<h3 id="subset-used-for-development">Subset used for development<a class="headerlink" href="#subset-used-for-development" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Total:</strong> 30 patients (after filtering)</li>
+<li><strong>Survived:</strong> 20 (in <code>survived/</code> folder)</li>
+<li><strong>Died:</strong> 10 (in <code>died/</code> folder)</li>
+<li><strong>Actually loaded:</strong> 29 (1 skipped — too sparse)</li>
+</ul>
+<h3 id="time-reference">Time reference<a class="headerlink" href="#time-reference" title="Permanent link">&para;</a></h3>
+<p>All <code>chart_time</code> values are in <strong>minutes</strong> relative to each patient's hospital admission (time = 0). Negative values mean before admission (outpatient measurements). Positive values mean after admission.</p>
+<div class="highlight"><pre><span></span><code>chart_time = -23395  → 16.2 days before admission (outpatient test)
+chart_time = 0       → moment of hospital admission
+chart_time = 710     → 710 minutes after admission = OR entry (orin_time)
+chart_time = 825     → patient leaves OR (orout_time)
+chart_time = 22535   → patient dies (15.1 days after admission)
+</code></pre></div>
+<h3 id="30-day-mortality-label-definition">30-day mortality label definition<a class="headerlink" href="#30-day-mortality-label-definition" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">label</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">inhosp_death_time</span> <span class="o">&lt;</span> <span class="n">orout_time</span> <span class="o">+</span> <span class="p">(</span><span class="mi">30</span> <span class="err">×</span> <span class="mi">24</span> <span class="err">×</span> <span class="mi">60</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
+<span class="c1"># i.e. died within 30 days of leaving the operating room</span>
+</code></pre></div>
+<p>The label is already encoded in the folder structure (<code>survived/</code> = 0, <code>died/</code> = 1).</p>
+<h3 id="pre-operative-prediction-window">Pre-operative prediction window<a class="headerlink" href="#pre-operative-prediction-window" title="Permanent link">&para;</a></h3>
+<p>The model only sees data from <strong>5 days before surgery</strong>:
+<div class="highlight"><pre><span></span><code>window_start = orin_time - (5 × 24 × 60)   = orin_time - 7200 minutes
+window_end   = orin_time - 1
+</code></pre></div></p>
+<p>This is the clinically sensible window — predicting outcome from pre-operative state, before the surgeon has committed to operating.</p>
+<hr />
+<h2 id="4-subject-json-file-complete-format">4. Subject JSON File — Complete Format<a class="headerlink" href="#4-subject-json-file-complete-format" title="Permanent link">&para;</a></h2>
+<p>Each patient is stored as one JSON file named <code>&lt;subject_id&gt;.json</code>. The file has <strong>7 top-level keys:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span>
+
+<span class="w">  </span><span class="nt">&quot;operations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;op_id&quot;</span><span class="p">:</span><span class="w">           </span><span class="s2">&quot;475179926&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w">      </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;hadm_id&quot;</span><span class="p">:</span><span class="w">         </span><span class="s2">&quot;240762127&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;case_id&quot;</span><span class="p">:</span><span class="w">         </span><span class="s2">&quot;15178&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;opdate&quot;</span><span class="p">:</span><span class="w">          </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w">             </span><span class="s2">&quot;80&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;sex&quot;</span><span class="p">:</span><span class="w">             </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;weight&quot;</span><span class="p">:</span><span class="w">          </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;height&quot;</span><span class="p">:</span><span class="w">          </span><span class="s2">&quot;150&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;race&quot;</span><span class="p">:</span><span class="w">            </span><span class="s2">&quot;Asian&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;asa&quot;</span><span class="p">:</span><span class="w">             </span><span class="s2">&quot;3&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;emop&quot;</span><span class="p">:</span><span class="w">            </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;department&quot;</span><span class="p">:</span><span class="w">      </span><span class="s2">&quot;GS&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;antype&quot;</span><span class="p">:</span><span class="w">          </span><span class="s2">&quot;General&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;icd10_pcs&quot;</span><span class="p">:</span><span class="w">       </span><span class="s2">&quot;0DJ00&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;orin_time&quot;</span><span class="p">:</span><span class="w">       </span><span class="s2">&quot;710&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;orout_time&quot;</span><span class="p">:</span><span class="w">      </span><span class="s2">&quot;825&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;opstart_time&quot;</span><span class="p">:</span><span class="w">    </span><span class="s2">&quot;735&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;opend_time&quot;</span><span class="p">:</span><span class="w">      </span><span class="s2">&quot;815&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;admission_time&quot;</span><span class="p">:</span><span class="w">  </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;discharge_time&quot;</span><span class="p">:</span><span class="w">  </span><span class="s2">&quot;23035&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;anstart_time&quot;</span><span class="p">:</span><span class="w">    </span><span class="s2">&quot;720&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;anend_time&quot;</span><span class="p">:</span><span class="w">      </span><span class="s2">&quot;820&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;cpbon_time&quot;</span><span class="p">:</span><span class="w">      </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;cpboff_time&quot;</span><span class="p">:</span><span class="w">     </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;icuin_time&quot;</span><span class="p">:</span><span class="w">      </span><span class="s2">&quot;825&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;icuout_time&quot;</span><span class="p">:</span><span class="w">     </span><span class="s2">&quot;22710&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;inhosp_death_time&quot;</span><span class="p">:</span><span class="w">   </span><span class="s2">&quot;22535&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;allcause_death_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;41760&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+
+<span class="w">  </span><span class="nt">&quot;labs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-23395&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;item_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ptinr&quot;</span><span class="p">,</span><span class="w">    </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.9&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-23395&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;item_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;aptt&quot;</span><span class="p">,</span><span class="w">     </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;29.1&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-23380&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;item_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sodium&quot;</span><span class="p">,</span><span class="w">   </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;135.0&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="err">...</span>
+<span class="w">  </span><span class="p">],</span>
+
+<span class="w">  </span><span class="nt">&quot;ward_vitals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-23490&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;item_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;hr&quot;</span><span class="p">,</span><span class="w">       </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;96.0&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-23300&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;item_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;hr&quot;</span><span class="p">,</span><span class="w">       </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;80.0&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="err">...</span>
+<span class="w">  </span><span class="p">],</span>
+
+<span class="w">  </span><span class="nt">&quot;vitals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;op_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;475179926&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;700&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;item_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bt&quot;</span><span class="p">,</span><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;22.0&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;op_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;475179926&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;700&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;item_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;art_mbp&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;6.0&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="err">...</span>
+<span class="w">  </span><span class="p">],</span>
+
+<span class="w">  </span><span class="nt">&quot;diagnoses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-231840&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;icd10_cm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;N18&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-24480&quot;</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;icd10_cm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;N17&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span><span class="w">       </span><span class="nt">&quot;icd10_cm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;K65&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;20160&quot;</span><span class="p">,</span><span class="w">   </span><span class="nt">&quot;icd10_cm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;C18&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="err">...</span>
+<span class="w">  </span><span class="p">],</span>
+
+<span class="w">  </span><span class="nt">&quot;medications&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;chart_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;21720&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;drug_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;thiamine&quot;</span><span class="p">,</span>
+<span class="w">     </span><span class="nt">&quot;route&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;iv&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;drug_name2&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;drug_name3&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="w">     </span><span class="nt">&quot;atc_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A11DA01&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;atc_code2&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;atc_code3&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="err">...</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="key-field-reference">Key field reference<a class="headerlink" href="#key-field-reference" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Table</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>chart_time</code></td>
+<td>all</td>
+<td>Minutes from admission. Negative = before admission</td>
+</tr>
+<tr>
+<td><code>item_name</code></td>
+<td>labs, ward_vitals, vitals</td>
+<td>What was measured (e.g. <code>glucose</code>, <code>hr</code>)</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>labs, ward_vitals, vitals</td>
+<td>Measured value as string — must cast to float</td>
+</tr>
+<tr>
+<td><code>orin_time</code></td>
+<td>operations</td>
+<td>Patient enters operating room</td>
+</tr>
+<tr>
+<td><code>orout_time</code></td>
+<td>operations</td>
+<td>Patient leaves operating room</td>
+</tr>
+<tr>
+<td><code>inhosp_death_time</code></td>
+<td>operations</td>
+<td>Time of death (empty string if survived)</td>
+</tr>
+<tr>
+<td><code>emop</code></td>
+<td>operations</td>
+<td>Emergency operation: <code>"1"</code> = yes, <code>"0"</code> = no</td>
+</tr>
+<tr>
+<td><code>asa</code></td>
+<td>operations</td>
+<td>ASA physical status class (1–5)</td>
+</tr>
+<tr>
+<td><code>icd10_cm</code></td>
+<td>diagnoses</td>
+<td>ICD-10 diagnosis code (used for frailty score)</td>
+</tr>
+<tr>
+<td><code>atc_code</code></td>
+<td>medications</td>
+<td>WHO ATC drug classification code</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-real-patient-example-subject-100033460">5. Real Patient Example — Subject 100033460<a class="headerlink" href="#5-real-patient-example-subject-100033460" title="Permanent link">&para;</a></h2>
+<p>This is a real INSPIRE patient in the <code>died/</code> folder. This example is used throughout the codebase for testing.</p>
+<h3 id="patient-summary">Patient summary<a class="headerlink" href="#patient-summary" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+<th>Clinical meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Subject ID</td>
+<td>100033460</td>
+<td>Unique patient identifier</td>
+</tr>
+<tr>
+<td>Age</td>
+<td>80</td>
+<td>Elderly</td>
+</tr>
+<tr>
+<td>Sex</td>
+<td>Female</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Department</td>
+<td>GS</td>
+<td>General Surgery</td>
+</tr>
+<tr>
+<td>Emergency</td>
+<td>Yes (emop=1)</td>
+<td>Brought in urgently — no pre-selection</td>
+</tr>
+<tr>
+<td>ASA class</td>
+<td>3</td>
+<td>Severe systemic disease</td>
+</tr>
+<tr>
+<td>Operation</td>
+<td>0DJ00</td>
+<td>Bowel inspection (colonoscopy/inspection)</td>
+</tr>
+<tr>
+<td>Anaesthesia</td>
+<td>General</td>
+<td>Full general anaesthesia</td>
+</tr>
+<tr>
+<td>OR entry</td>
+<td>minute 710</td>
+<td>~11.8 hours after admission</td>
+</tr>
+<tr>
+<td>OR exit</td>
+<td>minute 825</td>
+<td>75-minute operation</td>
+</tr>
+<tr>
+<td>ICU admission</td>
+<td>minute 825</td>
+<td>Went straight to ICU post-op</td>
+</tr>
+<tr>
+<td>ICU discharge</td>
+<td>minute 22,710</td>
+<td>~15.8 days in ICU</td>
+</tr>
+<tr>
+<td>Death</td>
+<td>minute 22,535</td>
+<td>~15.1 days after admission</td>
+</tr>
+<tr>
+<td>30-day label</td>
+<td><strong>1 (DIED)</strong></td>
+<td>22535 &lt; 825 + 43200 ✓</td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-she-died-diagnoses">Why she died (diagnoses)<a class="headerlink" href="#why-she-died-diagnoses" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ICD-10</th>
+<th>Meaning</th>
+<th>Times recorded</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N18</td>
+<td>Chronic kidney disease</td>
+<td>6 times (pre-existing)</td>
+</tr>
+<tr>
+<td>N17</td>
+<td>Acute kidney failure</td>
+<td>1 time (on admission)</td>
+</tr>
+<tr>
+<td>K65</td>
+<td>Peritonitis</td>
+<td>On admission — reason for emergency surgery</td>
+</tr>
+<tr>
+<td>C18</td>
+<td>Colon cancer</td>
+<td>Post-operatively</td>
+</tr>
+<tr>
+<td>S00</td>
+<td>Superficial injury of head</td>
+<td>Incidental</td>
+</tr>
+</tbody>
+</table>
+<p>An 80-year-old woman with chronic kidney disease (N18) and colon cancer (C18) presented as an emergency with peritonitis (K65 — infection in the abdominal cavity). Her kidneys went into acute failure (N17). She spent 15 days in ICU on dialysis (CRRT active in ward vitals) and died.</p>
+<h3 id="her-measurements">Her measurements<a class="headerlink" href="#her-measurements" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Total rows</th>
+<th>Types available</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Labs</td>
+<td>1,861</td>
+<td>35 unique lab types</td>
+</tr>
+<tr>
+<td>Ward vitals</td>
+<td>7,567</td>
+<td>10 unique types</td>
+</tr>
+<tr>
+<td>Intraop vitals</td>
+<td>457</td>
+<td>27 unique types</td>
+</tr>
+<tr>
+<td>Diagnoses</td>
+<td>12</td>
+<td>5 unique ICD-10 codes</td>
+</tr>
+<tr>
+<td>Medications</td>
+<td>399</td>
+<td>8 ATC first-level drug classes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="in-the-5-day-pre-op-window-minute-6490-to-710">In the 5-day pre-op window (minute -6490 to 710)<a class="headerlink" href="#in-the-5-day-pre-op-window-minute-6490-to-710" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Rows in window</th>
+<th>Types in window</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Labs</td>
+<td>80</td>
+<td>33 types</td>
+</tr>
+<tr>
+<td>Ward vitals</td>
+<td>814</td>
+<td>7 types</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lab-values-at-key-moments-showing-clinical-deterioration">Lab values at key moments (showing clinical deterioration)<a class="headerlink" href="#lab-values-at-key-moments-showing-clinical-deterioration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Creatinine:
+  chart_time  535:  5.55 mg/dL   (pre-op, day of surgery — severely elevated, normal &lt; 1.2)
+  → Chronic + acute kidney failure confirmed
+
+Glucose:
+  chart_time  510:  78.0 mg/dL
+  chart_time  525: 264.0 mg/dL   (spiked to 264 — stress hyperglycaemia)
+  chart_time  535:  84.0 mg/dL
+
+Sodium:
+  chart_time  510: 128.0 mEq/L   (low — normal 136-145, hyponatraemia)
+  chart_time  535: 132.0 mEq/L
+
+Potassium:
+  chart_time  510:   5.3 mEq/L   (elevated — normal 3.5-5.0, kidney failure)
+</code></pre></div>
+<hr />
+<h2 id="6-dataset-subset-structure-on-disk">6. Dataset Subset Structure on Disk<a class="headerlink" href="#6-dataset-subset-structure-on-disk" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>inspire_subjects_small/
+├── survived/                        ← 20 patients, label = 0
+│   ├── 100002413.json
+│   ├── 100016333.json
+│   ├── 100001820.json
+│   ├── 100024770.json
+│   ├── 100026753.json
+│   └── ... (15 more)
+└── died/                            ← 10 patients, label = 1
+    ├── 100403813.json
+    ├── 100528073.json
+    ├── 100516694.json
+    ├── 100316372.json
+    ├── 100407302.json
+    └── ... (5 more)
+</code></pre></div>
+<p><strong>Zip file path in Colab:</strong> After uploading <code>inspire_subjects_small.zip</code> and extracting:
+<div class="highlight"><pre><span></span><code>/content/inspire_subjects_small/inspire_subjects_small/survived/
+/content/inspire_subjects_small/inspire_subjects_small/died/
+</code></pre></div></p>
+<p>Note the double nesting — the zip contains a subfolder with the same name.</p>
+<hr />
+<h2 id="7-current-pipeline-architecture">7. Current Pipeline Architecture<a class="headerlink" href="#7-current-pipeline-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="data-flow-end-to-end">Data flow — end to end<a class="headerlink" href="#data-flow-end-to-end" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>inspire_subjects_small/survived/*.json  (label=0)
+inspire_subjects_small/died/*.json      (label=1)
+                ↓
+load_real_subjects(json_dir, feature_columns, days_before_operation=5)
+  - reads survived/ and died/ folders, label from folder name
+  - extracts 5-day pre-op window: [orin_time-7200, orin_time-1]
+  - pulls matching item_name records from labs + ward_vitals
+  - returns dict: {subject_id: {timeseries: {...}, label: 0/1}}
+  - currently: 29 loaded (10 died, 19 survived), 1 skipped too-sparse
+                ↓
+align_time_series(time_series, full_length=None)
+  - builds one row per minute from min_observed to max_observed
+  - fills gaps with linear interpolation
+  - adds mask column per feature: 1.0=observed, 0.0=interpolated
+  - output: DataFrame, shape (num_minutes, num_features*2)
+                ↓
+normalize_data(df, feature_columns, scaler)
+  - StandardScaler: subtract mean, divide by std
+  - scaler FITTED ON TRAIN DATA ONLY (prevents data leakage)
+  - test data TRANSFORMED using train scaler
+                ↓
+          ┌─────────────────────────────────┐
+          │         PHASE 1                 │
+          │   Unsupervised pretraining      │
+          │   No mortality labels used      │
+          └─────────────────────────────────┘
+                ↓
+create_sequences(df, seq_length=180, feature_columns, mask_columns)
+  - slides a 180-minute window along the aligned series
+  - 1440-minute series → 1,261 windows of shape (180, 14)
+  - all training subjects combined → ~25,000 windows total
+                ↓
+TimeSeriesTransformer (mode=&#39;autoencode&#39;)
+  ┌─────────────────────────────────────────────────┐
+  │  input_projection:  Linear(14 → 14)             │
+  │  + positional encoding (sinusoidal, shape 180×14)│
+  │  transformer_encoder:                            │
+  │    5 layers                                     │
+  │    7 attention heads  (14 ÷ 7 = 2 per head)     │
+  │    dim_feedforward = 128                        │
+  │    dropout = 0.1                                │
+  │  output_projection: Linear(14 → 7)              │
+  │    reconstructs 7 feature values (not masks)    │
+  │  Loss: MSE(reconstruction, actual_features)     │
+  └─────────────────────────────────────────────────┘
+  Result: loss 0.238 → 0.005 over 10 epochs ✓
+                ↓
+          ┌─────────────────────────────────┐
+          │         PHASE 2                 │
+          │   Supervised classification     │
+          │   Encoder UNFROZEN              │
+          │   Whole network fine-tuned      │
+          └─────────────────────────────────┘
+                ↓
+SubjectDataset
+  - full 1440-minute aligned+normalised series per patient
+  - padded to global_length=1440 with zeros
+  - attention mask: 1=real, 0=padded
+                ↓
+TimeSeriesTransformer (mode=&#39;classify&#39;)
+  ┌─────────────────────────────────────────────────┐
+  │  Same encoder as Phase 1 (unfrozen)             │
+  │  Input: (batch, 1440, 14)                       │
+  │  Encoder output: (batch, 1440, 14)              │
+  │  Mean pool over 1440 time steps                 │
+  │    → (batch, 14)  ← THE EMBEDDING               │
+  │  classifier: Linear(14 → 1)                     │
+  │    → sigmoid → mortality probability            │
+  │  Loss: BCEWithLogitsLoss                        │
+  │    pos_weight = 1.86 (19 survived / 10 died)    │
+  │    Learning rate = 0.0001 (lower to protect      │
+  │    pretrained encoder weights)                  │
+  └─────────────────────────────────────────────────┘
+  Result: loss 0.675 → 0.563 over 20 epochs, still dropping ✓
+                ↓
+evaluate_model()
+  - AUROC = 0.7778 on 9 test patients (3 died, 6 survived)
+  - Best F1 = 0.667 at threshold 0.17
+  - Saves: embeddings.png, auroc.png, auprc.png
+</code></pre></div>
+<h3 id="model-parameter-count">Model parameter count<a class="headerlink" href="#model-parameter-count" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Parameters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>input_projection (14×14 + 14 bias)</td>
+<td>210</td>
+</tr>
+<tr>
+<td>transformer_encoder (5 layers × ~4,000)</td>
+<td>~20,000</td>
+</tr>
+<tr>
+<td>output_projection (14×7 + 7 bias)</td>
+<td>105</td>
+</tr>
+<tr>
+<td>classifier (14×1 + 1 bias)</td>
+<td>15</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>23,440</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-current-config-values">8. Current Config Values<a class="headerlink" href="#8-current-config-values" title="Permanent link">&para;</a></h2>
+<p>All in <code>main()</code> inside <code>dnn_mortality_pipeline.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">USE_REAL_DATA</span>          <span class="o">=</span> <span class="kc">True</span>
+<span class="n">JSON_DIR</span>               <span class="o">=</span> <span class="s2">&quot;/content/inspire_subjects_small/inspire_subjects_small&quot;</span>
+<span class="n">FEATURE_COLUMNS</span>        <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;glucose&#39;</span><span class="p">,</span> <span class="s1">&#39;potassium&#39;</span><span class="p">,</span> <span class="s1">&#39;sodium&#39;</span><span class="p">,</span> <span class="s1">&#39;creatinine&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;hr&#39;</span><span class="p">,</span> <span class="s1">&#39;spo2&#39;</span><span class="p">,</span> <span class="s1">&#39;nibp_sbp&#39;</span><span class="p">]</span>
+<span class="n">DAYS_BEFORE_OPERATION</span>  <span class="o">=</span> <span class="mi">5</span>
+<span class="n">UNFREEZE_ENCODER</span>       <span class="o">=</span> <span class="kc">True</span>
+<span class="n">AUTOENCODER_EPOCHS</span>     <span class="o">=</span> <span class="mi">10</span>
+<span class="n">CLASSIFIER_EPOCHS</span>      <span class="o">=</span> <span class="mi">20</span>
+
+<span class="c1"># In train_autoencoder():</span>
+<span class="n">nhead</span>                  <span class="o">=</span> <span class="mi">7</span>          <span class="c1"># must divide evenly into num_features</span>
+<span class="n">num_layers</span>             <span class="o">=</span> <span class="mi">5</span>
+<span class="n">dim_feedforward</span>        <span class="o">=</span> <span class="mi">128</span>
+<span class="n">dropout</span>                <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">learning_rate</span>          <span class="o">=</span> <span class="mf">0.001</span>      <span class="c1"># autoencoder</span>
+
+<span class="c1"># In train_classifier():</span>
+<span class="n">learning_rate</span>          <span class="o">=</span> <span class="mf">0.0001</span>     <span class="c1"># lower to protect pretrained weights</span>
+
+<span class="c1"># In main():</span>
+<span class="n">global_length</span>          <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="mi">1440</span><span class="p">)</span>   <span class="c1"># cap at 24 hours for GPU memory</span>
+</code></pre></div>
+<h3 id="the-nhead-rule">The nhead rule<a class="headerlink" href="#the-nhead-rule" title="Permanent link">&para;</a></h3>
+<p><code>nhead</code> must divide evenly into <code>num_features</code> where <code>num_features = len(FEATURE_COLUMNS) × 2</code>:</p>
+<table>
+<thead>
+<tr>
+<th>FEATURE_COLUMNS count</th>
+<th>num_features</th>
+<th>Valid nhead values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4 features</td>
+<td>8</td>
+<td>1, 2, 4, 8</td>
+</tr>
+<tr>
+<td>7 features (current)</td>
+<td>14</td>
+<td>1, 2, 7, 14</td>
+</tr>
+<tr>
+<td>10 features</td>
+<td>20</td>
+<td>1, 2, 4, 5, 10, 20</td>
+</tr>
+<tr>
+<td>16 features</td>
+<td>32</td>
+<td>1, 2, 4, 8, 16, 32</td>
+</tr>
+<tr>
+<td>33 features</td>
+<td>66</td>
+<td>1, 2, 3, 6, 11, 22, 33, 66</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="9-current-results">9. Current Results<a class="headerlink" href="#9-current-results" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Run</th>
+<th>Patients</th>
+<th>Features</th>
+<th>Epochs</th>
+<th>AUROC</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Synthetic frozen encoder</td>
+<td>300 fake</td>
+<td>4</td>
+<td>10</td>
+<td>~0.50</td>
+<td>Encoder frozen — classifier learned nothing</td>
+</tr>
+<tr>
+<td>Synthetic unfrozen</td>
+<td>300 fake</td>
+<td>4</td>
+<td>3</td>
+<td>~0.60</td>
+<td>Unfreezing fixed the problem</td>
+</tr>
+<tr>
+<td>Real data first run</td>
+<td>20 real</td>
+<td>4</td>
+<td>3</td>
+<td>0.8889</td>
+<td>Accidentally perfectly balanced 10/10</td>
+</tr>
+<tr>
+<td>Real data</td>
+<td>22 real</td>
+<td>4</td>
+<td>3</td>
+<td>0.6667</td>
+<td>More realistic split</td>
+</tr>
+<tr>
+<td>Real data all 30</td>
+<td>30 real</td>
+<td>7</td>
+<td>10</td>
+<td>0.8571</td>
+<td>Best run — 10 died / 20 survived</td>
+</tr>
+<tr>
+<td>Real data latest</td>
+<td>29 real</td>
+<td>7</td>
+<td>20</td>
+<td>0.7778</td>
+<td>Classifier still not converged</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why AUROC fluctuates:</strong> Test set is only 6–10 patients. One wrong prediction moves AUROC by ~0.11. These numbers will stabilise only with the full 99,886-patient dataset. The model is genuinely learning — classifier loss drops every epoch.</p>
+<hr />
+<h2 id="10-all-available-features-what-is-used-vs-what-exists">10. All Available Features — What Is Used vs What Exists<a class="headerlink" href="#10-all-available-features-what-is-used-vs-what-exists" title="Permanent link">&para;</a></h2>
+<h3 id="labs-from-labs-list-in-json-35-types-in-this-patient">Labs (from labs list in JSON) — 35 types in this patient<a class="headerlink" href="#labs-from-labs-list-in-json-35-types-in-this-patient" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>System</th>
+<th>Currently used</th>
+<th>Measurement count (this patient)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>glucose</td>
+<td>Metabolic</td>
+<td>✅</td>
+<td>144</td>
+</tr>
+<tr>
+<td>potassium</td>
+<td>Renal</td>
+<td>✅</td>
+<td>111</td>
+</tr>
+<tr>
+<td>sodium</td>
+<td>Renal</td>
+<td>✅</td>
+<td>111</td>
+</tr>
+<tr>
+<td>creatinine</td>
+<td>Renal</td>
+<td>✅</td>
+<td>42</td>
+</tr>
+<tr>
+<td>hb</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>110</td>
+</tr>
+<tr>
+<td>hct</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>116</td>
+</tr>
+<tr>
+<td>wbc</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>44</td>
+</tr>
+<tr>
+<td>albumin</td>
+<td>Metabolic</td>
+<td>❌</td>
+<td>29</td>
+</tr>
+<tr>
+<td>ast</td>
+<td>Metabolic</td>
+<td>❌</td>
+<td>28</td>
+</tr>
+<tr>
+<td>alt</td>
+<td>Metabolic</td>
+<td>❌</td>
+<td>28</td>
+</tr>
+<tr>
+<td>total_bilirubin</td>
+<td>Metabolic</td>
+<td>❌</td>
+<td>28</td>
+</tr>
+<tr>
+<td>alp</td>
+<td>Metabolic</td>
+<td>❌</td>
+<td>28</td>
+</tr>
+<tr>
+<td>total_protein</td>
+<td>Metabolic</td>
+<td>❌</td>
+<td>28</td>
+</tr>
+<tr>
+<td>lacate</td>
+<td>Metabolic</td>
+<td>❌</td>
+<td>80</td>
+</tr>
+<tr>
+<td>crp</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>21</td>
+</tr>
+<tr>
+<td>ph</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>92</td>
+</tr>
+<tr>
+<td>pao2</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>91</td>
+</tr>
+<tr>
+<td>paco2</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>91</td>
+</tr>
+<tr>
+<td>hco3</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>91</td>
+</tr>
+<tr>
+<td>sao2</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>91</td>
+</tr>
+<tr>
+<td>be</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>82</td>
+</tr>
+<tr>
+<td>bun</td>
+<td>Renal</td>
+<td>❌</td>
+<td>35</td>
+</tr>
+<tr>
+<td>calcium</td>
+<td>Renal</td>
+<td>❌</td>
+<td>36</td>
+</tr>
+<tr>
+<td>chloride</td>
+<td>Renal</td>
+<td>❌</td>
+<td>39</td>
+</tr>
+<tr>
+<td>phosphorus</td>
+<td>Renal</td>
+<td>❌</td>
+<td>36</td>
+</tr>
+<tr>
+<td>ica</td>
+<td>Renal</td>
+<td>❌</td>
+<td>17</td>
+</tr>
+<tr>
+<td>platelet</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>38</td>
+</tr>
+<tr>
+<td>ptinr</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>17</td>
+</tr>
+<tr>
+<td>aptt</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>16</td>
+</tr>
+<tr>
+<td>fibrinogen</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>13</td>
+</tr>
+<tr>
+<td>lymphocyte</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>38</td>
+</tr>
+<tr>
+<td>seg</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>37</td>
+</tr>
+<tr>
+<td>troponin_i</td>
+<td>Cardiovascular</td>
+<td>❌</td>
+<td>5</td>
+</tr>
+<tr>
+<td>ck</td>
+<td>Cardiovascular</td>
+<td>❌</td>
+<td>4</td>
+</tr>
+<tr>
+<td>ckmb</td>
+<td>Cardiovascular</td>
+<td>❌</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ward-vitals-from-ward_vitals-list-in-json-10-types">Ward vitals (from ward_vitals list in JSON) — 10 types<a class="headerlink" href="#ward-vitals-from-ward_vitals-list-in-json-10-types" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>System</th>
+<th>Currently used</th>
+<th>Measurement count (this patient)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hr</td>
+<td>Cardiovascular</td>
+<td>✅</td>
+<td>908</td>
+</tr>
+<tr>
+<td>spo2</td>
+<td>Respiratory</td>
+<td>✅</td>
+<td>882</td>
+</tr>
+<tr>
+<td>nibp_sbp</td>
+<td>Cardiovascular</td>
+<td>✅</td>
+<td>941</td>
+</tr>
+<tr>
+<td>nibp_dbp</td>
+<td>Cardiovascular</td>
+<td>❌</td>
+<td>940</td>
+</tr>
+<tr>
+<td>nibp_mbp</td>
+<td>Cardiovascular</td>
+<td>❌</td>
+<td>939</td>
+</tr>
+<tr>
+<td>rr</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>1,084</td>
+</tr>
+<tr>
+<td>fio2</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>639</td>
+</tr>
+<tr>
+<td>bt</td>
+<td>Metabolic</td>
+<td>❌</td>
+<td>441</td>
+</tr>
+<tr>
+<td>crrt</td>
+<td>Renal</td>
+<td>❌</td>
+<td>792 (dialysis active!)</td>
+</tr>
+<tr>
+<td>uo</td>
+<td>Renal</td>
+<td>❌</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="intraoperative-vitals-from-vitals-list-in-json-27-types">Intraoperative vitals (from vitals list in JSON) — 27 types<a class="headerlink" href="#intraoperative-vitals-from-vitals-list-in-json-27-types" title="Permanent link">&para;</a></h3>
+<p><em>Not currently used — requires orin_time to orout_time window, not pre-op window</em></p>
+<p><code>art_sbp, art_dbp, art_mbp, hr, spo2, etco2, fio2, rr, pip, pmean, vt, minvol, bt, bis, cvp, sti, stii, stiii, stv5, nepi, ebl, rbc, ns, psa, air, etgas, phe</code></p>
+<h3 id="to-expand-feature_columns-to-all-useful-labs-ward-vitals">To expand FEATURE_COLUMNS to all useful labs + ward vitals:<a class="headerlink" href="#to-expand-feature_columns-to-all-useful-labs-ward-vitals" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">FEATURE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># Renal (5)</span>
+    <span class="s1">&#39;creatinine&#39;</span><span class="p">,</span> <span class="s1">&#39;bun&#39;</span><span class="p">,</span> <span class="s1">&#39;sodium&#39;</span><span class="p">,</span> <span class="s1">&#39;potassium&#39;</span><span class="p">,</span> <span class="s1">&#39;chloride&#39;</span><span class="p">,</span>
+    <span class="c1"># Cardiovascular ward (4)</span>
+    <span class="s1">&#39;hr&#39;</span><span class="p">,</span> <span class="s1">&#39;nibp_sbp&#39;</span><span class="p">,</span> <span class="s1">&#39;nibp_dbp&#39;</span><span class="p">,</span> <span class="s1">&#39;nibp_mbp&#39;</span><span class="p">,</span>
+    <span class="c1"># Respiratory labs (6)</span>
+    <span class="s1">&#39;pao2&#39;</span><span class="p">,</span> <span class="s1">&#39;paco2&#39;</span><span class="p">,</span> <span class="s1">&#39;ph&#39;</span><span class="p">,</span> <span class="s1">&#39;hco3&#39;</span><span class="p">,</span> <span class="s1">&#39;be&#39;</span><span class="p">,</span> <span class="s1">&#39;sao2&#39;</span><span class="p">,</span>
+    <span class="c1"># Respiratory ward (3)</span>
+    <span class="s1">&#39;spo2&#39;</span><span class="p">,</span> <span class="s1">&#39;rr&#39;</span><span class="p">,</span> <span class="s1">&#39;fio2&#39;</span><span class="p">,</span>
+    <span class="c1"># Metabolic/hepatic labs (6)</span>
+    <span class="s1">&#39;glucose&#39;</span><span class="p">,</span> <span class="s1">&#39;albumin&#39;</span><span class="p">,</span> <span class="s1">&#39;ast&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">,</span> <span class="s1">&#39;total_bilirubin&#39;</span><span class="p">,</span> <span class="s1">&#39;lacate&#39;</span><span class="p">,</span>
+    <span class="c1"># Haematology labs (5)</span>
+    <span class="s1">&#39;hb&#39;</span><span class="p">,</span> <span class="s1">&#39;hct&#39;</span><span class="p">,</span> <span class="s1">&#39;wbc&#39;</span><span class="p">,</span> <span class="s1">&#39;platelet&#39;</span><span class="p">,</span> <span class="s1">&#39;crp&#39;</span><span class="p">,</span>
+    <span class="c1"># Temperature (1)</span>
+    <span class="s1">&#39;bt&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="c1"># Total: 30 features → num_features = 60 → use nhead=6 (60÷6=10) or nhead=4 (60÷4=15)</span>
+</code></pre></div>
+<hr />
+<h2 id="11-how-to-run-colab-workflow">11. How to Run — Colab Workflow<a class="headerlink" href="#11-how-to-run-colab-workflow" title="Permanent link">&para;</a></h2>
+<h3 id="every-new-session-cells-run-in-order">Every new session (cells run in order):<a class="headerlink" href="#every-new-session-cells-run-in-order" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Cell 1 — GPU check</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">())</span>       <span class="c1"># must print True</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_name</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>   <span class="c1"># must print Tesla T4</span>
+
+<span class="c1"># Cell 2 — Clone repo</span>
+<span class="err">!</span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">thrisharajkumar</span><span class="o">/</span><span class="n">inspire</span><span class="o">-</span><span class="n">analysis</span><span class="o">-</span><span class="n">thrisha</span><span class="o">.</span><span class="n">git</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s1">&#39;/content/inspire-analysis-thrisha/src&#39;</span><span class="p">)</span>
+
+<span class="c1"># Cell 3 — Upload data zip</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">google.colab</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span>
+<span class="n">uploaded</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">upload</span><span class="p">()</span>  <span class="c1"># select inspire_subjects_small.zip</span>
+
+<span class="c1"># Cell 4 — Extract data</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">zip_path</span> <span class="o">=</span> <span class="s1">&#39;/content/inspire-analysis-thrisha/src/inspire_subjects_small.zip&#39;</span>
+<span class="n">extract_dir</span> <span class="o">=</span> <span class="s1">&#39;/content/inspire_subjects_small&#39;</span>
+<span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">z</span><span class="p">:</span>
+    <span class="n">z</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">extract_dir</span><span class="p">)</span>
+<span class="n">contents</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">extract_dir</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extract_dir</span><span class="p">,</span> <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+    <span class="n">extract_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extract_dir</span><span class="p">,</span> <span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;survived:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extract_dir</span><span class="p">,</span> <span class="s1">&#39;survived&#39;</span><span class="p">))))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;died:    &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extract_dir</span><span class="p">,</span> <span class="s1">&#39;died&#39;</span><span class="p">))))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DATA PATH:&#39;</span><span class="p">,</span> <span class="n">extract_dir</span><span class="p">)</span>
+<span class="c1"># Should print: survived: 20, died: 10</span>
+<span class="c1"># DATA PATH: /content/inspire_subjects_small/inspire_subjects_small</span>
+
+<span class="c1"># Cell 5 — Pull latest code and run</span>
+<span class="err">!</span><span class="n">git</span> <span class="n">pull</span>
+<span class="err">!</span><span class="n">python</span> <span class="n">dnn_mortality_pipeline</span><span class="o">.</span><span class="n">py</span>
+
+<span class="c1"># Cell 6 — View plots</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;embeddings.png&#39;</span><span class="p">,</span> <span class="s1">&#39;auroc.png&#39;</span><span class="p">,</span> <span class="s1">&#39;auprc.png&#39;</span><span class="p">]:</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/content/inspire-analysis-thrisha/src/</span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;--- </span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s1"> ---&#39;</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+</code></pre></div>
+<h3 id="after-making-changes-in-vs-code-and-pushing">After making changes in VS Code and pushing:<a class="headerlink" href="#after-making-changes-in-vs-code-and-pushing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Just run these two:</span>
+<span class="err">!</span><span class="n">git</span> <span class="n">pull</span>
+<span class="err">!</span><span class="n">python</span> <span class="n">dnn_mortality_pipeline</span><span class="o">.</span><span class="n">py</span>
+</code></pre></div>
+<hr />
+<h2 id="12-known-issues-and-fixes-applied">12. Known Issues and Fixes Applied<a class="headerlink" href="#12-known-issues-and-fixes-applied" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Symptom</th>
+<th>Fix applied</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scapy import</td>
+<td><code>ModuleNotFoundError</code> on startup</td>
+<td>Deleted line <code>from scapy.layers.tls.crypto.groups import modp2048</code></td>
+</tr>
+<tr>
+<td>Frozen encoder</td>
+<td>Classifier output ~0.47 for every patient, AUROC ~0.5</td>
+<td>Set <code>UNFREEZE_ENCODER = True</code>, changed to <code>param.requires_grad = True</code></td>
+</tr>
+<tr>
+<td>nhead not dividing num_features</td>
+<td><code>AssertionError: embed_dim must be divisible by num_heads</code></td>
+<td>Changed nhead=8 to nhead=7 (for 14-dim input)</td>
+</tr>
+<tr>
+<td>GPU out of memory</td>
+<td><code>CUDA out of memory: Tried to allocate 9.11 GiB</code></td>
+<td>Added <code>global_length = min(max_length, 1440)</code> cap</td>
+</tr>
+<tr>
+<td>Wrong not_survived_pct</td>
+<td>Negative ratio crashed train/test split</td>
+<td>Changed <code>num_died/num_survived</code> to <code>num_died/total</code></td>
+</tr>
+<tr>
+<td>Tensor slow warning</td>
+<td><code>Creating tensor from list of ndarrays is slow</code></td>
+<td>Changed <code>torch.tensor(sequences)</code> to <code>np.array(sequences)</code> then <code>torch.from_numpy()</code></td>
+</tr>
+<tr>
+<td>JSON data in survived/died folders</td>
+<td><code>FileNotFoundError: No .json files found</code></td>
+<td>Updated <code>load_real_subjects()</code> to detect and read subfolder layout</td>
+</tr>
+<tr>
+<td>ZIP nested folder</td>
+<td><code>extract_dir</code> pointed at wrong level</td>
+<td>Added single-subfolder detection logic in extraction cell</td>
+</tr>
+<tr>
+<td>Too-sparse subjects skipped</td>
+<td>8–10 patients lost</td>
+<td>Reduced <code>min_observations=2</code> to <code>min_observations=1</code></td>
+</tr>
+<tr>
+<td>MPS (Apple Silicon) NaN</td>
+<td>NaN values during classifier training on Mac</td>
+<td><code>get_device()</code> returns <code>"cuda"</code> when available, bypasses MPS</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="13-research-direction-and-next-steps">13. Research Direction and Next Steps<a class="headerlink" href="#13-research-direction-and-next-steps" title="Permanent link">&para;</a></h2>
+<h3 id="immediate-to-get-meaningful-results">Immediate (to get meaningful results)<a class="headerlink" href="#immediate-to-get-meaningful-results" title="Permanent link">&para;</a></h3>
+<p><strong>1. Get full dataset from James</strong></p>
+<p>Current subset has 30 patients — not enough for stable AUROC. Full dataset has 99,886 patients, 942 deaths. Change in pipeline:
+<div class="highlight"><pre><span></span><code><span class="n">JSON_DIR</span> <span class="o">=</span> <span class="s2">&quot;/path/to/full/inspire_subjects&quot;</span>
+<span class="n">global_length</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="mi">7200</span><span class="p">)</span>   <span class="c1"># allow full 5-day window</span>
+</code></pre></div>
+The <code>pos_weight</code> is computed automatically — no other changes needed.</p>
+<p><strong>2. Expand to all features</strong></p>
+<p>Change <code>FEATURE_COLUMNS</code> to include all 30 useful features (see Section 10), update <code>nhead=6</code>, run.</p>
+<p><strong>3. More classifier epochs</strong></p>
+<p>Loss was still dropping at epoch 20. Run with <code>CLASSIFIER_EPOCHS = 50</code> and watch when it plateaus.</p>
+<h3 id="core-research-contribution-4-system-embedding-architecture">Core research contribution — 4-system embedding architecture<a class="headerlink" href="#core-research-contribution-4-system-embedding-architecture" title="Permanent link">&para;</a></h3>
+<p>Your professor's vision: instead of one transformer for everything, train <strong>4 separate encoders</strong> — one per physiological system. Each system produces its own embedding. A surgeon can then see which system drove the prediction.</p>
+<div class="highlight"><pre><span></span><code>Current (black box):
+  7 features → 1 transformer → 1 embedding → mortality
+
+Target (explainable):
+  Renal features        → Encoder 1 → renal_embedding
+  Cardiovascular features → Encoder 2 → cardio_embedding
+  Respiratory features  → Encoder 3 → resp_embedding
+  Metabolic features    → Encoder 4 → metabolic_embedding
+                                 ↓
+                    concatenate 4 embeddings
+                                 ↓
+                    NAM classifier (one shape function per system)
+                                 ↓
+        &quot;Renal: CRITICAL | Respiratory: CONCERN | Cardio: OK | Metabolic: OK&quot;
+        → mortality risk = 0.84
+</code></pre></div>
+<p><strong>Clinical 4-system feature groups:</strong></p>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Features</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Renal</td>
+<td>creatinine, bun, sodium, potassium, chloride, uo, crrt</td>
+</tr>
+<tr>
+<td>Cardiovascular</td>
+<td>hr, nibp_sbp, nibp_dbp, nibp_mbp, troponin_i</td>
+</tr>
+<tr>
+<td>Respiratory</td>
+<td>spo2, rr, fio2, pao2, paco2, ph, hco3, be, sao2</td>
+</tr>
+<tr>
+<td>Metabolic/hepatic</td>
+<td>glucose, albumin, ast, alt, total_bilirubin, lacate, bt</td>
+</tr>
+</tbody>
+</table>
+<h3 id="explainability-additions">Explainability additions<a class="headerlink" href="#explainability-additions" title="Permanent link">&para;</a></h3>
+<p><strong>Concept Bottleneck Models (CBM)</strong> — model predicts clinically validated scores before predicting mortality:
+- AKI stage (0–3) from creatinine using KDIGO criteria
+- Haemodynamic instability from BP + vasopressors using SOFA cardiovascular score
+- Respiratory failure from PaO2/FiO2 ratio using Berlin criteria</p>
+<p><strong>MC Dropout uncertainty</strong> — 3-line change, keep dropout on at test time, run 50 forward passes, output confidence interval instead of single probability.</p>
+<p><strong>TimeSHAP</strong> — extends SHAP to time series, shows which features at which time steps drove each prediction.</p>
+<p><strong>Conformal prediction</strong> — mathematically guaranteed prediction intervals:
+<div class="highlight"><pre><span></span><code>Current: &quot;mortality = 0.73&quot;
+Target:  &quot;mortality ∈ [0.58, 0.84] with 90% guaranteed coverage&quot;
+</code></pre></div></p>
+<h3 id="comparison-models-to-run">Comparison models to run<a class="headerlink" href="#comparison-models-to-run" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>NELA</strong> (<code>nela.py</code>) — clinical baseline, no training needed</li>
+<li><strong>GBM</strong> (<code>gbm_mortality.py</code>) — Saranya's XGBoost, 18 pre-op features</li>
+<li><strong>DNN transformer</strong> — this project, expanding to full feature set</li>
+<li><strong>GRU</strong> — add as comparison, faster than transformer, fewer parameters</li>
+<li><strong>TCN (Temporal Convolutional Network)</strong> — mentioned in professor's meeting notes, fully parallelisable on GPU</li>
+</ul>
+<hr />
+<h2 id="14-key-papers-and-references">14. Key Papers and References<a class="headerlink" href="#14-key-papers-and-references" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shickel et al. 2023, Scientific Reports, doi:10.1038/s41598-023-27418-5</td>
+<td>Closest published comparison — same problem, 56,242 patients, AUROC 0.92. Has MC Dropout and integrated gradients. Gaps: single shared representation, no system organisation, no frailty, binary outcomes only.</td>
+</tr>
+<tr>
+<td>Koh et al. 2020 (ICML) — Concept Bottleneck Models</td>
+<td>CBM architecture — model predicts clinical concepts before mortality</td>
+</tr>
+<tr>
+<td>Choi et al. 2016 (NeurIPS) — RETAIN</td>
+<td>Two-level attention for clinical time series (visit-level + feature-level)</td>
+</tr>
+<tr>
+<td>Bento et al. 2021 (KDD) — TimeSHAP</td>
+<td>SHAP adapted for time series — which feature at which time step mattered</td>
+</tr>
+<tr>
+<td>Nature Medicine 2023 — Conformal Prediction in Clinical AI</td>
+<td>Guaranteed uncertainty bounds for clinical deployment</td>
+</tr>
+<tr>
+<td>Gilbert et al. 2018 — HFRS</td>
+<td>Hospital Frailty Risk Score from ICD-10 codes — implemented in <code>frailty_hfrs.py</code></td>
+</tr>
+<tr>
+<td>INSPIRE dataset paper — Lee et al.</td>
+<td>Must cite as data source — search "INSPIRE dataset perioperative Korean 2022"</td>
+</tr>
+</tbody>
+</table>
+<p><em>README last updated: pipeline producing AUROC 0.78 on 29 real INSPIRE patients, classifier loss still converging at epoch 20, 7 features active.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.top", "navigation.expand", "toc.integrate", "content.code.copy", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
