@@ -7,27 +7,31 @@
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
-2. [Repository Structure](#2-repository-structure)
-3. [Dataset Structure — INSPIRE](#3-dataset-structure-inspire)
-4. [Subject JSON File — Complete Format](#4-subject-json-file-complete-format)
-5. [Real Patient Example — Subject 100033460](#5-real-patient-example-subject-100033460)
-6. [Dataset Subset Structure on Disk](#6-dataset-subset-structure-on-disk)
-7. [Current Pipeline Architecture](#7-current-pipeline-architecture)
-8. [Current Config Values](#8-current-config-values)
-9. [Current Results](#9-current-results)
-10. [All Available Features — What Is Used vs What Exists](#10-all-available-features-what-is-used-vs-what-exists)
-11. [How to Run — Colab Workflow](#11-how-to-run-colab-workflow)
-12. [Known Issues and Fixes Applied](#12-known-issues-and-fixes-applied)
-13. [Research Direction and Next Steps](#13-research-direction-and-next-steps)
-14. [Key Papers and References](#14-key-papers-and-references)
+2. [Aims and Objectives](#2-aims-and-objectives)
+3. [Repository Structure](#3-repository-structure)
+4. [Dataset Structure — INSPIRE](#4-dataset-structure-inspire)
+5. [Subject JSON File — Complete Format](#5-subject-json-file-complete-format)
+6. [Real Patient Example — Subject 100033460](#6-real-patient-example-subject-100033460)
+7. [Dataset Subset Structure on Disk](#7-dataset-subset-structure-on-disk)
+8. [Current Pipeline Architecture](#8-current-pipeline-architecture)
+9. [Current Config Values](#9-current-config-values)
+10. [Current Results](#10-current-results)
+11. [All Available Features — What Is Used vs What Exists](#11-all-available-features-what-is-used-vs-what-exists)
+12. [How to Run — Colab Workflow](#12-how-to-run-colab-workflow)
+13. [Known Issues and Fixes Applied](#13-known-issues-and-fixes-applied)
+14. [Research Direction and Next Steps](#14-research-direction-and-next-steps)
+15. [Research Exploration Roadmap](#15-research-exploration-roadmap)
+16. [Key Papers and References](#16-key-papers-and-references)
 
 ---
 
 ## 1. Project Overview
 
-**Goal:** Predict 30-day in-hospital mortality after surgery using a deep learning transformer that reads clinical time series — and explain those predictions in language a surgeon can act on (which organ system is failing, what the specific drivers are, how confident the model is).
+**Goal:** Predict 30-day mortality after surgery using a deep learning transformer that reads clinical time series — and explain those predictions in language a surgeon can act on (which organ system is failing, what the specific drivers are, how confident the model is).
 
-**Dataset:** INSPIRE — a Korean national perioperative dataset of ~99,886 surgical patients from a single centre (2011–2020). Contains labs, ward vitals, intraoperative vitals, medications, and ICD-10 diagnoses per patient, all timestamped in minutes relative to hospital admission.
+**Dataset:** INSPIRE — a Korean single-centre perioperative dataset of ~99,886 surgical patients (2011–2020). Contains labs, ward vitals, intraoperative vitals, medications, and ICD-10 diagnoses per patient, all timestamped in minutes relative to hospital admission.
+
+> **Note on death count:** this document states **942 deaths** throughout (consistent with the `pos_weight ≈ 105` calculation in Section 9). A different figure (938) has come up in informal notes elsewhere — worth confirming the exact number against the source data before it's used in the paper or any published figure.
 
 **Current state:** Two-phase transformer pipeline running on real INSPIRE data. Autoencoder pretrains on unlabelled time series, classifier fine-tunes end-to-end. AUROC = 0.78 on a 29-patient real-data subset.
 
@@ -40,7 +44,29 @@
 
 ---
 
-## 2. Repository Structure
+## 2. Aims and Objectives
+
+**Aim:** Build an explainable deep learning pipeline that predicts mortality from the INSPIRE dataset, organised so that predictions can be broken down by physiological system rather than returned as a single opaque score.
+
+**Current focus (near-term priority):**
+1. **Model interpretability**, tied specifically to two clinical questions rather than interpretability in the abstract:
+   - **ICD-10 codes vs. mortality rate** — diagnosis codes and operation-type codes, explored separately.
+   - **Surgical department vs. mortality risk** — 15 departments, analysed jointly with ICD-10 rather than independently.
+
+**Supporting objectives:**
+1. **Data coverage (EDA phase)** — audit all 126 available parameters across `labs` (38), `ward_vitals` (16), and intra-operative `vitals` (72) for missingness, measurement frequency, and outlier prevalence. *(Whether intra-op vitals are included depends on an open scope decision — see Section 4.)*
+2. **Feature selection by organ system** — group usable parameters into renal, cardiovascular, respiratory, metabolic/hepatic, and haematological sets (Section 11), expanding from the current 7-feature pilot.
+3. **ICD-10 deep dive** — diagnosis codes vs. operation/procedure codes, multi-code patients, overlap with the existing HFRS frailty codes (Section 15).
+4. **Frailty integration** — evaluate the Hospital Frailty Risk Score (HFRS) as an auxiliary feature, stratified by scheduled vs. emergency surgery (see `docs/INSPIRE_Project_Notes.md` §11, "Frailty and Saranya's Work").
+5. **Model scale-up** — move from the 29-patient development subset to the full 99,886-patient cohort.
+6. **Explainability architecture** — implement system-separated encoders so mortality predictions decompose into per-organ-system contributions (Section 14).
+7. **Benchmarking** — compare NELA, GBM (± frailty), transformer, GRU, and TCN on the same task.
+
+The full, un-prioritised list of everything being explored — sampling strategies for class imbalance, missing-data handling, conditional dependencies, multi-operation patients, and more — is in Section 15.
+
+---
+
+## 3. Repository Structure
 
 ```
 inspire-analysis-thrisha/
@@ -66,7 +92,7 @@ inspire_subjects_small/          ← 30-patient subset used for development
 
 ---
 
-## 3. Dataset Structure — INSPIRE
+## 4. Dataset Structure — INSPIRE
 
 ### Scale
 
@@ -81,7 +107,7 @@ inspire_subjects_small/          ← 30-patient subset used for development
 
 ### Full dataset mortality
 - **Total patients:** ~99,886
-- **Deaths:** 942
+- **Deaths:** 942 (see note in Section 1 re: a conflicting figure of 938 seen elsewhere)
 - **Death rate:** 0.95%
 - **pos_weight for loss function:** ~105 (98,944 survived / 942 died)
 
@@ -111,19 +137,19 @@ label = 1 if inhosp_death_time < orout_time + (30 × 24 × 60) else 0
 
 The label is already encoded in the folder structure (`survived/` = 0, `died/` = 1).
 
-### Pre-operative prediction window
+### Prediction window — current implementation, scope under review
 
-The model only sees data from **5 days before surgery**:
+The current implementation only uses data from **5 days before surgery**:
 ```
 window_start = orin_time - (5 × 24 × 60)   = orin_time - 7200 minutes
 window_end   = orin_time - 1
 ```
 
-This is the clinically sensible window — predicting outcome from pre-operative state, before the surgeon has committed to operating.
+> ⚠️ **Open scope decision:** this project is described as *peri-operative*, but the current pipeline is *pre-operative only*. Whether the model should also ingest intra-operative vitals (the 72-parameter `vitals` table, Section 11) — making it a true peri-operative model usable for post-operative risk stratification, rather than a pre-op decision-support tool — has **not yet been decided**. Do not assume either direction in downstream work (paper drafts, feature audits) until this is resolved. See Section 15, item 5.
 
 ---
 
-## 4. Subject JSON File — Complete Format
+## 5. Subject JSON File — Complete Format
 
 Each patient is stored as one JSON file named `<subject_id>.json`. The file has **7 top-level keys:**
 
@@ -214,11 +240,12 @@ Each patient is stored as one JSON file named `<subject_id>.json`. The file has 
 | `emop` | operations | Emergency operation: `"1"` = yes, `"0"` = no |
 | `asa` | operations | ASA physical status class (1–5) |
 | `icd10_cm` | diagnoses | ICD-10 diagnosis code (used for frailty score) |
+| `icd10_pcs` | operations | ICD-10 procedure/operation code |
 | `atc_code` | medications | WHO ATC drug classification code |
 
 ---
 
-## 5. Real Patient Example — Subject 100033460
+## 6. Real Patient Example — Subject 100033460
 
 This is a real INSPIRE patient in the `died/` folder. This example is used throughout the codebase for testing.
 
@@ -253,13 +280,15 @@ This is a real INSPIRE patient in the `died/` folder. This example is used throu
 
 An 80-year-old woman with chronic kidney disease (N18) and colon cancer (C18) presented as an emergency with peritonitis (K65 — infection in the abdominal cavity). Her kidneys went into acute failure (N17). She spent 15 days in ICU on dialysis (CRRT active in ward vitals) and died.
 
+*This patient is a useful worked example for the ICD-10/mortality exploration in Section 15 — she illustrates the multi-code-per-patient case (5 distinct codes) and a case where diagnosis, emergency status, and outcome all align clinically.*
+
 ### Her measurements
 
 | Source | Total rows | Types available |
 |---|---|---|
 | Labs | 1,861 | 35 unique lab types |
 | Ward vitals | 7,567 | 10 unique types |
-| Intraop vitals | 457 | 27 unique types |
+| Intraop vitals | 457 | 27 unique types recorded for this patient (72 total exist in the schema — see Section 11) |
 | Diagnoses | 12 | 5 unique ICD-10 codes |
 | Medications | 399 | 8 ATC first-level drug classes |
 
@@ -292,7 +321,7 @@ Potassium:
 
 ---
 
-## 6. Dataset Subset Structure on Disk
+## 7. Dataset Subset Structure on Disk
 
 ```
 inspire_subjects_small/
@@ -322,7 +351,7 @@ Note the double nesting — the zip contains a subfolder with the same name.
 
 ---
 
-## 7. Current Pipeline Architecture
+## 8. Current Pipeline Architecture
 
 ### Data flow — end to end
 
@@ -420,7 +449,7 @@ evaluate_model()
 
 ---
 
-## 8. Current Config Values
+## 9. Current Config Values
 
 All in `main()` inside `dnn_mortality_pipeline.py`:
 
@@ -458,11 +487,12 @@ global_length          = min(max_length, 1440)   # cap at 24 hours for GPU memor
 | 7 features (current) | 14 | 1, 2, 7, 14 |
 | 10 features | 20 | 1, 2, 4, 5, 10, 20 |
 | 16 features | 32 | 1, 2, 4, 8, 16, 32 |
+| 30 features | 60 | 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60 |
 | 33 features | 66 | 1, 2, 3, 6, 11, 22, 33, 66 |
 
 ---
 
-## 9. Current Results
+## 10. Current Results
 
 | Run | Patients | Features | Epochs | AUROC | Notes |
 |---|---|---|---|---|---|
@@ -477,11 +507,11 @@ global_length          = min(max_length, 1440)   # cap at 24 hours for GPU memor
 
 ---
 
-## 10. All Available Features — What Is Used vs What Exists
+## 11. All Available Features — What Is Used vs What Exists
 
-### Labs (from labs list in JSON) — 35 types in this patient
+### Labs (from labs list in JSON) — 38 types in the full schema
 
-| Feature | System | Currently used | Measurement count (this patient) |
+| Feature | System | Currently used | Measurement count (example patient, Section 6) |
 |---|---|---|---|
 | glucose | Metabolic | ✅ | 144 |
 | potassium | Renal | ✅ | 111 |
@@ -516,12 +546,17 @@ global_length          = min(max_length, 1440)   # cap at 24 hours for GPU memor
 | lymphocyte | Haematology | ❌ | 38 |
 | seg | Haematology | ❌ | 37 |
 | troponin_i | Cardiovascular | ❌ | 5 |
+| troponin_t | Cardiovascular | ❌ | — |
 | ck | Cardiovascular | ❌ | 4 |
 | ckmb | Cardiovascular | ❌ | 3 |
+| d_dimer | Haematology | ❌ | — |
+| hba1c | Metabolic | ❌ | — |
 
-### Ward vitals (from ward_vitals list in JSON) — 10 types
+*(38 total; two — `troponin_t` and `hba1c` — weren't observed for the Section 6 example patient, hence no count.)*
 
-| Feature | System | Currently used | Measurement count (this patient) |
+### Ward vitals (from ward_vitals list in JSON) — 16 types
+
+| Feature | System | Currently used | Measurement count (example patient) |
 |---|---|---|---|
 | hr | Cardiovascular | ✅ | 908 |
 | spo2 | Respiratory | ✅ | 882 |
@@ -533,14 +568,31 @@ global_length          = min(max_length, 1440)   # cap at 24 hours for GPU memor
 | bt | Metabolic | ❌ | 441 |
 | crrt | Renal | ❌ | 792 (dialysis active!) |
 | uo | Renal | ❌ | 1 |
+| gcs_e | Neurological | ❌ | — |
+| gcs_m | Neurological | ❌ | — |
+| gcs_v | Neurological | ❌ | — |
+| iabp | Cardiovascular | ❌ | — |
+| ecmo | Respiratory | ❌ | — |
+| vent | Respiratory | ❌ | — |
 
-### Intraoperative vitals (from vitals list in JSON) — 27 types
+*(Ward vitals include the 3 Glasgow Coma Scale components and device-use flags (`crrt`, `iabp`, `ecmo`, `vent`) not previously catalogued in this table — see Section 15 item 4 re: the neurological system grouping these motivate.)*
 
-*Not currently used — requires orin_time to orout_time window, not pre-op window*
+### Intraoperative vitals (from vitals list in JSON) — 72 types
 
-`art_sbp, art_dbp, art_mbp, hr, spo2, etco2, fio2, rr, pip, pmean, vt, minvol, bt, bis, cvp, sti, stii, stiii, stv5, nepi, ebl, rbc, ns, psa, air, etgas, phe`
+*Not currently used in the pipeline.* This table requires the intra-operative window (`orin_time` to `orout_time`) rather than the pre-op window currently implemented — see the open scope decision flagged in Section 4. Whether these 72 parameters are added depends on that decision, not on any technical limitation.
 
-### To expand FEATURE_COLUMNS to all useful labs + ward vitals:
+```
+aft, air, alb20, alb5, art_dbp, art_mbp, art_sbp, bis, bt, cbro2, ci, cryo, cvp,
+d10w, d50w, d5w, dobui, dopai, ebl, eph, epi, epii, etco2, etdes, etgas, etiso,
+etsevo, ffp, fio2, ftn, hes, hns, hr, hs, mdz, minvol, mlni, n2o, nepi, nibp_dbp,
+nibp_mbp, nibp_sbp, ns, ntgi, o2, pap_dbp, pap_mbp, pap_sbp, pc, peep, pepi, phe,
+pheresis, pip, pmean, ppf, ppfi, pplat, psa, rbc, rfti, rr, sft, spo2, sti, stii,
+stiii, stv5, svi, uo, vaso, vt
+```
+
+*(Corrected from an earlier version of this document that listed only 27 intra-op types — the full schema has 72.)*
+
+### To expand FEATURE_COLUMNS to all useful pre-operative labs + ward vitals:
 
 ```python
 FEATURE_COLUMNS = [
@@ -564,7 +616,7 @@ FEATURE_COLUMNS = [
 
 ---
 
-## 11. How to Run — Colab Workflow
+## 12. How to Run — Colab Workflow
 
 ### Every new session (cells run in order):
 
@@ -620,7 +672,7 @@ for f in ['embeddings.png', 'auroc.png', 'auprc.png']:
 
 ---
 
-## 12. Known Issues and Fixes Applied
+## 13. Known Issues and Fixes Applied
 
 | Issue | Symptom | Fix applied |
 |---|---|---|
@@ -637,7 +689,7 @@ for f in ['embeddings.png', 'auroc.png', 'auprc.png']:
 
 ---
 
-## 13. Research Direction and Next Steps
+## 14. Research Direction and Next Steps
 
 ### Immediate (to get meaningful results)
 
@@ -652,15 +704,15 @@ The `pos_weight` is computed automatically — no other changes needed.
 
 **2. Expand to all features**
 
-Change `FEATURE_COLUMNS` to include all 30 useful features (see Section 10), update `nhead=6`, run.
+Change `FEATURE_COLUMNS` to include all 30 useful features (see Section 11), update `nhead=6`, run.
 
 **3. More classifier epochs**
 
 Loss was still dropping at epoch 20. Run with `CLASSIFIER_EPOCHS = 50` and watch when it plateaus.
 
-### Core research contribution — 4-system embedding architecture
+### Core research contribution — system-separated embedding architecture
 
-Your professor's vision: instead of one transformer for everything, train **4 separate encoders** — one per physiological system. Each system produces its own embedding. A surgeon can then see which system drove the prediction.
+Your professor's vision: instead of one transformer for everything, train **separate encoders per physiological system**. Each system produces its own embedding. A surgeon can then see which system drove the prediction.
 
 ```
 Current (black box):
@@ -672,7 +724,7 @@ Target (explainable):
   Respiratory features  → Encoder 3 → resp_embedding
   Metabolic features    → Encoder 4 → metabolic_embedding
                                  ↓
-                    concatenate 4 embeddings
+                    concatenate embeddings
                                  ↓
                     NAM classifier (one shape function per system)
                                  ↓
@@ -680,7 +732,7 @@ Target (explainable):
         → mortality risk = 0.84
 ```
 
-**Clinical 4-system feature groups:**
+**Clinical feature groups (4-system core; see Section 15 item 4 for the fuller 6-system version including haematology and neurological):**
 
 | System | Features |
 |---|---|
@@ -716,7 +768,92 @@ Target:  "mortality ∈ [0.58, 0.84] with 90% guaranteed coverage"
 
 ---
 
-## 14. Key Papers and References
+## 15. Research Exploration Roadmap
+
+This section captures every open thread being explored for this project, organised by theme. It is not sequential — items are being investigated in parallel — but "Current focus" is the near-term priority everything else feeds into (see also Section 2, Aims and Objectives).
+
+### Current focus
+
+**1. Model interpretability**
+The core deliverable right now is a model that is not just accurate but explainable — tied specifically to the two clinical questions below rather than interpretability in the abstract.
+
+**2. ICD-10 codes and mortality rate**
+- Explore diagnosis ICD-10 codes and operation-type ICD-10 codes separately — they answer different questions (what's wrong with the patient vs. what's being done to them).
+- A patient may have more than one ICD-10 code (see the Section 6 example patient — 5 distinct codes) — need to decide how multi-code patients are represented (one-hot per code? code count? weighted by severity? grouped by ICD-10 chapter?).
+- Operation type vs. mortality — does procedure complexity/category predict risk independently of diagnosis?
+- This connects to the existing HFRS frailty work (`docs/INSPIRE_Project_Notes.md` §11), which already uses 109 ICD-10 codes for frailty scoring — worth checking overlap/redundancy between "frailty codes" and "high-mortality-risk codes" once this analysis exists.
+
+**3. Department and mortality rate risk**
+- 15 surgical departments in INSPIRE — mortality rate likely varies substantially by department (case mix, patient acuity, procedure type all differ).
+- Needs to be analysed jointly with ICD-10 (a department's mortality rate is partly explained by which operations/diagnoses it sees) rather than as an independent factor.
+- Should feed into visualisations: mortality rate by department, stratified by scheduled vs. emergency, and by ICD-10 category.
+
+### Feature categorisation
+
+**4. Organ-system grouping of all 126 parameters**
+Full categorisation of `labs` (38), `ward_vitals` (16), and intra-operative `vitals` (72) into physiological systems. Extending the 4-system core (Section 14) with the ward-vitals fields that don't fit cleanly there:
+
+| System | Labs | Ward vitals |
+|---|---|---|
+| Renal | bun, calcium, chloride, creatinine, ica, phosphorus, potassium, sodium | crrt, uo |
+| Cardiovascular | ck, ckmb, troponin_i, troponin_t | hr, nibp_sbp, nibp_dbp, nibp_mbp, iabp |
+| Respiratory | be, hco3, paco2, pao2, ph, sao2 | fio2, rr, spo2, vent, ecmo |
+| Metabolic/hepatic | albumin, alp, alt, ast, glucose, hba1c, lacate, total_bilirubin, total_protein | bt |
+| Haematology/coagulation | aptt, crp, d_dimer, fibrinogen, hb, hct, lymphocyte, platelet, ptinr, seg, wbc | — |
+| Neurological | — | gcs_e, gcs_m, gcs_v |
+
+This groups both the *input features* and, downstream, the *model's per-system predictions* — i.e. the same categorisation drives both feature engineering and the interpretability output (Section 14).
+
+**5. Using all 126 parameters in the model**
+Currently 7 of 126 are used. Full audit needed (coverage, missingness, signal) before finalising the feature set. This is gated on the open scope decision (Section 4): whether the model stays pre-operative only (54 candidate parameters: 38 labs + 16 ward_vitals), or becomes a full peri-operative model also using the 72 intra-operative `vitals` parameters. **Decision not yet made — do not assume either direction in downstream work until this is resolved.**
+
+### Class imbalance and data quality
+
+**6. Sampling methods for 99,886 vs. 942 (0.95% mortality)**
+Candidates to evaluate against each other:
+- Oversampling / undersampling (basic)
+- SMOTE and variants
+- Generative approaches: GANs, VAEs, diffusion models, Gaussian-based synthetic sampling
+- Tabular-data-specific generative methods
+- Cost-sensitive loss functions (already partially in use via `pos_weight` — worth comparing against the above rather than assuming it's sufficient at full scale)
+- Simply acquiring more labelled death cases, if feasible
+
+**7. Missing data handling**
+- Linear interpolation (already in use — Section 8)
+- Fitting a model to predict/impute missing features, rather than just interpolating
+- Laplace smoothing where relevant (e.g. sparse categorical counts)
+- Stratifying the data and handling near-zero-probability cases carefully — avoid the model treating a rare event as effectively impossible
+
+**8. Data distribution analysis**
+General EDA — distributions, outliers, correlations — across the full parameter set, extending the correlation work already done (`docs/INSPIRE_Project_Notes.md` §11: frailty–sodium, frailty–albumin correlations).
+
+### Clinical structure
+
+**9. Conditional dependencies**
+E.g. frailty is largely uninformative once you know surgery was scheduled (a surgeon has already selected for fitness), but highly informative for emergency surgery where no such selection occurred. This hypothesis (framed in `docs/INSPIRE_Project_Notes.md` §11) needs a scheduled-vs-emergency stratified analysis to test properly, and may generalise to other conditional relationships beyond frailty.
+
+**10. Multi-operation patients**
+Does a patient with two or more recorded operations carry different mortality risk than a single-operation patient? Needs its own cohort split and analysis — this is a patient-level question, separate from the per-operation prediction the current pipeline makes.
+
+### Modelling
+
+**11. DNN generalisation and robustness**
+- Shared representation learning — how much should the organ-system encoders share vs. specialise?
+- Robustness — does the model degrade gracefully with missing/noisy inputs, or brittle?
+- Semi-supervised learning — the current autoencoder pretraining phase (Section 8) is already a step in this direction; worth exploring further given how few labelled deaths exist relative to the full cohort.
+
+### Suggested order of attack
+
+Given the current focus is interpretability tied to ICD-10 and department, a reasonable sequence is:
+1. EDA — ICD-10 code distributions, department distributions, both vs. mortality (items 2, 3, 8)
+2. Organ-system feature categorisation for all 126 parameters (items 4, 5) — pending the scope decision in Section 4
+3. Missing data / distribution handling for whichever features EDA selects (items 6, 7)
+4. Conditional dependency and multi-operation analysis (items 9, 10)
+5. Model architecture and generalisation work (item 11), building on the current two-phase pipeline (Section 8)
+
+---
+
+## 16. Key Papers and References
 
 | Paper | Why it matters |
 |---|---|
@@ -724,9 +861,10 @@ Target:  "mortality ∈ [0.58, 0.84] with 90% guaranteed coverage"
 | Koh et al. 2020 (ICML) — Concept Bottleneck Models | CBM architecture — model predicts clinical concepts before mortality |
 | Choi et al. 2016 (NeurIPS) — RETAIN | Two-level attention for clinical time series (visit-level + feature-level) |
 | Bento et al. 2021 (KDD) — TimeSHAP | SHAP adapted for time series — which feature at which time step mattered |
-| Nature Medicine 2023 — Conformal Prediction in Clinical AI | Guaranteed uncertainty bounds for clinical deployment |
+| Nature Medicine 2023 — Conformal Prediction in Clinical AI | Guaranteed uncertainty bounds for clinical deployment — exact citation not yet confirmed, needs verifying before use in the paper |
 | Gilbert et al. 2018 — HFRS | Hospital Frailty Risk Score from ICD-10 codes — implemented in `frailty_hfrs.py` |
-| INSPIRE dataset paper — Lee et al. | Must cite as data source — search "INSPIRE dataset perioperative Korean 2022" |
+| INSPIRE dataset paper — Lee et al. | Must cite as data source — search "INSPIRE dataset perioperative Korean 2022"; exact citation not yet confirmed |
 
+---
 
-*README last updated: pipeline producing AUROC 0.78 on 29 real INSPIRE patients, classifier loss still converging at epoch 20, 7 features active.*
+*README last updated: pipeline producing AUROC 0.78 on 29 real INSPIRE patients, classifier loss still converging at epoch 20, 7 features active. Pre-operative vs. full peri-operative model scope is an open decision (Section 4). Current research focus: ICD-10 and department vs. mortality interpretability (Sections 2, 15).*
