@@ -7,11 +7,11 @@ repo_name: thrisharajkumar/inspire-analysis-thrisha
 docs_dir: docs
 site_dir: site
 
-
 nav:
-   - Home: index.md
-   - INSPIRE Project Notes: INSPIRE_Project_Notes.md
-   - Feature Audit Findings: feature_audit_findings.md
+  - Home: notes.md
+  - INSPIRE Project Notes: INSPIRE_Project_Notes.md
+  - Feature Audit Findings: feature_audit_findings.md
+  - EDA Findings (Full Dataset): eda_findings.md
 theme:
   name: material
   palette:
