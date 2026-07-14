@@ -12,8 +12,6 @@
       
       
       
-        <link rel="next" href="INSPIRE_Project_Notes/">
-      
       
         
       
@@ -110,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              INSPIRE DNN Mortality Pipeline — Complete Project README
             
           </span>
         </div>
@@ -257,37 +255,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="notes.md" class="md-nav__link">
         
   
   
@@ -303,514 +274,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#table-of-contents" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Table of Contents
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#1-project-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Project Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-repository-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Repository Structure
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-dataset-structure-inspire" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Dataset Structure — INSPIRE
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Dataset Structure — INSPIRE">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#scale" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scale
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#full-dataset-mortality" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Full dataset mortality
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#subset-used-for-development" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Subset used for development
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#time-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Time reference
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#30-day-mortality-label-definition" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        30-day mortality label definition
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pre-operative-prediction-window" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pre-operative prediction window
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-subject-json-file-complete-format" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Subject JSON File — Complete Format
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Subject JSON File — Complete Format">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#key-field-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key field reference
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-real-patient-example-subject-100033460" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Real Patient Example — Subject 100033460
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Real Patient Example — Subject 100033460">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#patient-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Patient summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#why-she-died-diagnoses" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why she died (diagnoses)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#her-measurements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Her measurements
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#in-the-5-day-pre-op-window-minute-6490-to-710" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        In the 5-day pre-op window (minute -6490 to 710)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#lab-values-at-key-moments-showing-clinical-deterioration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Lab values at key moments (showing clinical deterioration)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-dataset-subset-structure-on-disk" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. Dataset Subset Structure on Disk
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7-current-pipeline-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. Current Pipeline Architecture
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="7. Current Pipeline Architecture">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#data-flow-end-to-end" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data flow — end to end
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#model-parameter-count" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Model parameter count
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8-current-config-values" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8. Current Config Values
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="8. Current Config Values">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#the-nhead-rule" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The nhead rule
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#9-current-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9. Current Results
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10-all-available-features-what-is-used-vs-what-exists" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. All Available Features — What Is Used vs What Exists
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="10. All Available Features — What Is Used vs What Exists">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#labs-from-labs-list-in-json-35-types-in-this-patient" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Labs (from labs list in JSON) — 35 types in this patient
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ward-vitals-from-ward_vitals-list-in-json-10-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ward vitals (from ward_vitals list in JSON) — 10 types
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#intraoperative-vitals-from-vitals-list-in-json-27-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Intraoperative vitals (from vitals list in JSON) — 27 types
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#to-expand-feature_columns-to-all-useful-labs-ward-vitals" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        To expand FEATURE_COLUMNS to all useful labs + ward vitals:
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#11-how-to-run-colab-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        11. How to Run — Colab Workflow
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="11. How to Run — Colab Workflow">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#every-new-session-cells-run-in-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Every new session (cells run in order):
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#after-making-changes-in-vs-code-and-pushing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        After making changes in VS Code and pushing:
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12-known-issues-and-fixes-applied" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. Known Issues and Fixes Applied
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#13-research-direction-and-next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        13. Research Direction and Next Steps
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="13. Research Direction and Next Steps">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#immediate-to-get-meaningful-results" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Immediate (to get meaningful results)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#core-research-contribution-4-system-embedding-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core research contribution — 4-system embedding architecture
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#explainability-additions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Explainability additions
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#comparison-models-to-run" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Comparison models to run
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#14-key-papers-and-references" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        14. Key Papers and References
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -869,6 +332,33 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="eda_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -897,24 +387,30 @@
 <h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
 <ol>
 <li><a href="#1-project-overview">Project Overview</a></li>
-<li><a href="#2-repository-structure">Repository Structure</a></li>
-<li><a href="#3-dataset-structure-inspire">Dataset Structure — INSPIRE</a></li>
-<li><a href="#4-subject-json-file-complete-format">Subject JSON File — Complete Format</a></li>
-<li><a href="#5-real-patient-example-subject-100033460">Real Patient Example — Subject 100033460</a></li>
-<li><a href="#6-dataset-subset-structure-on-disk">Dataset Subset Structure on Disk</a></li>
-<li><a href="#7-current-pipeline-architecture">Current Pipeline Architecture</a></li>
-<li><a href="#8-current-config-values">Current Config Values</a></li>
-<li><a href="#9-current-results">Current Results</a></li>
-<li><a href="#10-all-available-features-what-is-used-vs-what-exists">All Available Features — What Is Used vs What Exists</a></li>
-<li><a href="#11-how-to-run-colab-workflow">How to Run — Colab Workflow</a></li>
-<li><a href="#12-known-issues-and-fixes-applied">Known Issues and Fixes Applied</a></li>
-<li><a href="#13-research-direction-and-next-steps">Research Direction and Next Steps</a></li>
-<li><a href="#14-key-papers-and-references">Key Papers and References</a></li>
+<li><a href="#2-aims-and-objectives">Aims and Objectives</a></li>
+<li><a href="#3-repository-structure">Repository Structure</a></li>
+<li><a href="#4-dataset-structure-inspire">Dataset Structure — INSPIRE</a></li>
+<li><a href="#5-subject-json-file-complete-format">Subject JSON File — Complete Format</a></li>
+<li><a href="#6-real-patient-example-subject-100033460">Real Patient Example — Subject 100033460</a></li>
+<li><a href="#7-dataset-subset-structure-on-disk">Dataset Subset Structure on Disk</a></li>
+<li><a href="#8-current-pipeline-architecture">Current Pipeline Architecture</a></li>
+<li><a href="#9-current-config-values">Current Config Values</a></li>
+<li><a href="#10-current-results">Current Results</a></li>
+<li><a href="#11-all-available-features-what-is-used-vs-what-exists">All Available Features — What Is Used vs What Exists</a></li>
+<li><a href="#12-how-to-run-colab-workflow">How to Run — Colab Workflow</a></li>
+<li><a href="#13-known-issues-and-fixes-applied">Known Issues and Fixes Applied</a></li>
+<li><a href="#14-research-direction-and-next-steps">Research Direction and Next Steps</a></li>
+<li><a href="#15-research-exploration-roadmap">Research Exploration Roadmap</a></li>
+<li><a href="#16-key-papers-and-references">Key Papers and References</a></li>
 </ol>
 <hr />
 <h2 id="1-project-overview">1. Project Overview<a class="headerlink" href="#1-project-overview" title="Permanent link">&para;</a></h2>
-<p><strong>Goal:</strong> Predict 30-day in-hospital mortality after surgery using a deep learning transformer that reads clinical time series — and explain those predictions in language a surgeon can act on (which organ system is failing, what the specific drivers are, how confident the model is).</p>
-<p><strong>Dataset:</strong> INSPIRE — a Korean national perioperative dataset of ~99,886 surgical patients from a single centre (2011–2020). Contains labs, ward vitals, intraoperative vitals, medications, and ICD-10 diagnoses per patient, all timestamped in minutes relative to hospital admission.</p>
+<p><strong>Goal:</strong> Predict 30-day mortality after surgery using a deep learning transformer that reads clinical time series — and explain those predictions in language a surgeon can act on (which organ system is failing, what the specific drivers are, how confident the model is).</p>
+<p><strong>Dataset:</strong> INSPIRE — a Korean single-centre perioperative dataset of ~99,886 surgical patients (2011–2020). Contains labs, ward vitals, intraoperative vitals, medications, and ICD-10 diagnoses per patient, all timestamped in minutes relative to hospital admission.</p>
+<blockquote>
+<p><strong>Note on death count:</strong> this document states <strong>942 deaths</strong> throughout (consistent with the <code>pos_weight ≈ 105</code> calculation in Section 9). A different figure (938) has come up in informal notes elsewhere — worth confirming the exact number against the source data before it's used in the paper or any published figure. <strong>This is now tied to the label-definition issue below — the true 30-day death count is likely different from 942 (see Section 4).</strong></p>
+<p>⚠️ <strong>CONFIRMED — label definition mismatch (resolved for now, pending confirmation with James):</strong> the <code>survived/</code>/<code>died/</code> folder labels were built from <code>subject.died()</code> — "died at any point in this hospital record" — not from <code>subject.inhosp_death_30day()</code>, the actual 30-day-post-last-operation definition this project's stated goal requires. Verified directly against the 30-patient subset: 3 of the 10 <code>died/</code> patients died 91–242 days after their last operation, not within 30 days. <strong>Decision: proceed using <code>died_30day()</code> as the true label going forward</strong>, and flag this to James/the professor as something to confirm before the full-dataset run — the full cohort's "942 deaths" figure was almost certainly built the same (incorrect, for this project's purposes) way, so the real 30-day death count at full scale is currently unknown. See Section 4 and Section 13 for detail.</p>
+</blockquote>
 <p><strong>Current state:</strong> Two-phase transformer pipeline running on real INSPIRE data. Autoencoder pretrains on unlabelled time series, classifier fine-tunes end-to-end. AUROC = 0.78 on a 29-patient real-data subset.</p>
 <p><strong>Benchmark to beat:</strong> Shickel et al. 2023 (Scientific Reports, doi:10.1038/s41598-023-27418-5) — same problem, University of Florida, 56,242 patients, AUROC = 0.92 using preoperative + intraoperative data.</p>
 <p><strong>Compared models in this project:</strong>
@@ -922,7 +418,23 @@
 - GBM (<code>gbm_mortality.py</code>) — Saranya's XGBoost model with frailty analysis
 - DNN transformer (<code>dnn_mortality_pipeline.py</code>) — this project's main contribution</p>
 <hr />
-<h2 id="2-repository-structure">2. Repository Structure<a class="headerlink" href="#2-repository-structure" title="Permanent link">&para;</a></h2>
+<h2 id="2-aims-and-objectives">2. Aims and Objectives<a class="headerlink" href="#2-aims-and-objectives" title="Permanent link">&para;</a></h2>
+<p><strong>Aim:</strong> Build an explainable deep learning pipeline that predicts mortality from the INSPIRE dataset, organised so that predictions can be broken down by physiological system rather than returned as a single opaque score.</p>
+<p><strong>Current focus (near-term priority):</strong>
+1. <strong>Model interpretability</strong>, tied specifically to two clinical questions rather than interpretability in the abstract:
+   - <strong>ICD-10 codes vs. mortality rate</strong> — diagnosis codes and operation-type codes, explored separately.
+   - <strong>Surgical department vs. mortality risk</strong> — 15 departments, analysed jointly with ICD-10 rather than independently.</p>
+<p><strong>Supporting objectives:</strong>
+1. <strong>Data coverage (EDA phase)</strong> — audit all 126 available parameters across <code>labs</code> (38), <code>ward_vitals</code> (16), and intra-operative <code>vitals</code> (72) for missingness, measurement frequency, and outlier prevalence. <em>(Whether intra-op vitals are included depends on an open scope decision — see Section 4.)</em>
+2. <strong>Feature selection by organ system</strong> — group usable parameters into renal, cardiovascular, respiratory, metabolic/hepatic, and haematological sets (Section 11), expanding from the current 7-feature pilot.
+3. <strong>ICD-10 deep dive</strong> — diagnosis codes vs. operation/procedure codes, multi-code patients, overlap with the existing HFRS frailty codes (Section 15).
+4. <strong>Frailty integration</strong> — fix the HFRS time-window gap, then evaluate HFRS as a baseline and as an added feature, stratified by scheduled vs. emergency surgery (see Section 15, item 9).
+5. <strong>Model scale-up</strong> — move from the 29-patient development subset to the full 99,886-patient cohort.
+6. <strong>Explainability architecture</strong> — implement system-separated encoders so mortality predictions decompose into per-organ-system contributions (Section 14).
+7. <strong>Benchmarking</strong> — compare NELA, GBM (± frailty), transformer, GRU, and TCN on the same task.</p>
+<p>The full, un-prioritised list of everything being explored — sampling strategies for class imbalance, missing-data handling, conditional dependencies, multi-operation patients, and more — is in Section 15.</p>
+<hr />
+<h2 id="3-repository-structure">3. Repository Structure<a class="headerlink" href="#3-repository-structure" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>inspire-analysis-thrisha/
 └── src/
     ├── dnn_mortality_pipeline.py     ← MAIN FILE — run this
@@ -942,7 +454,7 @@
     died/                        ← 10 JSON files (label = 1)
 </code></pre></div></p>
 <hr />
-<h2 id="3-dataset-structure-inspire">3. Dataset Structure — INSPIRE<a class="headerlink" href="#3-dataset-structure-inspire" title="Permanent link">&para;</a></h2>
+<h2 id="4-dataset-structure-inspire">4. Dataset Structure — INSPIRE<a class="headerlink" href="#4-dataset-structure-inspire" title="Permanent link">&para;</a></h2>
 <h3 id="scale">Scale<a class="headerlink" href="#scale" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -988,15 +500,43 @@
 <h3 id="full-dataset-mortality">Full dataset mortality<a class="headerlink" href="#full-dataset-mortality" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Total patients:</strong> ~99,886</li>
-<li><strong>Deaths:</strong> 942</li>
-<li><strong>Death rate:</strong> 0.95%</li>
-<li><strong>pos_weight for loss function:</strong> ~105 (98,944 survived / 942 died)</li>
+<li><strong>Deaths:</strong> 942 by the folder/<code>died()</code> definition — <strong>likely NOT the true 30-day count, see below</strong></li>
+<li><strong>Death rate:</strong> 0.95% (by the same definition — will change once relabelled)</li>
+<li><strong>pos_weight for loss function:</strong> ~105 (98,944 survived / 942 died) — <strong>needs recalculating once relabelled with <code>died_30day()</code></strong></li>
 </ul>
+<h3 id="label-definition-confirmed-mismatch-decision-made">⚠️ Label definition — confirmed mismatch, decision made<a class="headerlink" href="#label-definition-confirmed-mismatch-decision-made" title="Permanent link">&para;</a></h3>
+<p>Checked directly against the real 30-patient subset (<code>inspire_subjects_small.zip</code>), patient by patient:</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>folder_label</code> vs. <code>subject.died()</code></td>
+<td><strong>Exact match</strong>, 30/30 — folders were built from "died at any point in this record"</td>
+</tr>
+<tr>
+<td><code>folder_label</code> vs. <code>subject.inhosp_death_30day()</code></td>
+<td><strong>Mismatch on 3/10 <code>died/</code> patients</strong> — they died 91, 194.5, and 242.5 days after their last operation respectively, not within 30 days</td>
+</tr>
+</tbody>
+</table>
+<p>None of the <code>survived/</code> patients were incorrectly labelled (no false negatives found) — the mismatch only runs one direction: some <code>died/</code>-folder patients don't actually meet the 30-day criterion.</p>
+<p><strong>Decision:</strong> use <code>died_30day()</code> as the true label going forward, not the folder assignment. <strong>Still need to confirm with James/the professor</strong> whether the full 99,886-patient dataset's folders were built the same (incorrect-for-this-purpose) way — if so, the real "942 deaths" and <code>pos_weight ≈ 105</code> figures above are wrong and need recalculating from <code>died_30day()</code> before the full-dataset run. Until confirmed, treat every death-count figure in this document as provisional.</p>
+<p>There's also an unresolved code-level ambiguity worth being aware of — a comment already sitting in <code>subject.py</code>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Should it not be 30 days from the last operation not the first operation?</span>
+<span class="c1">#  Could be that subsequent operations are seen as causal consequence of initial operation?</span>
+<span class="c1">#  This still seems wrong, many subjects have multiple operations over 10 years.</span>
+</code></pre></div>
+<code>inhosp_death_30day()</code> currently measures from the <strong>last</strong> operation. Worth a second check once James confirms the full-dataset labelling, since multi-operation patients (Section 15, item 11) may need this looked at case by case.</p>
 <h3 id="subset-used-for-development">Subset used for development<a class="headerlink" href="#subset-used-for-development" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Total:</strong> 30 patients (after filtering)</li>
-<li><strong>Survived:</strong> 20 (in <code>survived/</code> folder)</li>
-<li><strong>Died:</strong> 10 (in <code>died/</code> folder)</li>
+<li><strong>By folder:</strong> Survived 20 / Died 10</li>
+<li><strong>By <code>died_30day()</code> (the label now being used):</strong> Survived 23 / Died 7 — see mismatch note above</li>
 <li><strong>Actually loaded:</strong> 29 (1 skipped — too sparse)</li>
 </ul>
 <h3 id="time-reference">Time reference<a class="headerlink" href="#time-reference" title="Permanent link">&para;</a></h3>
@@ -1012,14 +552,16 @@ chart_time = 22535   → patient dies (15.1 days after admission)
 <span class="c1"># i.e. died within 30 days of leaving the operating room</span>
 </code></pre></div>
 <p>The label is already encoded in the folder structure (<code>survived/</code> = 0, <code>died/</code> = 1).</p>
-<h3 id="pre-operative-prediction-window">Pre-operative prediction window<a class="headerlink" href="#pre-operative-prediction-window" title="Permanent link">&para;</a></h3>
-<p>The model only sees data from <strong>5 days before surgery</strong>:
+<h3 id="prediction-window-current-implementation-scope-under-review">Prediction window — current implementation, scope under review<a class="headerlink" href="#prediction-window-current-implementation-scope-under-review" title="Permanent link">&para;</a></h3>
+<p>The current implementation only uses data from <strong>5 days before surgery</strong>:
 <div class="highlight"><pre><span></span><code>window_start = orin_time - (5 × 24 × 60)   = orin_time - 7200 minutes
 window_end   = orin_time - 1
 </code></pre></div></p>
-<p>This is the clinically sensible window — predicting outcome from pre-operative state, before the surgeon has committed to operating.</p>
+<blockquote>
+<p>⚠️ <strong>Open scope decision:</strong> this project is described as <em>peri-operative</em>, but the current pipeline is <em>pre-operative only</em>. Whether the model should also ingest intra-operative vitals (the 72-parameter <code>vitals</code> table, Section 11) — making it a true peri-operative model usable for post-operative risk stratification, rather than a pre-op decision-support tool — has <strong>not yet been decided</strong>. Do not assume either direction in downstream work (paper drafts, feature audits) until this is resolved. See Section 15, item 5.</p>
+</blockquote>
 <hr />
-<h2 id="4-subject-json-file-complete-format">4. Subject JSON File — Complete Format<a class="headerlink" href="#4-subject-json-file-complete-format" title="Permanent link">&para;</a></h2>
+<h2 id="5-subject-json-file-complete-format">5. Subject JSON File — Complete Format<a class="headerlink" href="#5-subject-json-file-complete-format" title="Permanent link">&para;</a></h2>
 <p>Each patient is stored as one JSON file named <code>&lt;subject_id&gt;.json</code>. The file has <strong>7 top-level keys:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;subject_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;100033460&quot;</span><span class="p">,</span>
@@ -1149,6 +691,11 @@ window_end   = orin_time - 1
 <td>ICD-10 diagnosis code (used for frailty score)</td>
 </tr>
 <tr>
+<td><code>icd10_pcs</code></td>
+<td>operations</td>
+<td>ICD-10 procedure/operation code</td>
+</tr>
+<tr>
 <td><code>atc_code</code></td>
 <td>medications</td>
 <td>WHO ATC drug classification code</td>
@@ -1156,7 +703,7 @@ window_end   = orin_time - 1
 </tbody>
 </table>
 <hr />
-<h2 id="5-real-patient-example-subject-100033460">5. Real Patient Example — Subject 100033460<a class="headerlink" href="#5-real-patient-example-subject-100033460" title="Permanent link">&para;</a></h2>
+<h2 id="6-real-patient-example-subject-100033460">6. Real Patient Example — Subject 100033460<a class="headerlink" href="#6-real-patient-example-subject-100033460" title="Permanent link">&para;</a></h2>
 <p>This is a real INSPIRE patient in the <code>died/</code> folder. This example is used throughout the codebase for testing.</p>
 <h3 id="patient-summary">Patient summary<a class="headerlink" href="#patient-summary" title="Permanent link">&para;</a></h3>
 <table>
@@ -1278,6 +825,7 @@ window_end   = orin_time - 1
 </tbody>
 </table>
 <p>An 80-year-old woman with chronic kidney disease (N18) and colon cancer (C18) presented as an emergency with peritonitis (K65 — infection in the abdominal cavity). Her kidneys went into acute failure (N17). She spent 15 days in ICU on dialysis (CRRT active in ward vitals) and died.</p>
+<p><em>This patient is a useful worked example for the ICD-10/mortality exploration in Section 15 — she illustrates the multi-code-per-patient case (5 distinct codes) and a case where diagnosis, emergency status, and outcome all align clinically.</em></p>
 <h3 id="her-measurements">Her measurements<a class="headerlink" href="#her-measurements" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1301,7 +849,7 @@ window_end   = orin_time - 1
 <tr>
 <td>Intraop vitals</td>
 <td>457</td>
-<td>27 unique types</td>
+<td>27 unique types recorded for this patient (72 total exist in the schema — see Section 11)</td>
 </tr>
 <tr>
 <td>Diagnoses</td>
@@ -1355,7 +903,7 @@ Potassium:
   chart_time  510:   5.3 mEq/L   (elevated — normal 3.5-5.0, kidney failure)
 </code></pre></div>
 <hr />
-<h2 id="6-dataset-subset-structure-on-disk">6. Dataset Subset Structure on Disk<a class="headerlink" href="#6-dataset-subset-structure-on-disk" title="Permanent link">&para;</a></h2>
+<h2 id="7-dataset-subset-structure-on-disk">7. Dataset Subset Structure on Disk<a class="headerlink" href="#7-dataset-subset-structure-on-disk" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>inspire_subjects_small/
 ├── survived/                        ← 20 patients, label = 0
 │   ├── 100002413.json
@@ -1378,7 +926,7 @@ Potassium:
 </code></pre></div></p>
 <p>Note the double nesting — the zip contains a subfolder with the same name.</p>
 <hr />
-<h2 id="7-current-pipeline-architecture">7. Current Pipeline Architecture<a class="headerlink" href="#7-current-pipeline-architecture" title="Permanent link">&para;</a></h2>
+<h2 id="8-current-pipeline-architecture">8. Current Pipeline Architecture<a class="headerlink" href="#8-current-pipeline-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="data-flow-end-to-end">Data flow — end to end<a class="headerlink" href="#data-flow-end-to-end" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>inspire_subjects_small/survived/*.json  (label=0)
 inspire_subjects_small/died/*.json      (label=1)
@@ -1492,7 +1040,7 @@ evaluate_model()
 </tbody>
 </table>
 <hr />
-<h2 id="8-current-config-values">8. Current Config Values<a class="headerlink" href="#8-current-config-values" title="Permanent link">&para;</a></h2>
+<h2 id="9-current-config-values">9. Current Config Values<a class="headerlink" href="#9-current-config-values" title="Permanent link">&para;</a></h2>
 <p>All in <code>main()</code> inside <code>dnn_mortality_pipeline.py</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="n">USE_REAL_DATA</span>          <span class="o">=</span> <span class="kc">True</span>
 <span class="n">JSON_DIR</span>               <span class="o">=</span> <span class="s2">&quot;/content/inspire_subjects_small/inspire_subjects_small&quot;</span>
@@ -1548,6 +1096,11 @@ evaluate_model()
 <td>1, 2, 4, 8, 16, 32</td>
 </tr>
 <tr>
+<td>30 features</td>
+<td>60</td>
+<td>1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60</td>
+</tr>
+<tr>
 <td>33 features</td>
 <td>66</td>
 <td>1, 2, 3, 6, 11, 22, 33, 66</td>
@@ -1555,7 +1108,7 @@ evaluate_model()
 </tbody>
 </table>
 <hr />
-<h2 id="9-current-results">9. Current Results<a class="headerlink" href="#9-current-results" title="Permanent link">&para;</a></h2>
+<h2 id="10-current-results">10. Current Results<a class="headerlink" href="#10-current-results" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -1620,15 +1173,15 @@ evaluate_model()
 </table>
 <p><strong>Why AUROC fluctuates:</strong> Test set is only 6–10 patients. One wrong prediction moves AUROC by ~0.11. These numbers will stabilise only with the full 99,886-patient dataset. The model is genuinely learning — classifier loss drops every epoch.</p>
 <hr />
-<h2 id="10-all-available-features-what-is-used-vs-what-exists">10. All Available Features — What Is Used vs What Exists<a class="headerlink" href="#10-all-available-features-what-is-used-vs-what-exists" title="Permanent link">&para;</a></h2>
-<h3 id="labs-from-labs-list-in-json-35-types-in-this-patient">Labs (from labs list in JSON) — 35 types in this patient<a class="headerlink" href="#labs-from-labs-list-in-json-35-types-in-this-patient" title="Permanent link">&para;</a></h3>
+<h2 id="11-all-available-features-what-is-used-vs-what-exists">11. All Available Features — What Is Used vs What Exists<a class="headerlink" href="#11-all-available-features-what-is-used-vs-what-exists" title="Permanent link">&para;</a></h2>
+<h3 id="labs-from-labs-list-in-json-38-types-in-the-full-schema">Labs (from labs list in JSON) — 38 types in the full schema<a class="headerlink" href="#labs-from-labs-list-in-json-38-types-in-the-full-schema" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
 <th>Feature</th>
 <th>System</th>
 <th>Currently used</th>
-<th>Measurement count (this patient)</th>
+<th>Measurement count (example patient, Section 6)</th>
 </tr>
 </thead>
 <tbody>
@@ -1831,6 +1384,12 @@ evaluate_model()
 <td>5</td>
 </tr>
 <tr>
+<td>troponin_t</td>
+<td>Cardiovascular</td>
+<td>❌</td>
+<td>—</td>
+</tr>
+<tr>
 <td>ck</td>
 <td>Cardiovascular</td>
 <td>❌</td>
@@ -1842,16 +1401,29 @@ evaluate_model()
 <td>❌</td>
 <td>3</td>
 </tr>
+<tr>
+<td>d_dimer</td>
+<td>Haematology</td>
+<td>❌</td>
+<td>—</td>
+</tr>
+<tr>
+<td>hba1c</td>
+<td>Metabolic</td>
+<td>❌</td>
+<td>—</td>
+</tr>
 </tbody>
 </table>
-<h3 id="ward-vitals-from-ward_vitals-list-in-json-10-types">Ward vitals (from ward_vitals list in JSON) — 10 types<a class="headerlink" href="#ward-vitals-from-ward_vitals-list-in-json-10-types" title="Permanent link">&para;</a></h3>
+<p><em>(38 total; two — <code>troponin_t</code> and <code>hba1c</code> — weren't observed for the Section 6 example patient, hence no count.)</em></p>
+<h3 id="ward-vitals-from-ward_vitals-list-in-json-16-types">Ward vitals (from ward_vitals list in JSON) — 16 types<a class="headerlink" href="#ward-vitals-from-ward_vitals-list-in-json-16-types" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
 <th>Feature</th>
 <th>System</th>
 <th>Currently used</th>
-<th>Measurement count (this patient)</th>
+<th>Measurement count (example patient)</th>
 </tr>
 </thead>
 <tbody>
@@ -1915,12 +1487,56 @@ evaluate_model()
 <td>❌</td>
 <td>1</td>
 </tr>
+<tr>
+<td>gcs_e</td>
+<td>Neurological</td>
+<td>❌</td>
+<td>—</td>
+</tr>
+<tr>
+<td>gcs_m</td>
+<td>Neurological</td>
+<td>❌</td>
+<td>—</td>
+</tr>
+<tr>
+<td>gcs_v</td>
+<td>Neurological</td>
+<td>❌</td>
+<td>—</td>
+</tr>
+<tr>
+<td>iabp</td>
+<td>Cardiovascular</td>
+<td>❌</td>
+<td>—</td>
+</tr>
+<tr>
+<td>ecmo</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>—</td>
+</tr>
+<tr>
+<td>vent</td>
+<td>Respiratory</td>
+<td>❌</td>
+<td>—</td>
+</tr>
 </tbody>
 </table>
-<h3 id="intraoperative-vitals-from-vitals-list-in-json-27-types">Intraoperative vitals (from vitals list in JSON) — 27 types<a class="headerlink" href="#intraoperative-vitals-from-vitals-list-in-json-27-types" title="Permanent link">&para;</a></h3>
-<p><em>Not currently used — requires orin_time to orout_time window, not pre-op window</em></p>
-<p><code>art_sbp, art_dbp, art_mbp, hr, spo2, etco2, fio2, rr, pip, pmean, vt, minvol, bt, bis, cvp, sti, stii, stiii, stv5, nepi, ebl, rbc, ns, psa, air, etgas, phe</code></p>
-<h3 id="to-expand-feature_columns-to-all-useful-labs-ward-vitals">To expand FEATURE_COLUMNS to all useful labs + ward vitals:<a class="headerlink" href="#to-expand-feature_columns-to-all-useful-labs-ward-vitals" title="Permanent link">&para;</a></h3>
+<p><em>(Ward vitals include the 3 Glasgow Coma Scale components and device-use flags (<code>crrt</code>, <code>iabp</code>, <code>ecmo</code>, <code>vent</code>) not previously catalogued in this table — see Section 15 item 4 re: the neurological system grouping these motivate.)</em></p>
+<h3 id="intraoperative-vitals-from-vitals-list-in-json-72-types">Intraoperative vitals (from vitals list in JSON) — 72 types<a class="headerlink" href="#intraoperative-vitals-from-vitals-list-in-json-72-types" title="Permanent link">&para;</a></h3>
+<p><em>Not currently used in the pipeline.</em> This table requires the intra-operative window (<code>orin_time</code> to <code>orout_time</code>) rather than the pre-op window currently implemented — see the open scope decision flagged in Section 4. Whether these 72 parameters are added depends on that decision, not on any technical limitation.</p>
+<div class="highlight"><pre><span></span><code>aft, air, alb20, alb5, art_dbp, art_mbp, art_sbp, bis, bt, cbro2, ci, cryo, cvp,
+d10w, d50w, d5w, dobui, dopai, ebl, eph, epi, epii, etco2, etdes, etgas, etiso,
+etsevo, ffp, fio2, ftn, hes, hns, hr, hs, mdz, minvol, mlni, n2o, nepi, nibp_dbp,
+nibp_mbp, nibp_sbp, ns, ntgi, o2, pap_dbp, pap_mbp, pap_sbp, pc, peep, pepi, phe,
+pheresis, pip, pmean, ppf, ppfi, pplat, psa, rbc, rfti, rr, sft, spo2, sti, stii,
+stiii, stv5, svi, uo, vaso, vt
+</code></pre></div>
+<p><em>(Corrected from an earlier version of this document that listed only 27 intra-op types — the full schema has 72.)</em></p>
+<h3 id="to-expand-feature_columns-to-all-useful-pre-operative-labs-ward-vitals">To expand FEATURE_COLUMNS to all useful pre-operative labs + ward vitals:<a class="headerlink" href="#to-expand-feature_columns-to-all-useful-pre-operative-labs-ward-vitals" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">FEATURE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span>
     <span class="c1"># Renal (5)</span>
     <span class="s1">&#39;creatinine&#39;</span><span class="p">,</span> <span class="s1">&#39;bun&#39;</span><span class="p">,</span> <span class="s1">&#39;sodium&#39;</span><span class="p">,</span> <span class="s1">&#39;potassium&#39;</span><span class="p">,</span> <span class="s1">&#39;chloride&#39;</span><span class="p">,</span>
@@ -1940,7 +1556,7 @@ evaluate_model()
 <span class="c1"># Total: 30 features → num_features = 60 → use nhead=6 (60÷6=10) or nhead=4 (60÷4=15)</span>
 </code></pre></div>
 <hr />
-<h2 id="11-how-to-run-colab-workflow">11. How to Run — Colab Workflow<a class="headerlink" href="#11-how-to-run-colab-workflow" title="Permanent link">&para;</a></h2>
+<h2 id="12-how-to-run-colab-workflow">12. How to Run — Colab Workflow<a class="headerlink" href="#12-how-to-run-colab-workflow" title="Permanent link">&para;</a></h2>
 <h3 id="every-new-session-cells-run-in-order">Every new session (cells run in order):<a class="headerlink" href="#every-new-session-cells-run-in-order" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Cell 1 — GPU check</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -1988,7 +1604,7 @@ evaluate_model()
 <span class="err">!</span><span class="n">python</span> <span class="n">dnn_mortality_pipeline</span><span class="o">.</span><span class="n">py</span>
 </code></pre></div>
 <hr />
-<h2 id="12-known-issues-and-fixes-applied">12. Known Issues and Fixes Applied<a class="headerlink" href="#12-known-issues-and-fixes-applied" title="Permanent link">&para;</a></h2>
+<h2 id="13-known-issues-and-fixes-applied">13. Known Issues and Fixes Applied<a class="headerlink" href="#13-known-issues-and-fixes-applied" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -2048,23 +1664,28 @@ evaluate_model()
 <td>NaN values during classifier training on Mac</td>
 <td><code>get_device()</code> returns <code>"cuda"</code> when available, bypasses MPS</td>
 </tr>
+<tr>
+<td><strong>Folder labels ≠ 30-day mortality</strong></td>
+<td><code>died/</code>/<code>survived/</code> folders built from <code>subject.died()</code> (any death ever), not <code>died_30day()</code> — 3/10 real <code>died/</code> patients died 91–242 days post-op, not within 30</td>
+<td><strong>Not yet applied to the pipeline.</strong> Decision made to switch to <code>died_30day()</code> (see Section 4); still needs (1) confirming with James whether the full dataset has the same issue, and (2) updating <code>load_real_subjects()</code> / the full-dataset loader to compute the label from <code>died_30day()</code> instead of trusting the folder name</td>
+</tr>
 </tbody>
 </table>
 <hr />
-<h2 id="13-research-direction-and-next-steps">13. Research Direction and Next Steps<a class="headerlink" href="#13-research-direction-and-next-steps" title="Permanent link">&para;</a></h2>
+<h2 id="14-research-direction-and-next-steps">14. Research Direction and Next Steps<a class="headerlink" href="#14-research-direction-and-next-steps" title="Permanent link">&para;</a></h2>
 <h3 id="immediate-to-get-meaningful-results">Immediate (to get meaningful results)<a class="headerlink" href="#immediate-to-get-meaningful-results" title="Permanent link">&para;</a></h3>
-<p><strong>1. Get full dataset from James</strong></p>
-<p>Current subset has 30 patients — not enough for stable AUROC. Full dataset has 99,886 patients, 942 deaths. Change in pipeline:
-<div class="highlight"><pre><span></span><code><span class="n">JSON_DIR</span> <span class="o">=</span> <span class="s2">&quot;/path/to/full/inspire_subjects&quot;</span>
+<p><strong>1. Get full dataset from James — and ask about the label definition</strong></p>
+<p>Current subset has 30 patients — not enough for stable AUROC. Full dataset has 99,886 patients, 942 deaths <strong>by the folder/<code>died()</code> definition — likely not the true 30-day count, see Section 4</strong>. When asking James for the full dataset, also ask whether the full-dataset folders were built from <code>died()</code> or <code>died_30day()</code> — this determines whether the "942 deaths" figure needs recalculating.</p>
+<p><div class="highlight"><pre><span></span><code><span class="n">JSON_DIR</span> <span class="o">=</span> <span class="s2">&quot;/path/to/full/inspire_subjects&quot;</span>
 <span class="n">global_length</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="mi">7200</span><span class="p">)</span>   <span class="c1"># allow full 5-day window</span>
 </code></pre></div>
-The <code>pos_weight</code> is computed automatically — no other changes needed.</p>
+⚠️ The <code>pos_weight</code> is computed automatically from the folder split, <strong>but the folder split itself needs to be replaced with <code>died_30day()</code>-based labelling first</strong> (Section 4) — otherwise <code>pos_weight</code> will be calculated correctly against the wrong label.</p>
 <p><strong>2. Expand to all features</strong></p>
-<p>Change <code>FEATURE_COLUMNS</code> to include all 30 useful features (see Section 10), update <code>nhead=6</code>, run.</p>
+<p>Change <code>FEATURE_COLUMNS</code> to include all 30 useful features (see Section 11), update <code>nhead=6</code>, run.</p>
 <p><strong>3. More classifier epochs</strong></p>
 <p>Loss was still dropping at epoch 20. Run with <code>CLASSIFIER_EPOCHS = 50</code> and watch when it plateaus.</p>
-<h3 id="core-research-contribution-4-system-embedding-architecture">Core research contribution — 4-system embedding architecture<a class="headerlink" href="#core-research-contribution-4-system-embedding-architecture" title="Permanent link">&para;</a></h3>
-<p>Your professor's vision: instead of one transformer for everything, train <strong>4 separate encoders</strong> — one per physiological system. Each system produces its own embedding. A surgeon can then see which system drove the prediction.</p>
+<h3 id="core-research-contribution-system-separated-embedding-architecture">Core research contribution — system-separated embedding architecture<a class="headerlink" href="#core-research-contribution-system-separated-embedding-architecture" title="Permanent link">&para;</a></h3>
+<p>Your professor's vision: instead of one transformer for everything, train <strong>separate encoders per physiological system</strong>. Each system produces its own embedding. A surgeon can then see which system drove the prediction.</p>
 <div class="highlight"><pre><span></span><code>Current (black box):
   7 features → 1 transformer → 1 embedding → mortality
 
@@ -2074,14 +1695,14 @@ Target (explainable):
   Respiratory features  → Encoder 3 → resp_embedding
   Metabolic features    → Encoder 4 → metabolic_embedding
                                  ↓
-                    concatenate 4 embeddings
+                    concatenate embeddings
                                  ↓
                     NAM classifier (one shape function per system)
                                  ↓
         &quot;Renal: CRITICAL | Respiratory: CONCERN | Cardio: OK | Metabolic: OK&quot;
         → mortality risk = 0.84
 </code></pre></div>
-<p><strong>Clinical 4-system feature groups:</strong></p>
+<p><strong>Clinical feature groups (4-system core; see Section 15 item 4 for the fuller 6-system version including haematology and neurological):</strong></p>
 <table>
 <thead>
 <tr>
@@ -2128,7 +1749,107 @@ Target:  &quot;mortality ∈ [0.58, 0.84] with 90% guaranteed coverage&quot;
 <li><strong>TCN (Temporal Convolutional Network)</strong> — mentioned in professor's meeting notes, fully parallelisable on GPU</li>
 </ul>
 <hr />
-<h2 id="14-key-papers-and-references">14. Key Papers and References<a class="headerlink" href="#14-key-papers-and-references" title="Permanent link">&para;</a></h2>
+<h2 id="15-research-exploration-roadmap">15. Research Exploration Roadmap<a class="headerlink" href="#15-research-exploration-roadmap" title="Permanent link">&para;</a></h2>
+<p>This section captures every open thread being explored for this project, organised by theme. It is not sequential — items are being investigated in parallel — but "Current focus" is the near-term priority everything else feeds into (see also Section 2, Aims and Objectives).</p>
+<h3 id="current-focus">Current focus<a class="headerlink" href="#current-focus" title="Permanent link">&para;</a></h3>
+<p><strong>1. Model interpretability</strong>
+The core deliverable right now is a model that is not just accurate but explainable — tied specifically to the two clinical questions below rather than interpretability in the abstract.</p>
+<p><strong>2. ICD-10 codes and mortality rate</strong>
+- Explore diagnosis ICD-10 codes and operation-type ICD-10 codes separately — they answer different questions (what's wrong with the patient vs. what's being done to them).
+- A patient may have more than one ICD-10 code (see the Section 6 example patient — 5 distinct codes) — need to decide how multi-code patients are represented (one-hot per code? code count? weighted by severity? grouped by ICD-10 chapter?).
+- Operation type vs. mortality — does procedure complexity/category predict risk independently of diagnosis?
+- This connects to the existing HFRS frailty work (<code>docs/INSPIRE_Project_Notes.md</code> §11), which already uses 109 ICD-10 codes for frailty scoring — worth checking overlap/redundancy between "frailty codes" and "high-mortality-risk codes" once this analysis exists.</p>
+<p><strong>3. Department and mortality rate risk</strong>
+- 15 surgical departments in INSPIRE — mortality rate likely varies substantially by department (case mix, patient acuity, procedure type all differ).
+- Needs to be analysed jointly with ICD-10 (a department's mortality rate is partly explained by which operations/diagnoses it sees) rather than as an independent factor.
+- Should feed into visualisations: mortality rate by department, stratified by scheduled vs. emergency, and by ICD-10 category.</p>
+<h3 id="feature-categorisation">Feature categorisation<a class="headerlink" href="#feature-categorisation" title="Permanent link">&para;</a></h3>
+<p><strong>4. Organ-system grouping of all 126 parameters</strong>
+Full categorisation of <code>labs</code> (38), <code>ward_vitals</code> (16), and intra-operative <code>vitals</code> (72) into physiological systems. Extending the 4-system core (Section 14) with the ward-vitals fields that don't fit cleanly there:</p>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Labs</th>
+<th>Ward vitals</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Renal</td>
+<td>bun, calcium, chloride, creatinine, ica, phosphorus, potassium, sodium</td>
+<td>crrt, uo</td>
+</tr>
+<tr>
+<td>Cardiovascular</td>
+<td>ck, ckmb, troponin_i, troponin_t</td>
+<td>hr, nibp_sbp, nibp_dbp, nibp_mbp, iabp</td>
+</tr>
+<tr>
+<td>Respiratory</td>
+<td>be, hco3, paco2, pao2, ph, sao2</td>
+<td>fio2, rr, spo2, vent, ecmo</td>
+</tr>
+<tr>
+<td>Metabolic/hepatic</td>
+<td>albumin, alp, alt, ast, glucose, hba1c, lacate, total_bilirubin, total_protein</td>
+<td>bt</td>
+</tr>
+<tr>
+<td>Haematology/coagulation</td>
+<td>aptt, crp, d_dimer, fibrinogen, hb, hct, lymphocyte, platelet, ptinr, seg, wbc</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Neurological</td>
+<td>—</td>
+<td>gcs_e, gcs_m, gcs_v</td>
+</tr>
+</tbody>
+</table>
+<p>This groups both the <em>input features</em> and, downstream, the <em>model's per-system predictions</em> — i.e. the same categorisation drives both feature engineering and the interpretability output (Section 14).</p>
+<p><strong>5. Using all 126 parameters in the model</strong>
+Currently 7 of 126 are used. Full audit needed (coverage, missingness, signal) before finalising the feature set. This is gated on the open scope decision (Section 4): whether the model stays pre-operative only (54 candidate parameters: 38 labs + 16 ward_vitals), or becomes a full peri-operative model also using the 72 intra-operative <code>vitals</code> parameters. <strong>Decision not yet made — do not assume either direction in downstream work until this is resolved.</strong></p>
+<h3 id="class-imbalance-and-data-quality">Class imbalance and data quality<a class="headerlink" href="#class-imbalance-and-data-quality" title="Permanent link">&para;</a></h3>
+<p><strong>6. Sampling methods for 99,886 vs. 942 (0.95% mortality)</strong>
+Candidates to evaluate against each other:
+- Oversampling / undersampling (basic)
+- SMOTE and variants
+- Generative approaches: GANs, VAEs, diffusion models, Gaussian-based synthetic sampling
+- Tabular-data-specific generative methods
+- Cost-sensitive loss functions (already partially in use via <code>pos_weight</code> — worth comparing against the above rather than assuming it's sufficient at full scale)
+- Simply acquiring more labelled death cases, if feasible</p>
+<p><strong>7. Missing data handling</strong>
+- Linear interpolation (already in use — Section 8)
+- Fitting a model to predict/impute missing features, rather than just interpolating
+- Laplace smoothing where relevant (e.g. sparse categorical counts)
+- Stratifying the data and handling near-zero-probability cases carefully — avoid the model treating a rare event as effectively impossible</p>
+<p><strong>8. Data distribution analysis</strong>
+General EDA — distributions, outliers, correlations — across the full parameter set, extending the correlation work already done (<code>docs/INSPIRE_Project_Notes.md</code> §11: frailty–sodium, frailty–albumin correlations).</p>
+<p><strong>9. HFRS — what it is and a fix needed</strong>
+HFRS = Hospital Frailty Risk Score (Gilbert et al. 2018, Lancet). It's 109 ICD-10 codes, each with a point value, derived from a cluster analysis of frail vs. non-frail hospital patients. Sum the points from a patient's diagnosis codes to get a score: <strong>&lt;5 = low, 5–15 = intermediate, &gt;15 = high</strong> (already correct in <code>subject.py:compute_hfrs()</code>).</p>
+<p>The published method only counts diagnoses from the <strong>prior 2 years</strong>, for patients aged 75+. Our current code uses <strong>all</strong> of a patient's diagnoses ever, no time limit, no age cutoff — this needs fixing before HFRS results can be trusted.</p>
+<p>Plan: use HFRS two ways — (1) as its own baseline, no training, like NELA, and (2) as an extra feature added to GBM/DNN. Evaluate with AUROC + AUPRC, compared with and without HFRS, and split by scheduled vs. emergency surgery (ties into item 10 below).</p>
+<h3 id="clinical-structure">Clinical structure<a class="headerlink" href="#clinical-structure" title="Permanent link">&para;</a></h3>
+<p><strong>10. Conditional dependencies</strong>
+E.g. frailty is largely uninformative once you know surgery was scheduled (a surgeon has already selected for fitness), but highly informative for emergency surgery where no such selection occurred. This hypothesis (framed in <code>docs/INSPIRE_Project_Notes.md</code> §11) needs a scheduled-vs-emergency stratified analysis to test properly, and may generalise to other conditional relationships beyond frailty.</p>
+<p><strong>11. Multi-operation patients</strong>
+Does a patient with two or more recorded operations carry different mortality risk than a single-operation patient? Needs its own cohort split and analysis — this is a patient-level question, separate from the per-operation prediction the current pipeline makes.</p>
+<h3 id="modelling">Modelling<a class="headerlink" href="#modelling" title="Permanent link">&para;</a></h3>
+<p><strong>12. DNN generalisation and robustness</strong>
+- Shared representation learning — how much should the organ-system encoders share vs. specialise?
+- Robustness — does the model degrade gracefully with missing/noisy inputs, or brittle?
+- Semi-supervised learning — the current autoencoder pretraining phase (Section 8) is already a step in this direction; worth exploring further given how few labelled deaths exist relative to the full cohort.</p>
+<h3 id="suggested-order-of-attack">Suggested order of attack<a class="headerlink" href="#suggested-order-of-attack" title="Permanent link">&para;</a></h3>
+<p>Given the current focus is interpretability tied to ICD-10 and department, a reasonable sequence is:
+1. EDA — ICD-10 code distributions, department distributions, both vs. mortality (items 2, 3, 8)
+2. Organ-system feature categorisation for all 126 parameters (items 4, 5) — pending the scope decision in Section 4
+3. Missing data / distribution handling for whichever features EDA selects (items 6, 7)
+4. HFRS fix and evaluation (item 9)
+5. Conditional dependency and multi-operation analysis (items 10, 11)
+6. Model architecture and generalisation work (item 12), building on the current two-phase pipeline (Section 8)</p>
+<hr />
+<h2 id="16-key-papers-and-references">16. Key Papers and References<a class="headerlink" href="#16-key-papers-and-references" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -2155,7 +1876,7 @@ Target:  &quot;mortality ∈ [0.58, 0.84] with 90% guaranteed coverage&quot;
 </tr>
 <tr>
 <td>Nature Medicine 2023 — Conformal Prediction in Clinical AI</td>
-<td>Guaranteed uncertainty bounds for clinical deployment</td>
+<td>Guaranteed uncertainty bounds for clinical deployment — exact citation not yet confirmed, needs verifying before use in the paper</td>
 </tr>
 <tr>
 <td>Gilbert et al. 2018 — HFRS</td>
@@ -2163,11 +1884,12 @@ Target:  &quot;mortality ∈ [0.58, 0.84] with 90% guaranteed coverage&quot;
 </tr>
 <tr>
 <td>INSPIRE dataset paper — Lee et al.</td>
-<td>Must cite as data source — search "INSPIRE dataset perioperative Korean 2022"</td>
+<td>Must cite as data source — search "INSPIRE dataset perioperative Korean 2022"; exact citation not yet confirmed</td>
 </tr>
 </tbody>
 </table>
-<p><em>README last updated: pipeline producing AUROC 0.78 on 29 real INSPIRE patients, classifier loss still converging at epoch 20, 7 features active.</em></p>
+<hr />
+<p><em>README last updated: pipeline producing AUROC 0.78 on 29 real INSPIRE patients, classifier loss still converging at epoch 20, 7 features active. Pre-operative vs. full peri-operative model scope is an open decision (Section 4). Current research focus: ICD-10 and department vs. mortality interpretability (Sections 2, 15).</em></p>
 
 
 
@@ -2223,7 +1945,7 @@ Target:  &quot;mortality ∈ [0.58, 0.84] with 90% guaranteed coverage&quot;
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.top", "navigation.expand", "toc.integrate", "content.code.copy", "search.suggest"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.top", "navigation.sections", "navigation.collapse", "toc.integrate", "content.code.copy", "search.suggest"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="assets/javascripts/bundle.79ae519e.min.js"></script>

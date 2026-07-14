@@ -11,10 +11,8 @@
       
       
       
-        <link rel="prev" href="../INSPIRE_Project_Notes/">
+        <link rel="prev" href="../feature_audit_findings/">
       
-      
-        <link rel="next" href="../eda_findings/">
       
       
         
@@ -25,7 +23,7 @@
     
     
       
-        <title>Feature Audit Findings - INSPIRE DNN Mortality Pipeline</title>
+        <title>EDA Findings (Full Dataset) - INSPIRE DNN Mortality Pipeline</title>
       
     
     
@@ -76,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#feature-audit-data-exploration-findings" class="md-skip">
+        <a href="#eda-findings-full-dataset-99886-patients" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Feature Audit Findings
+              EDA Findings (Full Dataset)
             
           </span>
         </div>
@@ -313,6 +311,33 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -332,7 +357,7 @@
   <span class="md-ellipsis">
     
   
-    Feature Audit Findings
+    EDA Findings (Full Dataset)
   
 
     
@@ -350,7 +375,7 @@
   <span class="md-ellipsis">
     
   
-    Feature Audit Findings
+    EDA Findings (Full Dataset)
   
 
     
@@ -376,10 +401,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-how-the-patient-json-files-are-created" class="md-nav__link">
+  <a href="#1-how-many-patients-died" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. How the patient JSON files are created
+        1. How many patients died?
       
     </span>
   </a>
@@ -387,10 +412,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-whats-inside-each-patient-json" class="md-nav__link">
+  <a href="#2-who-tends-to-die-age-sex-asa-class" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. What's inside each patient JSON
+        2. Who tends to die: age, sex, ASA class
       
     </span>
   </a>
@@ -398,10 +423,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-the-real-feature-schema-parameterscsv" class="md-nav__link">
+  <a href="#3-which-surgical-departments-have-the-highest-death-rates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. The real feature schema (parameters.csv)
+        3. Which surgical departments have the highest death rates
       
     </span>
   </a>
@@ -409,49 +434,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-per-patient-completeness-the-biggest-real-finding" class="md-nav__link">
+  <a href="#4-which-diagnoses-icd-10-codes-predict-death" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Per-patient completeness — the biggest real finding
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Per-patient completeness — the biggest real finding">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#coverage-tiers-of-30-patients-with-the-feature-in-their-pre-op-window" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Coverage tiers (% of 30 patients with the feature in their pre-op window)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#department-counts-too-small-to-segment-by-yet" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Department counts (too small to segment by yet)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-a-real-fragility-found-in-align_time_series" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. A real fragility found in align_time_series()
+        4. Which diagnoses (ICD-10 codes) predict death
       
     </span>
   </a>
@@ -459,10 +445,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#6-whats-sitting-unused-static-facts-diagnoses-medications" class="md-nav__link">
+  <a href="#5-which-types-of-operations-are-riskiest" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. What's sitting unused: static facts, diagnoses, medications
+        5. Which types of operations are riskiest
       
     </span>
   </a>
@@ -470,10 +456,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#7-audit-scripts-reference" class="md-nav__link">
+  <a href="#6-do-we-actually-have-the-data-we-need" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Audit scripts reference
+        6. Do we actually have the data we need?
       
     </span>
   </a>
@@ -481,10 +467,87 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8-open-decisions-not-yet-made" class="md-nav__link">
+  <a href="#7-where-are-the-gaps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. Open decisions (not yet made)
+        7. Where are the gaps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-do-the-7-currently-used-features-actually-separate-survivors-from-deaths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Do the 7 currently-used features actually separate survivors from deaths
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-are-any-of-the-features-redundant-with-each-other" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Are any of the features redundant with each other
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-the-frailty-score-hfrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. The frailty score (HFRS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-does-frailty-matter-more-for-emergency-surgery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Does frailty matter more for emergency surgery
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-does-having-multiple-operations-increase-risk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Does having multiple operations increase risk
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-what-the-raw-data-actually-looks-like-over-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. What the raw data actually looks like over time
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
       
     </span>
   </a>
@@ -495,33 +558,6 @@
   
 </nav>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../eda_findings/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    EDA Findings (Full Dataset)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -546,256 +582,272 @@
   
 
 
-<h1 id="feature-audit-data-exploration-findings">Feature Audit &amp; Data Exploration Findings<a class="headerlink" href="#feature-audit-data-exploration-findings" title="Permanent link">&para;</a></h1>
+<h1 id="eda-findings-full-dataset-99886-patients">EDA Findings — Full Dataset (99,886 patients)<a class="headerlink" href="#eda-findings-full-dataset-99886-patients" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p>This page documents what we've actually verified about the INSPIRE patient
-data, using real numbers from three self-contained audit scripts
-(<code>explore_features.py</code>, <code>audit_features.py</code>, <code>audit_static_categorical.py</code>)
-run against the real 30-patient subset. It replaces earlier single-patient
-guesses with numbers checked across all 30 patients.</p>
+<p>Companion page to <code>inspire_eda.ipynb</code>. Every figure below is from the full-cohort run
+(99,886 patients, <code>died_30day</code> definition). Each plot is followed by what it shows and
+why it matters, in plain language — see <code>notes.md</code> for the technical detail behind
+each section.</p>
 </blockquote>
 <hr />
-<h2 id="1-how-the-patient-json-files-are-created">1. How the patient JSON files are created<a class="headerlink" href="#1-how-the-patient-json-files-are-created" title="Permanent link">&para;</a></h2>
-<p>The raw INSPIRE dataset ships as six large CSV files (<code>operations.csv</code>,
-<code>labs.csv</code>, <code>ward_vitals.csv</code>, <code>vitals.csv</code>, <code>diagnosis.csv</code>,
-<code>medications.csv</code>), each with every patient's rows mixed together. The
-conversion into one JSON file per patient (<code>inspire_dataset.py</code>, using the
-<code>Subject</code> class in <code>subject.py</code>) works in four steps:</p>
-<ol>
-<li><strong>Create one empty container per patient</strong> — read <code>operations.csv</code>,
-   collect every distinct <code>subject_id</code>, create one empty <code>Subject</code> object
-   for each.</li>
-<li><strong>Sort every row into the right container</strong> — walk <code>labs.csv</code>,
-   <code>ward_vitals.csv</code>, <code>vitals.csv</code>, <code>diagnosis.csv</code>, and <code>medications.csv</code>
-   row by row; each row's <code>subject_id</code> determines which patient's
-   container it's added to.</li>
-<li><strong>Decide died vs. survived</strong> — for each patient, check whether
-   <code>inhosp_death_time</code> on their operation record is blank (survived) or has
-   a value (died). No scoring involved — a direct field check.</li>
-<li><strong>Write one JSON file per patient</strong>, into <code>died/</code> or <code>survived/</code>
-   depending on step 3.</li>
-</ol>
-<p>This is why later steps (loading 30 patients, auditing features) are fast —
-the slow, one-time cost of scanning tens of millions of CSV rows only ever
-happens once, up front.</p>
-<h2 id="2-whats-inside-each-patient-json">2. What's inside each patient JSON<a class="headerlink" href="#2-whats-inside-each-patient-json" title="Permanent link">&para;</a></h2>
-<p>Every file has <strong>7 top-level keys</strong>. Only two are currently used by the
-model:</p>
+<h2 id="1-how-many-patients-died">1. How many patients died?<a class="headerlink" href="#1-how-many-patients-died" title="Permanent link">&para;</a></h2>
+<p><img alt="Cohort overview" src="../eda_images/01_cohort_overview.png" /></p>
+<p>Out of 99,886 patients, only <strong>469 died within 30 days (0.47%)</strong> — roughly 1 death for
+every 212 survivors.</p>
+<p><strong>Why it matters:</strong> this is the single most important number in the project. It's why
+everything downstream has to be handled carefully — a model that guesses "survived" for
+every patient would already be 99.5% "accurate" while being useless. This number drives
+the <code>pos_weight</code> setting used in training.</p>
+<blockquote>
+<p><strong>Note:</strong> <code>docs/notes.md</code> documents "942 deaths" throughout — that figure counts <em>any</em>
+death ever recorded, with no 30-day window. See <code>notes.md</code> §1b for the two definitions
+compared directly; this page uses the 30-day definition throughout.</p>
+</blockquote>
+<hr />
+<h2 id="2-who-tends-to-die-age-sex-asa-class">2. Who tends to die: age, sex, ASA class<a class="headerlink" href="#2-who-tends-to-die-age-sex-asa-class" title="Permanent link">&para;</a></h2>
+<p><img alt="Age and outcome" src="../eda_images/02_age_by_outcome.png" />
+<img alt="ASA class and sex by outcome" src="../eda_images/03_asa_sex_by_outcome.png" /></p>
+<p>Patients who died were noticeably older — <strong>median age 65 vs. 55</strong> for survivors, a
+10-year gap. ASA class (a 1–5 clinical severity scale doctors already use, where 5 means
+"critically ill regardless of surgery") should show mortality climbing as the class
+number climbs.</p>
+<p><strong>Why it matters:</strong> this is a sanity check, not a discovery. If older or sicker patients
+weren't dying more often, that would point to a problem with the data or the labels.
+Since they are, the dataset is behaving the way real clinical data should.</p>
+<hr />
+<h2 id="3-which-surgical-departments-have-the-highest-death-rates">3. Which surgical departments have the highest death rates<a class="headerlink" href="#3-which-surgical-departments-have-the-highest-death-rates" title="Permanent link">&para;</a></h2>
+<p><img alt="Department mortality" src="../eda_images/04_department_mortality.png" />
+<img alt="Department mortality split by emergency/scheduled" src="../eda_images/05_department_mortality_by_emop.png" /></p>
 <table>
 <thead>
 <tr>
-<th>Field</th>
-<th>Shape</th>
-<th>Used by <code>dnn_mortality_pipeline.py</code>?</th>
+<th>Department</th>
+<th>Mortality rate</th>
+<th>Patients</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>operations</code></td>
-<td>One row: age, sex, ASA class, emergency flag, department, timestamps</td>
-<td>❌ Not used</td>
+<td>AN (Anaesthesia)</td>
+<td>5.17%</td>
+<td>58</td>
 </tr>
 <tr>
-<td><code>labs</code></td>
-<td>Time series</td>
-<td>✅ Partially (7 of 38 types)</td>
+<td>IM (Internal Medicine)</td>
+<td>1.67%</td>
+<td>60</td>
 </tr>
 <tr>
-<td><code>ward_vitals</code></td>
-<td>Time series</td>
-<td>✅ Partially (3 of 16 types)</td>
+<td>CTS (Cardiothoracic Surgery)</td>
+<td>1.44%</td>
+<td>6,741</td>
 </tr>
 <tr>
-<td><code>vitals</code> (intraop)</td>
-<td>Time series, surgery-only</td>
-<td>❌ Excluded by design (doesn't exist pre-op)</td>
+<td>NS (Neurosurgery)</td>
+<td>0.85%</td>
+<td>7,871</td>
 </tr>
 <tr>
-<td><code>diagnoses</code></td>
-<td>List of ICD-10 codes over time</td>
-<td>❌ Not used in this pipeline (used separately in <code>frailty_hfrs.py</code>)</td>
+<td>GS (General Surgery)</td>
+<td>0.61%</td>
+<td>29,073</td>
 </tr>
 <tr>
-<td><code>medications</code></td>
-<td>List of drug administrations over time</td>
-<td>❌ Not used</td>
+<td>OL</td>
+<td>0.49%</td>
+<td>9,551</td>
+</tr>
+<tr>
+<td>OS</td>
+<td>0.37%</td>
+<td>12,084</td>
+</tr>
+<tr>
+<td>UR (Urology)</td>
+<td>0.20%</td>
+<td>8,708</td>
+</tr>
+<tr>
+<td>OG, PS, OT, DM, EM, PED, RO</td>
+<td>0.00–0.06%</td>
+<td>—</td>
 </tr>
 </tbody>
 </table>
-<h2 id="3-the-real-feature-schema-parameterscsv">3. The real feature schema (<code>parameters.csv</code>)<a class="headerlink" href="#3-the-real-feature-schema-parameterscsv" title="Permanent link">&para;</a></h2>
-<p>The dataset's own schema file lists <strong>126 total feature types</strong>:</p>
+<p><strong>Why it matters:</strong> department carries real signal, but it's likely a <em>stand-in</em> for
+something else — which departments handle the sickest, highest-risk operations — rather
+than a cause on its own. The second plot (split by emergency vs. scheduled) tests this:
+a department can look risky purely because it does more emergency work, which is itself
+risky regardless of department.</p>
+<hr />
+<h2 id="4-which-diagnoses-icd-10-codes-predict-death">4. Which diagnoses (ICD-10 codes) predict death<a class="headerlink" href="#4-which-diagnoses-icd-10-codes-predict-death" title="Permanent link">&para;</a></h2>
+<p><img alt="Top ICD-10 diagnoses" src="../eda_images/06_top_icd10_diagnoses.png" />
+<img alt="ICD-10 diagnoses mortality risk" src="../eda_images/07_icd10_diagnoses_mortality_risk.png" />
+<img alt="Multi-diagnosis distribution" src="../eda_images/08_multi_diagnosis_distribution.png" /></p>
+<p>The diagnoses most associated with death are all acute deterioration events, not
+chronic background conditions:</p>
 <table>
 <thead>
 <tr>
-<th>Table</th>
-<th>Count</th>
-<th>Usable for pre-op prediction?</th>
+<th>ICD-10</th>
+<th>Meaning</th>
+<th>Mortality rate</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>labs</code></td>
-<td>38</td>
-<td>✅ Yes</td>
+<td>D65</td>
+<td>Disseminated intravascular coagulation</td>
+<td>28.3%</td>
 </tr>
 <tr>
-<td><code>ward_vitals</code></td>
-<td>16</td>
-<td>✅ Yes</td>
+<td>I46</td>
+<td>Cardiac arrest</td>
+<td>26.7%</td>
 </tr>
 <tr>
-<td><code>vitals</code> (intraop)</td>
-<td>72</td>
-<td>❌ No — only exists during surgery</td>
+<td>R57</td>
+<td>Shock</td>
+<td>22.6%</td>
+</tr>
+<tr>
+<td>J80</td>
+<td>Acute respiratory distress syndrome</td>
+<td>21.5%</td>
+</tr>
+<tr>
+<td>K72</td>
+<td>Hepatic failure</td>
+<td>12.3%</td>
+</tr>
+<tr>
+<td>A41</td>
+<td>Other sepsis</td>
+<td>9.5%</td>
 </tr>
 </tbody>
 </table>
-<p><strong>54 feature types (38 + 16) are usable for a pre-op prediction.</strong> This
-supersedes an earlier estimate of 45, which was based on only one patient's
-recorded data rather than the full schema.</p>
-<h2 id="4-per-patient-completeness-the-biggest-real-finding">4. Per-patient completeness — the biggest real finding<a class="headerlink" href="#4-per-patient-completeness-the-biggest-real-finding" title="Permanent link">&para;</a></h2>
-<p>Running <code>audit_features.py</code> across all 30 real patients (<code>parameters.csv</code> as
-the schema) shows how many of the 54 usable features each patient actually
-has data for, specifically inside the 5-day pre-op window:</p>
-<ul>
-<li><strong>Mean: 22.6 / 54</strong></li>
-<li><strong>Min: 1 / 54</strong> (subject <code>100002413</code>)</li>
-<li><strong>Max: 47 / 54</strong> (subjects <code>100316372</code>, <code>100403813</code>, <code>100573111</code>)</li>
-</ul>
-<p>This is a very wide spread, and it isn't random — it tracks with <strong>why the
-patient was in hospital</strong>. Low-completeness patients cluster in
-lower-acuity departments (<code>OT</code> ophthalmology, <code>UR</code> urology, <code>OG</code>
-obstetrics/gynaecology); high-completeness patients cluster in
-higher-acuity departments (<code>GS</code> general surgery, <code>CTS</code>
-cardio-thoracic surgery) where extensive pre-op bloodwork is standard.</p>
-<h3 id="coverage-tiers-of-30-patients-with-the-feature-in-their-pre-op-window">Coverage tiers (% of 30 patients with the feature in their pre-op window)<a class="headerlink" href="#coverage-tiers-of-30-patients-with-the-feature-in-their-pre-op-window" title="Permanent link">&para;</a></h3>
+<p>Patients who died also had more diagnosis codes on average (<strong>mean 6.05</strong>) than
+survivors (<strong>mean 4.03</strong>).</p>
+<p><strong>Why it matters:</strong> this makes strong clinical sense — it's acute crises, not pre-existing
+conditions, that drive peri-operative death. It also means a simple <em>count</em> of how many
+diagnoses a patient has already carries signal, before even looking at which ones.</p>
+<hr />
+<h2 id="5-which-types-of-operations-are-riskiest">5. Which types of operations are riskiest<a class="headerlink" href="#5-which-types-of-operations-are-riskiest" title="Permanent link">&para;</a></h2>
+<p><img alt="ICD-10 procedures mortality" src="../eda_images/09_icd10_procedures_mortality.png" /></p>
+<p>Some procedures done thousands of times are very safe (under 0.2% mortality, e.g. code
+<code>0HB</code> at 7,119 patients / 0.15%); others carry much higher risk even at similar volume
+(e.g. <code>0TT</code> at 2,049 patients / <strong>1.95%</strong> mortality — the highest rate among the common
+codes).</p>
+<p><strong>Why it matters:</strong> diagnosis codes describe how sick the patient already was; procedure
+codes describe how risky the intervention itself is. Keeping these separate (rather than
+merging them) lets a model eventually learn both signals independently — see <code>notes.md</code>
+§15 item 2.</p>
+<hr />
+<h2 id="6-do-we-actually-have-the-data-we-need">6. Do we actually have the data we need?<a class="headerlink" href="#6-do-we-actually-have-the-data-we-need" title="Permanent link">&para;</a></h2>
+<p><img alt="Feature coverage audit" src="../eda_images/10_feature_coverage_audit.png" /></p>
+<p>Coverage across the full cohort is excellent — nearly every lab is measured in
+<strong>92–99% of patients</strong>:</p>
 <table>
 <thead>
 <tr>
-<th>Tier</th>
+<th>Feature</th>
 <th>Coverage</th>
-<th>Features</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Near-universal</td>
-<td>90–93%</td>
-<td><code>hr</code>, <code>bt</code>, <code>nibp_dbp</code>, <code>nibp_sbp</code>, <code>rr</code> (all ward vitals)</td>
+<td>creatinine</td>
+<td>99.3%</td>
 </tr>
 <tr>
-<td>Solid core</td>
-<td>50–70%</td>
-<td><code>chloride, hb, hct, potassium, sodium, wbc, platelet, lymphocyte, seg, creatinine, bun, calcium, phosphorus, albumin, alp, alt, ast, glucose, total_bilirubin, total_protein, ptinr</code></td>
+<td>hb, hct</td>
+<td>~94.6%</td>
 </tr>
 <tr>
-<td>Patchy</td>
-<td>20–50%</td>
-<td><code>aptt, fibrinogen, crp, spo2, hco3, sao2, be, ck, ckmb, paco2, pao2, ph, nibp_mbp</code></td>
+<td>wbc, platelet</td>
+<td>~94.3%</td>
 </tr>
 <tr>
-<td>Basically absent</td>
-<td>&lt;20%</td>
-<td><code>ica, troponin_i, fio2, gcs_e, gcs_m, lacate, vent, hba1c, crrt, ecmo, gcs_v, iabp</code></td>
+<td>calcium, potassium, sodium</td>
+<td>~94.1%</td>
 </tr>
 <tr>
-<td>Never present pre-op</td>
-<td>0%</td>
-<td><code>d_dimer, troponin_t, uo</code></td>
+<td>albumin</td>
+<td>93.9%</td>
 </tr>
 </tbody>
 </table>
-<p>Two specific discoveries worth noting:</p>
-<ul>
-<li><code>uo</code> (urine output) appears in 63% of patients <em>somewhere</em> in their file,
-  but <strong>0%</strong> specifically pre-op — it seems to only get recorded once
-  someone is already admitted/in ICU, not beforehand.</li>
-<li><code>spo2</code> similarly drops from 93% "anywhere" to 40% "in the pre-op window,"
-  for the same reason (monitors get attached on admission, not before).</li>
-</ul>
-<h3 id="department-counts-too-small-to-segment-by-yet">Department counts (too small to segment by yet)<a class="headerlink" href="#department-counts-too-small-to-segment-by-yet" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>GS: 6   OT: 5   UR: 5   CTS: 4   NS: 3
-OG: 3   PS: 2   OL: 1   OS: 1
-</code></pre></div>
-<p>With 1–6 patients per department, department-level analysis isn't
-statistically meaningful yet — worth revisiting once the full ~100k-patient
-dataset is available.</p>
-<h2 id="5-a-real-fragility-found-in-align_time_series">5. A real fragility found in <code>align_time_series()</code><a class="headerlink" href="#5-a-real-fragility-found-in-align_time_series" title="Permanent link">&para;</a></h2>
-<p>When a feature has <strong>zero</strong> observations in a patient's window, the current
-code fills the entire column with <code>0.0</code> and marks it as not-observed via the
-mask column. Because normalization (<code>StandardScaler</code>) happens <em>after</em> this
-fill step, that placeholder <code>0.0</code> becomes <code>(0 − mean) / std</code> — a fixed,
-non-zero number, not a neutral value. For a patient like <code>100002413</code>
-(1/54 features present), roughly 53 of their feature columns become this
-artificial constant. The mask column does tell the model "this wasn't
-real," so a well-trained model can in principle learn to discount it — but
-for very sparse patients, their embedding risks mostly encoding <em>which
-tests were absent</em> rather than real physiology. Worth being deliberate
-about (e.g. impute with population median instead of 0) rather than
-leaving as an unexamined side effect.</p>
-<h2 id="6-whats-sitting-unused-static-facts-diagnoses-medications">6. What's sitting unused: static facts, diagnoses, medications<a class="headerlink" href="#6-whats-sitting-unused-static-facts-diagnoses-medications" title="Permanent link">&para;</a></h2>
-<p>Beyond the 54 time-series features, every patient record also has:</p>
-<ul>
-<li><strong>Static one-time facts</strong> (<code>operations</code> table): age, sex, ASA class,
-  emergency-operation flag, department. These have 100% coverage by
-  definition (every patient has exactly one operation record) and include
-  ASA class and age — both established, strong mortality predictors in
-  real clinical scoring systems. Currently unused by the model entirely.</li>
-<li><strong>Diagnoses</strong> (ICD-10 codes) — categorical, not time series. Already
-  used separately for the Hospital Frailty Risk Score (<code>frailty_hfrs.py</code>)
-  but not fed into the transformer.</li>
-<li><strong>Medications</strong> (drug names + ATC codes) — also categorical, also
-  unused by the transformer.</li>
-</ul>
-<p><code>audit_static_categorical.py</code> audits these three across all patients,
-counting diagnoses/medications only if they occurred <strong>before</strong> <code>orin_time</code>
-(to avoid leaking post-op information, e.g. a diagnosis made <em>because of</em>
-the surgery, into a pre-op prediction).</p>
-<h2 id="7-audit-scripts-reference">7. Audit scripts reference<a class="headerlink" href="#7-audit-scripts-reference" title="Permanent link">&para;</a></h2>
-<p>All three scripts are self-contained (standard library only, no repo
-dependencies) so they can't break from unrelated code changes.</p>
-<table>
-<thead>
-<tr>
-<th>Script</th>
-<th>What it answers</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>explore_features.py</code></td>
-<td>Simple pass: what feature types exist across patients, and how many records each has</td>
-</tr>
-<tr>
-<td><code>audit_features.py</code></td>
-<td>Per-patient completeness against the real <code>parameters.csv</code> schema, in-window vs. anywhere, missing-feature lists</td>
-</tr>
-<tr>
-<td><code>audit_static_categorical.py</code></td>
-<td>Operations (static facts), diagnoses, and medications — pre-op only</td>
-</tr>
-</tbody>
-</table>
-<p>Typical Colab usage:</p>
-<div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">python</span> <span class="n">audit_features</span><span class="o">.</span><span class="n">py</span> <span class="o">/</span><span class="n">content</span><span class="o">/</span><span class="n">inspire_subjects_small</span><span class="o">/</span><span class="n">inspire_subjects_small</span> <span class="n">parameters</span><span class="o">.</span><span class="n">csv</span>
-<span class="err">!</span><span class="n">python</span> <span class="n">audit_static_categorical</span><span class="o">.</span><span class="n">py</span> <span class="o">/</span><span class="n">content</span><span class="o">/</span><span class="n">inspire_subjects_small</span><span class="o">/</span><span class="n">inspire_subjects_small</span>
-</code></pre></div>
-<h2 id="8-open-decisions-not-yet-made">8. Open decisions (not yet made)<a class="headerlink" href="#8-open-decisions-not-yet-made" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Which coverage tier to include in <code>FEATURE_COLUMNS</code>?</strong> All 54 risks
-  most patients being majority placeholder-filled noise (see Section 5).
-  A defensible starting point is the near-universal + solid-core tiers
-  (~26 features, all ≥50% coverage).</li>
-<li><strong>Should static facts (age, ASA, emop) be added</strong> as extra per-patient
-  inputs alongside the time-series features? Likely yes, given their
-  established predictive value and 100% coverage.</li>
-<li><strong>Should diagnoses/medications use the same 5-day window</strong> as labs, or
-  a wider "anytime before admission" window (used currently in the audit
-  script) since chronic conditions remain relevant risk factors regardless
-  of when they were first diagnosed?</li>
-<li><strong>Department-level modeling</strong> — parked until the full dataset is
-  available (current per-department counts are too small: 1–6 patients).</li>
-</ul>
+<p><code>vitals</code> (intra-op) came back with 74 distinct types recorded — 2 more than the 72
+documented in <code>notes.md</code> §11, worth a quick reconciliation but not a major discrepancy.</p>
+<p><strong>Why it matters:</strong> this answers "do we even have enough real data to expand beyond the
+current 7 features?" — yes, comfortably. This directly unblocks <code>notes.md</code> §15 item 5.</p>
+<hr />
+<h2 id="7-where-are-the-gaps">7. Where are the gaps<a class="headerlink" href="#7-where-are-the-gaps" title="Permanent link">&para;</a></h2>
+<p><img alt="Missingness heatmap" src="../eda_images/11_missingness_heatmap.png" /></p>
+<p>A sampled view (300 patients, stratified by outcome) of which measurements are present
+(blue) vs. missing (grey) for the highest-coverage labs and ward vitals.</p>
+<p><strong>Why it matters:</strong> the pipeline currently fills gaps by linear interpolation. This shows
+how often it actually has to do that, and for which features it's doing the most
+guessing — vertical grey stripes flag a feature worth reconsidering; horizontal grey
+stripes flag sparse patients (candidates for the <code>min_observations</code> filter).</p>
+<hr />
+<h2 id="8-do-the-7-currently-used-features-actually-separate-survivors-from-deaths">8. Do the 7 currently-used features actually separate survivors from deaths<a class="headerlink" href="#8-do-the-7-currently-used-features-actually-separate-survivors-from-deaths" title="Permanent link">&para;</a></h2>
+<p><img alt="Current features by outcome" src="../eda_images/12_current_features_by_outcome.png" /></p>
+<p>Box plots for glucose, potassium, sodium, creatinine, heart rate, oxygen saturation, and
+blood pressure, comparing died vs. survived.</p>
+<p><strong>Why it matters:</strong> this checks the model's actual inputs directly — do these values
+really look different between the two groups? A feature with no visible difference
+between boxes isn't pulling its weight.</p>
+<hr />
+<h2 id="9-are-any-of-the-features-redundant-with-each-other">9. Are any of the features redundant with each other<a class="headerlink" href="#9-are-any-of-the-features-redundant-with-each-other" title="Permanent link">&para;</a></h2>
+<p><img alt="Correlation heatmap" src="../eda_images/13_correlation_heatmap.png" /></p>
+<p>A correlation matrix across the 7 current features plus the HFRS frailty score.</p>
+<p><strong>Why it matters:</strong> pairs with |r| &gt; 0.7 are redundancy candidates — feeding the model
+the same information twice under two different names. This also shows whether HFRS
+tracks any single lab value closely enough to be redundant with it, or whether it
+carries independent signal.</p>
+<hr />
+<h2 id="10-the-frailty-score-hfrs">10. The frailty score (HFRS)<a class="headerlink" href="#10-the-frailty-score-hfrs" title="Permanent link">&para;</a></h2>
+<p><img alt="HFRS vs mortality" src="../eda_images/14_hfrs_vs_mortality.png" /></p>
+<p>HFRS score distribution and mortality rate by risk category (low / intermediate / high).</p>
+<p><strong>Why it matters:</strong> tests whether a single frailty number, built purely from diagnosis
+history, predicts death on its own. <strong>Caveat:</strong> the current implementation counts a
+patient's entire diagnosis history rather than the published 2-year window — see
+<code>notes.md</code> §15 item 9. Treat these numbers as preliminary until that's fixed.</p>
+<hr />
+<h2 id="11-does-frailty-matter-more-for-emergency-surgery">11. Does frailty matter more for emergency surgery<a class="headerlink" href="#11-does-frailty-matter-more-for-emergency-surgery" title="Permanent link">&para;</a></h2>
+<p><img alt="Frailty x surgery type" src="../eda_images/15_frailty_x_surgery_type.png" /></p>
+<p>Mortality rate by HFRS category, split into scheduled vs. emergency surgery lines.</p>
+<p><strong>Why it matters:</strong> the hypothesis (<code>notes.md</code> §15 item 10) is that a surgeon who
+schedules an operation has already screened for fitness, so frailty should matter less
+for scheduled surgery and much more for emergency surgery, where no such screening
+happens. This plot is a direct visual test — look for the emergency line rising more
+steeply than the scheduled line.</p>
+<hr />
+<h2 id="12-does-having-multiple-operations-increase-risk">12. Does having multiple operations increase risk<a class="headerlink" href="#12-does-having-multiple-operations-increase-risk" title="Permanent link">&para;</a></h2>
+<p><img alt="Multi-operation mortality" src="../eda_images/16_multi_operation_mortality.png" /></p>
+<p>Mortality rate by number of recorded operations per patient.</p>
+<p><strong>Why it matters:</strong> tests whether a patient who's had several operations is inherently
+higher-risk than a single-operation patient — a patient-level question, distinct from
+predicting risk for any one operation (<code>notes.md</code> §15 item 11).</p>
+<hr />
+<h2 id="13-what-the-raw-data-actually-looks-like-over-time">13. What the raw data actually looks like over time<a class="headerlink" href="#13-what-the-raw-data-actually-looks-like-over-time" title="Permanent link">&para;</a></h2>
+<p><img alt="Measurement density example" src="../eda_images/17_measurement_density_example.png" /></p>
+<p>For one patient who died and one who survived: every timestamp a measurement was taken,
+with a dashed line marking surgery start.</p>
+<p><strong>Why it matters:</strong> this is the most literal view of what the model actually sees —
+how densely a patient is monitored, and how large the gaps are right before surgery,
+which is exactly where the model most needs good data and where interpolation is doing
+the most guessing.</p>
+<hr />
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>The dataset behaves the way real clinical data should (older/sicker patients die more),
+specific diagnoses and departments carry strong, clinically coherent signal, coverage is
+strong enough to support expanding well beyond the current 7 features, and one
+definitional question — 469 (30-day) vs. 942 (all-cause) deaths — still needs a decision
+before these numbers can be treated as final. See <code>notes.md</code> §15 for the full research
+roadmap this feeds into.</p>
 
 
 

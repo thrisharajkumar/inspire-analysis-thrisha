@@ -28,11 +28,12 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-    - navigation.top
-    - navigation.expand
-    - toc.integrate
-    - content.code.copy
-    - search.suggest
+      - navigation.top
+      - navigation.sections
+      - navigation.collapse
+      - toc.integrate
+      - content.code.copy
+      - search.suggest  
 
 markdown_extensions:
   - tables
