@@ -31,7 +31,9 @@
 
 **Dataset:** INSPIRE — a Korean single-centre perioperative dataset of ~99,886 surgical patients (2011–2020). Contains labs, ward vitals, intraoperative vitals, medications, and ICD-10 diagnoses per patient, all timestamped in minutes relative to hospital admission.
 
-> **Note on death count:** this document states **942 deaths** throughout (consistent with the `pos_weight ≈ 105` calculation in Section 9). A different figure (938) has come up in informal notes elsewhere — worth confirming the exact number against the source data before it's used in the paper or any published figure.
+> **Note on death count:** this document states **942 deaths** throughout (consistent with the `pos_weight ≈ 105` calculation in Section 9). A different figure (938) has come up in informal notes elsewhere — worth confirming the exact number against the source data before it's used in the paper or any published figure. **This is now tied to the label-definition issue below — the true 30-day death count is likely different from 942 (see Section 4).**
+
+> ⚠️ **CONFIRMED — label definition mismatch (resolved for now, pending confirmation with James):** the `survived/`/`died/` folder labels were built from `subject.died()` — "died at any point in this hospital record" — not from `subject.inhosp_death_30day()`, the actual 30-day-post-last-operation definition this project's stated goal requires. Verified directly against the 30-patient subset: 3 of the 10 `died/` patients died 91–242 days after their last operation, not within 30 days. **Decision: proceed using `died_30day()` as the true label going forward**, and flag this to James/the professor as something to confirm before the full-dataset run — the full cohort's "942 deaths" figure was almost certainly built the same (incorrect, for this project's purposes) way, so the real 30-day death count at full scale is currently unknown. See Section 4 and Section 13 for detail.
 
 **Current state:** Two-phase transformer pipeline running on real INSPIRE data. Autoencoder pretrains on unlabelled time series, classifier fine-tunes end-to-end. AUROC = 0.78 on a 29-patient real-data subset.
 
@@ -107,14 +109,35 @@ inspire_subjects_small/          ← 30-patient subset used for development
 
 ### Full dataset mortality
 - **Total patients:** ~99,886
-- **Deaths:** 942 (see note in Section 1 re: a conflicting figure of 938 seen elsewhere)
-- **Death rate:** 0.95%
-- **pos_weight for loss function:** ~105 (98,944 survived / 942 died)
+- **Deaths:** 942 by the folder/`died()` definition — **likely NOT the true 30-day count, see below**
+- **Death rate:** 0.95% (by the same definition — will change once relabelled)
+- **pos_weight for loss function:** ~105 (98,944 survived / 942 died) — **needs recalculating once relabelled with `died_30day()`**
+
+### ⚠️ Label definition — confirmed mismatch, decision made
+
+Checked directly against the real 30-patient subset (`inspire_subjects_small.zip`), patient by patient:
+
+| Check | Result |
+|---|---|
+| `folder_label` vs. `subject.died()` | **Exact match**, 30/30 — folders were built from "died at any point in this record" |
+| `folder_label` vs. `subject.inhosp_death_30day()` | **Mismatch on 3/10 `died/` patients** — they died 91, 194.5, and 242.5 days after their last operation respectively, not within 30 days |
+
+None of the `survived/` patients were incorrectly labelled (no false negatives found) — the mismatch only runs one direction: some `died/`-folder patients don't actually meet the 30-day criterion.
+
+**Decision:** use `died_30day()` as the true label going forward, not the folder assignment. **Still need to confirm with James/the professor** whether the full 99,886-patient dataset's folders were built the same (incorrect-for-this-purpose) way — if so, the real "942 deaths" and `pos_weight ≈ 105` figures above are wrong and need recalculating from `died_30day()` before the full-dataset run. Until confirmed, treat every death-count figure in this document as provisional.
+
+There's also an unresolved code-level ambiguity worth being aware of — a comment already sitting in `subject.py`:
+```python
+# Should it not be 30 days from the last operation not the first operation?
+#  Could be that subsequent operations are seen as causal consequence of initial operation?
+#  This still seems wrong, many subjects have multiple operations over 10 years.
+```
+`inhosp_death_30day()` currently measures from the **last** operation. Worth a second check once James confirms the full-dataset labelling, since multi-operation patients (Section 15, item 11) may need this looked at case by case.
 
 ### Subset used for development
 - **Total:** 30 patients (after filtering)
-- **Survived:** 20 (in `survived/` folder)
-- **Died:** 10 (in `died/` folder)
+- **By folder:** Survived 20 / Died 10
+- **By `died_30day()` (the label now being used):** Survived 23 / Died 7 — see mismatch note above
 - **Actually loaded:** 29 (1 skipped — too sparse)
 
 ### Time reference
@@ -686,6 +709,7 @@ for f in ['embeddings.png', 'auroc.png', 'auprc.png']:
 | ZIP nested folder | `extract_dir` pointed at wrong level | Added single-subfolder detection logic in extraction cell |
 | Too-sparse subjects skipped | 8–10 patients lost | Reduced `min_observations=2` to `min_observations=1` |
 | MPS (Apple Silicon) NaN | NaN values during classifier training on Mac | `get_device()` returns `"cuda"` when available, bypasses MPS |
+| **Folder labels ≠ 30-day mortality** | `died/`/`survived/` folders built from `subject.died()` (any death ever), not `died_30day()` — 3/10 real `died/` patients died 91–242 days post-op, not within 30 | **Not yet applied to the pipeline.** Decision made to switch to `died_30day()` (see Section 4); still needs (1) confirming with James whether the full dataset has the same issue, and (2) updating `load_real_subjects()` / the full-dataset loader to compute the label from `died_30day()` instead of trusting the folder name |
 
 ---
 
@@ -693,14 +717,15 @@ for f in ['embeddings.png', 'auroc.png', 'auprc.png']:
 
 ### Immediate (to get meaningful results)
 
-**1. Get full dataset from James**
+**1. Get full dataset from James — and ask about the label definition**
 
-Current subset has 30 patients — not enough for stable AUROC. Full dataset has 99,886 patients, 942 deaths. Change in pipeline:
+Current subset has 30 patients — not enough for stable AUROC. Full dataset has 99,886 patients, 942 deaths **by the folder/`died()` definition — likely not the true 30-day count, see Section 4**. When asking James for the full dataset, also ask whether the full-dataset folders were built from `died()` or `died_30day()` — this determines whether the "942 deaths" figure needs recalculating.
+
 ```python
 JSON_DIR = "/path/to/full/inspire_subjects"
 global_length = min(max_length, 7200)   # allow full 5-day window
 ```
-The `pos_weight` is computed automatically — no other changes needed.
+⚠️ The `pos_weight` is computed automatically from the folder split, **but the folder split itself needs to be replaced with `died_30day()`-based labelling first** (Section 4) — otherwise `pos_weight` will be calculated correctly against the wrong label.
 
 **2. Expand to all features**
 
