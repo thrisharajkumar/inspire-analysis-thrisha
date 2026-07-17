@@ -8,7 +8,7 @@ docs_dir: docs
 site_dir: site
 
 nav:
-  - Home: notes.md
+  - Home: index.md
   - INSPIRE Project Notes: INSPIRE_Project_Notes.md
   - Feature Audit Findings: feature_audit_findings.md
   - EDA Findings (Full Dataset): eda_findings.md
