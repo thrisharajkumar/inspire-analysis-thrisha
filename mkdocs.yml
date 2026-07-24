@@ -12,7 +12,7 @@ nav:
   - INSPIRE Project Notes: INSPIRE_Project_Notes.md
   - Feature Audit Findings: feature_audit_findings.md
   - EDA Findings (Full Dataset): eda_findings.md
-  - Research Aims: Research_Aims.md
+  - Research Aims & Objectives: Research_Aim.md
 theme:
   name: material
   palette:
