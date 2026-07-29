@@ -41,7 +41,6 @@ theme:
       - navigation.top
       - navigation.sections
       - navigation.collapse
-      - toc.integrate
       - content.code.copy
       - search.suggest  
 
