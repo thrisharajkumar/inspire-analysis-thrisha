@@ -7,12 +7,19 @@ repo_name: thrisharajkumar/inspire-analysis-thrisha
 docs_dir: docs
 site_dir: site
 
+# Nav is grouped into top-level sections. With navigation.tabs enabled below, each
+# top-level group becomes a tab in the header bar, with its pages in a dropdown —
+# rather than one long flat sidebar list.
 nav:
   - Home: index.md
-  - INSPIRE Project Notes: INSPIRE_Project_Notes.md
-  - Feature Audit Findings: feature_audit_findings.md
-  - EDA Findings (Full Dataset): eda_findings.md
-  - Research Aims & Objectives: Research_Aim.md
+  - Data & Pipeline:
+      - INSPIRE Project Notes: INSPIRE_Project_Notes.md
+      - Feature Audit Findings: feature_audit_findings.md
+      - EDA Findings (Full Dataset): eda_findings.md
+  - Research:
+      - Research Aims & Objectives: Research_Aim.md
+      - Roadmap & Architecture: roadmap_and_architecture.md
+      - Research Notes & Questions: research_notes.md
 theme:
   name: material
   palette:
@@ -29,6 +36,8 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
+      - navigation.tabs
+      - navigation.tabs.sticky
       - navigation.top
       - navigation.sections
       - navigation.collapse
@@ -41,6 +50,10 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - admonition
   - pymdownx.details
