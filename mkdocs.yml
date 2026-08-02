@@ -21,6 +21,8 @@ nav:
       - Roadmap & Architecture: roadmap_and_architecture.md
       - Research Notes & Questions: research_notes.md
       - Baseline Comparitive Study: Base_Comparitive_Study_Models.md
+  - Questions:
+      - Clinical Questions: Clinician_Questions.md
 theme:
   name: material
   palette:
