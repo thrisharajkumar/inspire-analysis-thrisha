@@ -20,6 +20,7 @@ nav:
       - Research Aims & Objectives: Research_Aim.md
       - Roadmap & Architecture: roadmap_and_architecture.md
       - Research Notes & Questions: research_notes.md
+      - Baseline Comparitive Study: Base_Comparitive_Study_Models.md
 theme:
   name: material
   palette:
