@@ -16,6 +16,7 @@ nav:
       - INSPIRE Project Notes: INSPIRE_Project_Notes.md
       - Feature Audit Findings: feature_audit_findings.md
       - EDA Findings (Full Dataset): eda_findings.md
+      - Complete Findings Summary: INSPIRE_Complete_Findings_Summary.md
   - Research:
       - Research Aims & Objectives: Research_Aim.md
       - Roadmap & Architecture: roadmap_and_architecture.md
@@ -23,6 +24,8 @@ nav:
       - Baseline Comparitive Study: Base_Comparitive_Study_Models.md
   - Questions:
       - Clinical Questions: Clinician_Questions.md
+      - ASA / POSSUM / NELA — Theory & Validation: ASA_POSSUM_NELA_Theory_and_Validation.md
+      - ICD-10 Architecture Research: ICD10_Architecture_Research.md
 theme:
   name: material
   palette:
