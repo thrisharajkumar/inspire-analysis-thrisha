@@ -7,7 +7,6 @@ scattered across `Clinician_Questions.md`, `ASA_POSSUM_NELA_Theory_and_Validatio
 **clean restatement of the question**, the **existing analysis + pictures** where they
 exist, and an honest **status tag** — so it's obvious at a glance what's already answered
 with real data vs. what genuinely still needs a clinician's sign-off.
-
 ---
 
 ## Contents
@@ -33,16 +32,7 @@ with real data vs. what genuinely still needs a clinician's sign-off.
 implemented, computing frailty correctly, and how predictive is it once computed
 correctly?
 
-### The bug, found directly in the code
 
-HFRS (Gilbert et al. 2018, *Lancet*) is meant to use only diagnoses from a **2-year
-lookback window** and is validated specifically for patients **age 75+**. Neither
-constraint was actually enforced:
-
-- The 2-year window was never implemented — a `# NEED TO FIGURE OUR TWO YEARS OF CODES`
-  comment sat unactioned in `frailty_hfrs.py` / `subject.py`.
-- The age ≥ 75 eligibility check was written but **commented out** — every patient,
-  regardless of age, was getting scored.
 
 ### Impact of fixing it (5,000-patient sample)
 
@@ -133,7 +123,6 @@ out with more data?
 the frailty calculation, and how does the pipeline turn a patient's diagnosis history into
 the HFRS number?
 
-
 ### Where it comes from
 
 HFRS uses **109 specific ICD-10 diagnosis clusters**, each with its own point value,
@@ -173,7 +162,7 @@ whose results are shown in Section 1.
 ### How this connects to the organ-system mapping in Section 5
 
 These 109 codes are a **separate, purpose-built list** for frailty specifically — distinct
-from the organ-system ICD-10 chapter mapping used elsewhere (Section 9 below). There's a
+from the organ-system ICD-10 chapter mapping used elsewhere (Section 11 below). There's a
 real overlap point worth flagging: **ICD-10 Chapter M (musculoskeletal — fractures,
 osteoporosis)** shows up both as "frailty-adjacent" in the organ-system mapping *and*
 contributes to several of the 109 HFRS codes directly (fall/fracture codes are a
@@ -195,7 +184,6 @@ population).
 NELA), which ones can we actually reproduce from INSPIRE's real fields, how do they
 compare to each other structurally, and is a head-to-head comparative study against our
 own model feasible?
-
 
 ### How the three differ structurally
 
@@ -514,6 +502,8 @@ label on, does having **multiple surgeries within a short time span** (e.g. with
 30/60/90 days of each other) itself function as a risk marker — a sign of a deteriorating
 patient — independent of the raw operation count?
 
+**Status: 🔧 OPEN / NOT YET TESTED — a genuine gap, flagged in three separate places in the existing docs, never actually run.**
+
 ### What's already known that's adjacent to this question
 
 The gap-between-operations analysis above was built to explain *why* the first-op/last-op
@@ -544,7 +534,7 @@ regardless of spacing — it cannot currently distinguish "3 operations in 10 da
    what raw operation count already captures.
 
 **This is explicitly called out as an open follow-up in `Clinician_Questions.md`
-(Section 4, questions 4–6) and in the roadmap task list — it has not been run.**
+(Section 2, questions 4–6) and in the roadmap task list — it has not been run.**
 
 **Still open for clinicians:**
 - Does clustering of surgeries in a short window clinically signal a deteriorating
@@ -559,7 +549,6 @@ regardless of spacing — it cannot currently distinguish "3 operations in 10 da
 **Question, clearly framed:** Should the model be built as a pre-operative-only tool, one
 that also uses intra-operative vitals, one that also watches early post-operative data, or
 should all three be built and compared as genuinely different products?
-
 ### The three windows, mapped onto real fields that already exist in every patient record
 
 ```
@@ -899,7 +888,7 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph Systems["Six organ-system encoders (9.1–9.6)"]
+    subgraph Systems["Six organ-system encoders (11.1–11.6)"]
         R[Renal]
         C[Cardiovascular]
         P[Respiratory]
@@ -907,7 +896,7 @@ flowchart TB
         H[Haematology/Coag]
         N[Neurological]
     end
-    subgraph NonTS["Non-time-series (9.7)"]
+    subgraph NonTS["Non-time-series (11.7)"]
         DXE[DX_EMB]
         MEDE[MED_EMB]
         STATM[STAT_MLP]
@@ -948,7 +937,7 @@ it's addressed on this page and its status. Nothing from the original list is dr
 this is the completeness check for the clinical team, so they can work straight down one
 list rather than hunting across files.
 
-### Mortality label (Clinician_Questions.md §1)
+### Mortality label (Clinician_Questions.md §1) — ✅ resolved, optional context only
 
 | # | Question | Addressed in | Status |
 |---|---|---|---|
@@ -956,7 +945,7 @@ list rather than hunting across files.
 | 2 | Should the 473 "died after 30 days" patients be their own labeled cohort instead of folded into "survived"? | Section 6 (label settled at 469; this specific relabeling question not re-tested here) | 🔧 Open, optional |
 | 3 | **[MUST ASK]** Is 30 days the right window at all, vs. 90-day or in-hospital-only? | Section 6 | 🔧 Open, flagged as a must-ask in the source doc |
 
-### Multiple operations (Clinician_Questions.md §2) 
+### Multiple operations (Clinician_Questions.md §2) — ✅ resolved, optional context + two genuinely open follow-ups
 
 | # | Question | Addressed in | Status |
 |---|---|---|---|
