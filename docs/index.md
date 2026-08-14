@@ -2,6 +2,19 @@
 
 > This README is the single source of truth for the project. It contains everything needed to continue in a new conversation without uploading any files — the dataset structure, the code architecture, the current results, and the full research roadmap.
 
+> **📌 Update — new multimodal architecture notebook.** A second, newer pipeline now
+> exists alongside the flat transformer described below:
+> `src/INSPIRE_Multimodal_Mortality_Kaggle_Notebook.ipynb`, a complete, theory-annotated,
+> Kaggle-runnable notebook implementing the system-separated architecture from
+> `roadmap_and_architecture.md` §4 — six organ-system encoders plus new
+> Gastrointestinal/Musculoskeletal branches, an explicit renal↔cardiovascular coupling,
+> operation-history features, a rule-based cardiac-surgery washout exception, and Neural
+> Additive Model fusion for per-system interpretability. See
+> `docs/Multimodal_Notebook_Summary.md` for the full picture and
+> `docs/roadmap_and_architecture.md` for the updated architecture/checklist. This file
+> (`index.md`) still accurately describes the original flat pipeline below; it has not
+> been rewritten to describe the new one.
+
 ---
 
 ## Table of Contents

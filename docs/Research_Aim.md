@@ -12,6 +12,9 @@ other or with this one — each answers a different question:
 | `docs/INSPIRE_Project_Notes.md` | How does the pipeline work, explained simply, end to end? | A plain-English walkthrough of the transformer, attention, pre-training, class imbalance, and the three comparison models (NELA / GBM / DNN) |
 | `docs/eda_findings.md` | What does the full 99,886-patient cohort actually look like? | Cohort-level findings — who dies, which departments, which ICD-10 codes, feature coverage, correlations, frailty |
 | `docs/feature_audit_findings.md` | What data does each *individual* patient actually have? | Per-patient completeness on the 30-patient development subset |
+| `docs/Multimodal_Notebook_Summary.md` **(new)** | What does the new multimodal notebook actually implement, and how does it map onto this doc's §2.5/§2.9 architecture? | The runnable-code counterpart to this file's system-separated-architecture reasoning |
+| `docs/roadmap_and_architecture.md` §4 **(updated)** | What is the current, implemented target architecture (post-GI/MSK, post-cardiorenal-coupling)? | The up-to-date architecture diagram and checklist — supersedes the architecture sketch in this file's §2.5 where the two disagree on implementation status (this file has the fuller original reasoning; the roadmap doc has the current build status) |
+| `docs/INSPIRE_Complete_Findings_Summary.md` **(new)** | What full-scale (99,886-patient) numbers are now confirmed? | Resolves several items this file's §1–2 originally flagged as open (e.g. the true 30-day death count: 469/99,886 = 0.47%) |
 | **This file** | What were the open research questions, and what do they lead to? | The connective layer: your questions → what's already answered → what's still open → new ideas |
 
 If you're starting a new conversation with no other context loaded, `docs/index.md` is
