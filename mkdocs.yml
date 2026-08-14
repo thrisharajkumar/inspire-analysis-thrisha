@@ -22,6 +22,7 @@ nav:
       - Roadmap & Architecture: roadmap_and_architecture.md
       - Research Notes & Questions: research_notes.md
       - Baseline Comparitive Study: Base_Comparitive_Study_Models.md
+      - Data Imbalance and Imputation: Data_Imbalance_and_Imputation_Reference.md
   - Questions:
       - Clinical Questions: Clinician_Questions.md
       - Meeting Questions: Clinician_Validation.md
