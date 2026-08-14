@@ -17,12 +17,13 @@ nav:
       - Feature Audit Findings: feature_audit_findings.md
       - EDA Findings (Full Dataset): eda_findings.md
       - Complete Findings Summary: INSPIRE_Complete_Findings_Summary.md
+  - MULTIMODEL MODEL:
+      - Model Baseline: INSPIRE_Baseline_Pipeline_Summary.md
+      - Baseline Comparitive Study: Base_Comparitive_Study_Models.md
   - Research:
       - Research Aims & Objectives: Research_Aim.md
       - Roadmap & Architecture: roadmap_and_architecture.md
       - Research Notes & Questions: research_notes.md
-      - Baseline Comparitive Study: Base_Comparitive_Study_Models.md
-  - Questions:
       - Clinical Questions: Clinician_Questions.md
       - Meeting Questions: Clinician_Validation.md
       - ICD-10 Architecture Research: ICD10_Architecture_Research.md
