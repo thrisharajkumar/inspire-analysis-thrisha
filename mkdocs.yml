@@ -27,6 +27,8 @@ nav:
       - Clinical Questions: Clinician_Questions.md
       - Meeting Questions: Clinician_Validation.md
       - ICD-10 Architecture Research: ICD10_Architecture_Research.md
+  - Next-Gen Architecture:
+      - PACO-Net Design: PACO_Net_Architecture.md
 theme:
   name: material
   palette:
