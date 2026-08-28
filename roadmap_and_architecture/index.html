@@ -1,0 +1,2427 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+        <link rel="prev" href="../Research_Aim/">
+      
+      
+        <link rel="next" href="../research_notes/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Roadmap & Architecture - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#roadmap-architecture-working-page" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Roadmap & Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Project_Notes/" class="md-tabs__link">
+          
+  
+  
+  Data & Pipeline
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Surgeon_Facing_Summary/" class="md-tabs__link">
+          
+  
+  
+  Clinician Inputs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-tabs__link">
+          
+  
+  
+  MULTIMODEL MODEL
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../Research_Aim/" class="md-tabs__link">
+          
+  
+  
+  Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../PACO_Net_Architecture/" class="md-tabs__link">
+          
+  
+  
+  Next-Gen Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data & Pipeline
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data & Pipeline
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Project_Notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eda_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Complete_Findings_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete Findings Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinician Inputs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Clinician Inputs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Surgeon_Facing_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Surgeon Summanry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Novelty_Research_Ledger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Novelty & Clinical Relevance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MULTIMODEL MODEL
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MULTIMODEL MODEL
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Meeting_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Full-Scale Run — Meeting Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Base_Comparitive_Study_Models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Comparitive Study
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Aim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Aims & Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap & Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap & Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-where-things-stand-right-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Where things stand right now
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-research-analysis-task-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Research &amp; analysis task list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Research &amp; analysis task list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-labelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data &amp; labelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eda-feature-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EDA &amp; feature audit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frailty-clinical-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frailty &amp; clinical baselines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interpretability-the-projects-stated-main-aim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpretability (the project's stated main aim)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-open-decisions-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Open decisions ("paths")
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Open decisions (&#34;paths&#34;)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-a-30-day-death-count-at-full-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path A — 30-day death count at full scale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-b-pre-operative-only-vs-peri-operative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path B — Pre-operative only vs. peri-operative
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-c-multi-operation-patients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path C — Multi-operation patients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-d-musculoskeletal-ck-split-or-shared-new-introduced-by-4s-refinement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path D — Musculoskeletal CK, split or shared? (new, introduced by §4's refinement)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-target-architecture-system-separated-encoders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Target architecture — system-separated encoders
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#41-organ-system-feature-grouping-126-parameters-total-verified-unchanged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Organ-system feature grouping (126 parameters total — verified unchanged)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.1 Organ-system feature grouping (126 parameters total — verified unchanged)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41a-resolving-the-open-question-infection-doesnt-currently-have-a-clean-home" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1a Resolving the open question: "infection doesn't currently have a clean home"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#41b-why-gastrointestinal-and-musculoskeletal-have-zero-dedicated-labs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1b Why Gastrointestinal and Musculoskeletal have zero dedicated labs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#41c-renal-cardiovascular-not-just-a-shared-feature-overlap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1c Renal ↔ Cardiovascular — not just a shared-feature overlap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#42-pipeline-refined-mermaid-flowchart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Pipeline — refined mermaid flowchart
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#43-why-a-neural-additive-model-for-fusion-not-plain-concatenation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Why a Neural Additive Model for fusion, not plain concatenation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#44-interpretability-layers-built-on-top" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Interpretability layers built on top
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#45-open-decision-introduced-by-this-refinement-path-d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Open decision introduced by this refinement — "Path D"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5 Open decision introduced by this refinement — &#34;Path D&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-d-musculoskeletal-ck-split-or-shared" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path D — Musculoskeletal CK, split or shared?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Notes & Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meeting Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ICD10_Architecture_Research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ICD-10 Architecture Research
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next-Gen Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Next-Gen Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACO_Net_Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PACO-Net Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-where-things-stand-right-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Where things stand right now
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-research-analysis-task-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Research &amp; analysis task list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Research &amp; analysis task list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-labelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data &amp; labelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eda-feature-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EDA &amp; feature audit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frailty-clinical-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frailty &amp; clinical baselines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interpretability-the-projects-stated-main-aim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpretability (the project's stated main aim)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-open-decisions-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Open decisions ("paths")
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Open decisions (&#34;paths&#34;)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-a-30-day-death-count-at-full-scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path A — 30-day death count at full scale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-b-pre-operative-only-vs-peri-operative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path B — Pre-operative only vs. peri-operative
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-c-multi-operation-patients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path C — Multi-operation patients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-d-musculoskeletal-ck-split-or-shared-new-introduced-by-4s-refinement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path D — Musculoskeletal CK, split or shared? (new, introduced by §4's refinement)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-target-architecture-system-separated-encoders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Target architecture — system-separated encoders
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#41-organ-system-feature-grouping-126-parameters-total-verified-unchanged" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Organ-system feature grouping (126 parameters total — verified unchanged)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.1 Organ-system feature grouping (126 parameters total — verified unchanged)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41a-resolving-the-open-question-infection-doesnt-currently-have-a-clean-home" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1a Resolving the open question: "infection doesn't currently have a clean home"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#41b-why-gastrointestinal-and-musculoskeletal-have-zero-dedicated-labs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1b Why Gastrointestinal and Musculoskeletal have zero dedicated labs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#41c-renal-cardiovascular-not-just-a-shared-feature-overlap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1c Renal ↔ Cardiovascular — not just a shared-feature overlap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#42-pipeline-refined-mermaid-flowchart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Pipeline — refined mermaid flowchart
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#43-why-a-neural-additive-model-for-fusion-not-plain-concatenation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Why a Neural Additive Model for fusion, not plain concatenation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#44-interpretability-layers-built-on-top" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Interpretability layers built on top
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#45-open-decision-introduced-by-this-refinement-path-d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Open decision introduced by this refinement — "Path D"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.5 Open decision introduced by this refinement — &#34;Path D&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-d-musculoskeletal-ck-split-or-shared" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path D — Musculoskeletal CK, split or shared?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="roadmap-architecture-working-page">Roadmap &amp; Architecture — Working Page<a class="headerlink" href="#roadmap-architecture-working-page" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>This page is the <strong>actionable companion</strong> to <code>Research_Aim.md</code> and <code>index.md</code>. Those two
+files explain <em>why</em> each item matters, in full prose. This page exists to be checked off
+against, week to week: a task list, the open decisions ("paths") that gate parts of the
+list, and the target architecture everything is building toward. Update it as items move
+from open → in progress → done — it's meant to go stale in a useful way (crossed-off
+boxes), not to be rewritten from scratch each time.</p>
+<p><strong>Editorial note (this revision):</strong> §4 below was previously overwritten wholesale by a
+"refined §4" patch that dropped §§1–3 from the file. That patch's content is preserved —
+it's now merged in as the current §4 — but §§1–3 are restored here so this remains a
+complete, standalone document. See <code>docs/Multimodal_Notebook_Summary.md</code> for how §4's
+target architecture maps onto the actual runnable notebook
+(<code>src/INSPIRE_Multimodal_Mortality_Kaggle_Notebook.ipynb</code>), and see
+<code>docs/INSPIRE_Complete_Findings_Summary.md</code> / <code>docs/Base_Comparitive_Study_Models.md</code> for
+the full-scale (99,886-patient) run this page's checklist below has been updated against.</p>
+</blockquote>
+<hr />
+<h2 id="1-where-things-stand-right-now">1. Where things stand right now<a class="headerlink" href="#1-where-things-stand-right-now" title="Permanent link">&para;</a></h2>
+<p><strong>Label definition — RESOLVED at full scale.</strong> True 30-day mortality across the full
+cohort: <strong>469 deaths / 99,886 patients = 0.47%</strong> (not 942 / ~0.9% from the raw
+<code>died()</code>/folder label) — confirmed in <code>INSPIRE_Complete_Findings_Summary.md</code> §1. The
+<code>died_30day()</code> fix flagged in earlier revisions of this page is applied throughout.</p>
+<p><strong>Current pipeline:</strong> two tracks now exist side by side, deliberately not merged into one:</p>
+<ol>
+<li>The original flat, single-encoder transformer (<code>dnn_mortality_pipeline.py</code> /
+   <code>dnn_mortality_pipeline_real.py</code>) — 7 pre-op features, the two-phase
+   pretrain→fine-tune pattern, now run and reported at full scale (see
+   <code>Base_Comparitive_Study_Models.md</code>).</li>
+<li><strong>New:</strong> the system-separated, multimodal architecture described in §4 below, built as
+   a complete, runnable, theory-annotated Kaggle notebook —
+   <code>src/INSPIRE_Multimodal_Mortality_Kaggle_Notebook.ipynb</code> (see
+   <code>Multimodal_Notebook_Summary.md</code> for the full mapping from this page's target
+   architecture to the notebook's actual code). Currently validated end-to-end on the
+   30-patient development subset; written to scale unchanged to the full cohort by
+   changing one config path.</li>
+</ol>
+<p><strong>Immediate next step, in order:</strong></p>
+<ol>
+<li>Point the new notebook's <code>CONFIG['SUBJECTS_DIR']</code> at the full 99,886-patient cohort and
+   re-run — every metric from the multimodal architecture so far is from the 30-patient
+   dev subset only.</li>
+<li>Run the <code>TIME_WINDOW</code> (pre-op vs. peri-op) and multi-operation label (last-op vs.
+   first-op) sensitivity sweeps for real at full scale (§11.5/§11.7 of the notebook
+   currently ship these as templates, not executed full runs).</li>
+<li>Resolve <strong>Path D</strong> (§4.5 below) — the musculoskeletal CK split-or-shared question —
+   with clinician input; tracked in <code>Clinician_Questions.md</code>.</li>
+<li>Wire NELA/NEWS2 in as baseline comparison points against the new architecture
+   (<code>src/nela.py</code>, <code>src/score_models.py</code> are both already implemented and unused by the
+   new notebook).</li>
+</ol>
+<hr />
+<h2 id="2-research-analysis-task-list">2. Research &amp; analysis task list<a class="headerlink" href="#2-research-analysis-task-list" title="Permanent link">&para;</a></h2>
+<p>Organised by theme. Checkboxes reflect status as of this revision — tick further items off
+as work lands. Full reasoning for each item is in <code>Research_Aim.md</code> (section refs given)
+and, for the multimodal architecture items specifically, in the new notebook's Part 1.</p>
+<h3 id="data-labelling">Data &amp; labelling<a class="headerlink" href="#data-labelling" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[x] Identify the <code>died()</code> vs <code>died_30day()</code> label mismatch</li>
+<li>[x] Apply <code>died_30day()</code> labelling in <code>dnn_mortality_data_real.py</code></li>
+<li>[x] Confirm full-dataset folder provenance — <strong>resolved: 469/99,886 = 0.47%</strong>, see
+      <code>INSPIRE_Complete_Findings_Summary.md</code> §1</li>
+<li>[x] Recompute <code>pos_weight</code> at full scale using the confirmed 469-death count</li>
+<li>[ ] Competing-risks relabelling: flag the "died after 30 days" cohort as its own group
+      rather than discarding it (<code>Research_Aim.md</code> §3A)</li>
+</ul>
+<h3 id="eda-feature-audit">EDA &amp; feature audit<a class="headerlink" href="#eda-feature-audit" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[x] Re-run <code>feature_selection_pipeline.py</code> at full scale — see <code>Base_Comparitive_Study_Models.md</code></li>
+<li>[x] Re-run <code>audit_features.py</code> / <code>audit_static_categorical.py</code> at full scale</li>
+<li>[ ] Joint department × ICD-10 × mortality cross-tabulation (<code>eda_findings.md</code> §3)</li>
+<li>[ ] Multi-operation sensitivity analysis — last-op vs. first-op vs. exclude
+      (<code>eda_findings.md</code> §12, <code>Research_Aim.md</code> §2.2; the new notebook's §11.7 computes the
+      label-disagreement rate on the dev subset as a first pass — 1 disagreement / 30
+      patients, a 4-operation patient — worth re-running at full scale)</li>
+<li>[x] ASA as a model input — added as a static feature in the new multimodal notebook
+      (§6.12); still unused by the original flat DNN pipeline</li>
+</ul>
+<h3 id="frailty-clinical-baselines">Frailty &amp; clinical baselines<a class="headerlink" href="#frailty-clinical-baselines" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[x] Fix HFRS to the published 2-year / age-75+ window (<code>frailty_hfrs.py</code>) — <strong>done</strong>, the
+      notebook's HFRS cell (§6.6) implements the 2-year/age-75+ window logic against the
+      <strong>full 109-code table</strong> (extracted from <code>frailty_hfrs.py</code>, <code>assert</code>-checked at
+      109 codes) — the earlier ~30-code subset limitation is closed</li>
+<li>[ ] Re-run frailty-vs-mortality comparisons post-fix</li>
+<li>[ ] Implement POSSUM / P-POSSUM as a fourth baseline alongside ASA/NELA</li>
+<li>[ ] Decide whether to fold in NEWS2 (<code>score_models.py</code> already has a working
+      implementation, currently unused and uncompared by either pipeline)</li>
+</ul>
+<h3 id="feature-scope">Feature scope<a class="headerlink" href="#feature-scope" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[x] Organ-system categorisation of all 126 parameters — <strong>extended to 8 systems</strong>
+      (Gastrointestinal, Musculoskeletal added), see §4 below</li>
+<li>[ ] Resolve pre-op-only vs. peri-operative scope (Path B below) at full scale</li>
+<li>[x] Expand the feature set beyond the original flat pipeline's 7 features — the new
+      multimodal notebook uses all 126 time-series parameters (routed by system) plus
+      ~37 static/ICD-10/operation-history features</li>
+</ul>
+<h3 id="modelling">Modelling<a class="headerlink" href="#modelling" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[x] Build system-separated encoders — <strong>done</strong>,
+      <code>src/INSPIRE_Multimodal_Mortality_Kaggle_Notebook.ipynb</code> Part 9, validated
+      end-to-end on the dev subset</li>
+<li>[x] Renal ↔ cardiovascular coupling — <strong>done</strong>, notebook §6.9/§9.2 (architectural
+      side-input + hand-crafted interaction feature)</li>
+<li>[x] Gastrointestinal and Musculoskeletal systems added — <strong>done</strong>, ICD-10
+      chapter/department-driven (notebook §6.7–6.8), since neither has a dedicated
+      lab/vital panel (confirmed programmatically, not assumed)</li>
+<li>[x] Operation-history features (same-area count, recency) and the 6-month
+      cardiac-surgery washout exception — <strong>done</strong>, notebook §6.10–6.11, the washout kept
+      rule-based on purpose (sample-size + actionability reasoning, notebook §1.6.4)</li>
+<li>[ ] Categorical embeddings for medications (start at ATC level-2/3) and diagnoses —
+      notebook uses ATC-level aggregate counts and ICD-10 chapter flags/HFRS instead
+      (§1.2.1/§1.5.3 of the notebook explain why: label-starved at current sample size)</li>
+<li>[ ] Try masked-value or contrastive pre-training objectives instead of plain
+      reconstruction — notebook currently uses plain masked-reconstruction pre-training
+      (§9.4)</li>
+<li>[ ] GRU and TCN as additional comparison models (the notebook's <code>SystemEncoder</code> is a
+      transformer by default; a GRU variant of the same architecture was prototyped in an
+      earlier draft notebook — worth formalising as a documented ablation)</li>
+<li>[ ] Time-to-event reframing — Dynamic-DeepHit / DySurv-style dynamic hazard model, as a
+      parallel track to the binary classifier (<code>Research_Aim.md</code> §2.8)</li>
+</ul>
+<h3 id="interpretability-the-projects-stated-main-aim">Interpretability (the project's stated main aim)<a class="headerlink" href="#interpretability-the-projects-stated-main-aim" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[x] Neural Additive Model fusion — <strong>done and default</strong>, notebook §9.7
+      (<code>CONFIG['FUSION_STRATEGY']='nam'</code>), with concat and gated fusion available as
+      switchable ablations (§11.4 runs the NAM-vs-concat comparison directly)</li>
+<li>[x] Per-system contribution breakdown ("Renal: CRITICAL, Cardio: OK") — <strong>done</strong>,
+      notebook §11.2</li>
+<li>[x] Attention auditing — <strong>done, first pass</strong>, notebook §11.3 (per-timestep attention
+      vs. observed/imputed mask, one system/patient at a time; a full audit against the
+      acute-deterioration ICD-10 codes from EDA is still open)</li>
+<li>[ ] Concept Bottleneck head — AKI stage, haemodynamic instability, respiratory failure
+      staging as named intermediate concepts</li>
+<li>[ ] Sparse autoencoder on the learned embeddings</li>
+<li>[ ] Prototype / case-based retrieval ("this patient's renal trajectory resembles...")</li>
+<li>[ ] MC Dropout uncertainty, then conformal prediction intervals</li>
+</ul>
+<h3 id="evaluation">Evaluation<a class="headerlink" href="#evaluation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[x] Calibration curves + Brier score — <strong>done</strong>, notebook §11.1</li>
+<li>[ ] Formal benchmark against Shickel et al. 2023 (AUROC 0.92), once full-scale multimodal
+      results are in</li>
+</ul>
+<hr />
+<h2 id="3-open-decisions-paths">3. Open decisions ("paths")<a class="headerlink" href="#3-open-decisions-paths" title="Permanent link">&para;</a></h2>
+<p>These are the forks that change what downstream work means. Each is written as a set of
+options rather than a single answer — pick one (or run the sensitivity analysis) before
+building further on top of it.</p>
+<h3 id="path-a-30-day-death-count-at-full-scale">Path A — 30-day death count at full scale<a class="headerlink" href="#path-a-30-day-death-count-at-full-scale" title="Permanent link">&para;</a></h3>
+<p><strong>RESOLVED.</strong> 469 deaths / 99,886 patients = 0.47%, confirmed directly against the full
+cohort (<code>INSPIRE_Complete_Findings_Summary.md</code> §1). <code>pos_weight</code> recomputed accordingly.</p>
+<h3 id="path-b-pre-operative-only-vs-peri-operative">Path B — Pre-operative only vs. peri-operative<a class="headerlink" href="#path-b-pre-operative-only-vs-peri-operative" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What it produces</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pre-op only (current default, both pipelines)</td>
+<td>Decision-support tool</td>
+<td>"Should we operate? Should ICU be booked?"</td>
+</tr>
+<tr>
+<td>+ intra-operative vitals</td>
+<td>Real-time monitoring tool</td>
+<td>"Should the surgical team escalate mid-case?"</td>
+</tr>
+<tr>
+<td>+ early post-operative</td>
+<td>Early-warning / rescue tool</td>
+<td>"Flag this patient before formal deterioration"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Status:</strong> still open. The new multimodal notebook implements this as a single config
+flag (<code>CONFIG['TIME_WINDOW']</code>, §1.6.3/§6.2) specifically so both variants can be run and
+compared rather than assumed — not yet run at full scale (§11.5 is currently a template).</p>
+<h3 id="path-c-multi-operation-patients">Path C — Multi-operation patients<a class="headerlink" href="#path-c-multi-operation-patients" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Argument for</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Label from last operation (current default)</td>
+<td>Matches "did this specific operation kill the patient"</td>
+<td>Ignores earlier ops entirely</td>
+</tr>
+<tr>
+<td>Label from first operation</td>
+<td>Captures the full surgical journey</td>
+<td>Wrong reference point for late major surgery</td>
+</tr>
+<tr>
+<td>Exclude multi-op patients</td>
+<td>Cleanest label</td>
+<td>Selection bias — repeat-operation patients may be systematically sicker</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Status:</strong> still open. The new notebook computes both the last-op and first-op labels for
+every patient (§4.2) and reports their disagreement rate (§11.7) — 1/30 on the dev subset —
+as the evidence base for eventually settling this, per the recommendation to run (not
+assume) the sensitivity analysis.</p>
+<h3 id="path-d-musculoskeletal-ck-split-or-shared-new-introduced-by-4s-refinement">Path D — Musculoskeletal CK, split or shared? <em>(new, introduced by §4's refinement)</em><a class="headerlink" href="#path-d-musculoskeletal-ck-split-or-shared-new-introduced-by-4s-refinement" title="Permanent link">&para;</a></h3>
+<p>See §4.5 below.</p>
+<hr />
+<h2 id="4-target-architecture-system-separated-encoders">4. Target architecture — system-separated encoders<a class="headerlink" href="#4-target-architecture-system-separated-encoders" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Status of this section vs. earlier revisions:</strong> the underlying 126-parameter count (38
+labs + 16 ward vitals + 72 intra-op vitals) is unchanged and re-verified below. What's
+new here: <strong>two systems added</strong> (Gastrointestinal, Musculoskeletal, per the working
+session), the <strong>infection/inflammation open question is resolved</strong> (was flagged as
+"doesn't currently have a clean home" — now a cross-cutting flag, not a 7th/9th system,
+with the reasoning stated), a <strong>cross-mapped-features</strong> column since several parameters
+now feed more than one system deliberately (not as an oversight), an explicit
+<strong>renal↔cardiovascular coupling</strong> node, and the <strong>static/joint branch expanded</strong> with the
+new operation-history and cardiac-washout features. This <em>is</em> the architecture
+<code>src/INSPIRE_Multimodal_Mortality_Kaggle_Notebook.ipynb</code> implements — see
+<code>Multimodal_Notebook_Summary.md</code> for the section-by-section mapping.</p>
+</blockquote>
+<h2 id="41-organ-system-feature-grouping-126-parameters-total-verified-unchanged">4.1 Organ-system feature grouping (126 parameters total — verified unchanged)<a class="headerlink" href="#41-organ-system-feature-grouping-126-parameters-total-verified-unchanged" title="Permanent link">&para;</a></h2>
+<p>38 labs + 16 ward vitals + 72 intra-op vitals = 126, re-counted directly against the
+dataset schema and cross-checked against the 30-patient sample (all 36 of the 38 labs and
+all 16 of the 16 ward vitals were observed at least once in the sample; only <code>d_dimer</code> and
+<code>troponin_t</code> never appeared, consistent with the existing <code>feature_audit_findings.md</code>
+"never present pre-op" finding).</p>
+<p><strong>What actually changed from the original table below: nothing is removed or
+re-assigned — Gastrointestinal and Musculoskeletal are added as two new <em>consumers</em> of a
+subset of the existing 126 parameters (mainly via diagnosis/procedure codes, plus a small
+number of shared labs), not as two new parameter buckets. The 126 total still fully
+belongs to the original six.</strong></p>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Labs</th>
+<th>Ward vitals</th>
+<th>Intra-op vitals (if Path B includes them)</th>
+<th>Cross-mapped with</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Renal</td>
+<td>bun, calcium, chloride, creatinine, ica, phosphorus, potassium, sodium</td>
+<td>crrt, uo, <strong>+ nibp_mbp, hr (shared)</strong></td>
+<td>uo</td>
+<td>Cardiovascular (nibp_mbp, hr) — see 4.1c</td>
+</tr>
+<tr>
+<td>Cardiovascular</td>
+<td>ck (shared), ckmb, troponin_i, troponin_t</td>
+<td>hr (shared), nibp_sbp, nibp_dbp, nibp_mbp (shared), iabp</td>
+<td>hr, art_sbp/dbp/mbp, ci, cvp, svi</td>
+<td>Renal (hr, nibp_mbp); Musculoskeletal (ck); Gastrointestinal (lacate)</td>
+</tr>
+<tr>
+<td>Respiratory</td>
+<td>be, hco3, paco2, pao2, ph, sao2</td>
+<td>fio2, rr, spo2, vent, ecmo</td>
+<td>etco2, fio2, spo2, peep, pip, pplat</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Metabolic / hepatic</td>
+<td>albumin, alp, alt, ast, glucose, hba1c, lacate (shared), total_bilirubin, total_protein</td>
+<td>bt (shared)</td>
+<td>bt, glucose-related infusions</td>
+<td>Infection flag (bt); Gastrointestinal/Cardiovascular (lacate)</td>
+</tr>
+<tr>
+<td>Haematology / coagulation</td>
+<td>aptt, crp (shared), d_dimer, fibrinogen, hb, hct, lymphocyte, platelet, ptinr, seg, wbc (shared)</td>
+<td>—</td>
+<td>ebl, rbc, ffp, cryo</td>
+<td>Infection flag (crp, wbc); Gastrointestinal (crp)</td>
+</tr>
+<tr>
+<td>Neurological</td>
+<td>—</td>
+<td>gcs_e, gcs_m, gcs_v</td>
+<td>bis</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Gastrointestinal (NEW)</strong></td>
+<td><em>no dedicated lab</em> — crp, lacate (shared, see Haematology/Cardiovascular)</td>
+<td>—</td>
+<td>—</td>
+<td>Haematology (crp); Cardiovascular (lacate)</td>
+</tr>
+<tr>
+<td><strong>Musculoskeletal (NEW)</strong></td>
+<td><em>no dedicated lab</em> — ck (shared, see Cardiovascular; provisional, Path D)</td>
+<td>—</td>
+<td>—</td>
+<td>Cardiovascular (ck)</td>
+</tr>
+<tr>
+<td><strong>Infection / Inflammation</strong> <em>(cross-cutting flag — not a 7th/9th system, see 4.1a)</em></td>
+<td>crp, wbc (both shared from Haematology)</td>
+<td>bt (shared from Metabolic)</td>
+<td>—</td>
+<td>Haematology (crp, wbc); Metabolic (bt)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note on the notebook's default GI/MSK implementation vs. this table:</strong> the notebook
+(§6.7–6.8) currently routes GI and MSK almost entirely through ICD-10 chapter
+membership (chapter XI / chapter XIII) and department (<code>GS</code>/<code>OS</code>), treating them as
+static/categorical features rather than giving them their own time-series encoder fed by
+the shared <code>crp</code>/<code>lacate</code>/<code>ck</code> labs shown in this table. Both are valid, complementary
+readings of "GI and MSK have no dedicated lab" — the table's shared-lab routing is a
+richer target for a future notebook revision; the current notebook's simpler
+department+ICD10-only version was chosen first for implementation speed and because the
+shared labs are already fully "spoken for" by their primary systems (double-counting them
+into a third branch has the same silent-inflation risk flagged in the notebook's §1.2.3).</p>
+<h3 id="41a-resolving-the-open-question-infection-doesnt-currently-have-a-clean-home">4.1a Resolving the open question: "infection doesn't currently have a clean home"<a class="headerlink" href="#41a-resolving-the-open-question-infection-doesnt-currently-have-a-clean-home" title="Permanent link">&para;</a></h3>
+<p>The original table flagged this directly, noting the most mortality-linked ICD-10 codes
+found in EDA (D65 DIC, I46 cardiac arrest, R57 shock, J80 ARDS, K72 hepatic failure, A41
+sepsis) cluster around infection/inflammation rather than a single organ system. <strong>This is
+now resolved</strong>, not left open:</p>
+<p>Infection is modelled as a <strong>cross-cutting flag layered across every system's encoder</strong>
+(sourced from CRP, WBC, body temperature, plus ICD-10 chapters A–B and the specific
+high-risk codes above), not as its own competing branch. This is grounded in two
+independent, converging references: <strong>SOFA</strong> (Vincent et al. 1996) scores exactly six organ
+systems with no separate infection system, and <strong>Sepsis-3</strong> (Singer et al. 2016) defines
+sepsis specifically as <em>an infection that triggers a SOFA score change</em> — i.e. the clinical
+standard itself treats infection as a modifier of organ-system scores, not a parallel
+seventh score. This also resolves cleanly why R57 (shock) is routed to Cardiovascular
+rather than sitting homeless — it's a cardiovascular-system diagnosis with an infection
+flag attached, not an infection-system diagnosis.</p>
+<p><strong>Status in the notebook:</strong> <strong>implemented</strong> (§6.6) — five components (ICD-10 chapter I
+flag, the six high-risk codes above, fever, abnormal WBC, and a data-driven elevated-CRP
+flag) feed the static branch as individual features plus a 0-5 composite score, matching
+the "modifier layered across systems" design rather than a competing encoder. The CRP
+threshold is <strong>data-driven</strong> (this cohort's own 75th percentile), not an absolute
+clinical cutoff, since the notebook doesn't load <code>parameters.csv</code> and so CRP's exact
+reporting unit isn't independently confirmed — worth revisiting once that's available.</p>
+<h3 id="41b-why-gastrointestinal-and-musculoskeletal-have-zero-dedicated-labs">4.1b Why Gastrointestinal and Musculoskeletal have zero dedicated labs<a class="headerlink" href="#41b-why-gastrointestinal-and-musculoskeletal-have-zero-dedicated-labs" title="Permanent link">&para;</a></h3>
+<p>Worth stating plainly rather than leaving implicit: <strong>no lab or ward-vital parameter in
+the 126-parameter schema is GI- or MSK-specific</strong> (no amylase/lipase, no dedicated muscle
+marker distinct from cardiac CK). Both new systems are therefore driven almost entirely by
+<strong>diagnosis codes (ICD-10-CM chapter K excl. K70–77, and chapter M)</strong> and <strong>procedure codes
+(ICD-10-PCS body-system letters D/C for GI, K/L/M/N/P/Q/R/S for MSK)</strong>, with the shared
+labs (crp, lacate for GI; ck for MSK) providing the only continuous-physiology signal
+either branch gets in this table's fuller reading. This is a real, stated limitation of the
+dataset, not a modelling gap — confirmed independently and programmatically by the
+notebook's own item-name inventory check (§4.1 of the notebook) before any GI/MSK feature
+was written, not assumed from this table alone.</p>
+<h3 id="41c-renal-cardiovascular-not-just-a-shared-feature-overlap">4.1c Renal ↔ Cardiovascular — not just a shared-feature overlap<a class="headerlink" href="#41c-renal-cardiovascular-not-just-a-shared-feature-overlap" title="Permanent link">&para;</a></h3>
+<p>The <code>+ nibp_mbp, hr (shared)</code> note under Renal is a deliberate architectural choice, not
+a data-availability convenience: mean arterial pressure and heart rate are added to the
+renal branch <strong>because</strong> they causally drive renal perfusion, per the <em>cardiorenal
+syndrome</em> literature (Ronco et al. 2008, <em>J Am Coll Cardiol</em> — five recognised
+subtypes of bidirectional heart–kidney interaction). Beyond sharing the raw features, the
+notebook's architecture (§9.2/§9.6) adds this as an explicit <code>extra_context</code> side-input to
+the renal <code>SystemEncoder</code>, plus a hand-crafted <code>renal_cardiac_interaction</code> feature
+(creatinine × |MAP deviation|) in the static branch — so the model can represent "these are
+abnormal <em>together, in a consistent way</em>" as distinct from "these are independently
+abnormal," via both a learned and a hand-crafted channel.</p>
+<h2 id="42-pipeline-refined-mermaid-flowchart">4.2 Pipeline — refined mermaid flowchart<a class="headerlink" href="#42-pipeline-refined-mermaid-flowchart" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Inputs["Raw INSPIRE data"]
+        L["Labs (38 types)"]
+        WV["Ward vitals (16 types)"]
+        IV["Intra-op vitals (72 types)\n— in scope only if Path B says peri-op"]
+        DX["Diagnoses (ICD-10-CM)"]
+        PROC["Procedures (ICD-10-PCS)\n+ operation timestamps"]
+        MED["Medications (ATC codes)"]
+        STAT["Static: age, sex, ASA, emop, dept"]
+    end
+
+    L --&gt; ROUTE{route by\norgan system}
+    WV --&gt; ROUTE
+    IV --&gt; ROUTE
+    DX --&gt; ROUTE
+
+    ROUTE --&gt; R_TS["Renal time series\n+ shared HR, MAP"]
+    ROUTE --&gt; C_TS["Cardiovascular time series"]
+    ROUTE --&gt; P_TS["Respiratory time series"]
+    ROUTE --&gt; M_TS["Metabolic/hepatic time series"]
+    ROUTE --&gt; H_TS["Haematology time series"]
+    ROUTE --&gt; N_TS["Neurological time series"]
+    ROUTE --&gt; G_TS["Gastrointestinal — NEW\nICD-10 K (excl K70-77) + department"]
+    ROUTE --&gt; S_TS["Musculoskeletal — NEW\nICD-10 M + department (Path D: +/- CK)"]
+
+    R_TS --&gt; R_ENC["Encoder: Renal\n(autoencode -&gt; classify)"]
+    C_TS --&gt; C_ENC["Encoder: Cardiovascular"]
+    P_TS --&gt; P_ENC["Encoder: Respiratory"]
+    M_TS --&gt; M_ENC["Encoder: Metabolic"]
+    H_TS --&gt; H_ENC["Encoder: Haematology"]
+    N_TS --&gt; N_ENC["Encoder: Neurological"]
+    G_TS --&gt; G_ENC["Static branch: Gastrointestinal — NEW\n(ICD-10 flag/count + dept, see 4.1 note)"]
+    S_TS --&gt; S_ENC["Static branch: Musculoskeletal — NEW\n(ICD-10 flag/count + dept, see 4.1 note)"]
+
+    DX --&gt; DX_EMB["ICD-10 chapter flags/counts\n+ HFRS-weighted sum"]
+    MED --&gt; MED_EMB["ATC level-2/3 aggregate counts"]
+    PROC --&gt; OPHX["Operation-history features:\nsame-area op count, days since,\ncardiac washout flag (&lt;180d)"]
+    STAT --&gt; STAT_MLP["Static + ICD-10 + op-history MLP"]
+    OPHX --&gt; STAT_MLP
+    DX_EMB --&gt; STAT_MLP
+    MED_EMB --&gt; STAT_MLP
+    G_ENC --&gt; STAT_MLP
+    S_ENC --&gt; STAT_MLP
+
+    R_ENC --&gt; R_EMB["renal_embedding"]
+    C_ENC --&gt; C_EMB["cardio_embedding"]
+    P_ENC --&gt; P_EMB["resp_embedding"]
+    M_ENC --&gt; M_EMB["metabolic_embedding"]
+    H_ENC --&gt; H_EMB["haem_embedding"]
+    N_ENC --&gt; N_EMB["neuro_embedding"]
+
+    C_EMB -.-&gt;|"extra_context\nside-input"| R_ENC
+
+    INF["Infection / inflammation flag\n(CRP, WBC, BT + ICD-10 A-B, R57, sepsis codes)\n— cross-cutting context, NOT its own encoder\n[IMPLEMENTED, notebook Sec 6.6 -- feeds STAT_MLP]"]
+    H_EMB -.-&gt; INF
+    INF -.-&gt;|"static feature,\nnot own encoder"| STAT_MLP
+
+    R_EMB --&gt; FUSE
+    C_EMB --&gt; FUSE
+    P_EMB --&gt; FUSE
+    M_EMB --&gt; FUSE
+    H_EMB --&gt; FUSE
+    N_EMB --&gt; FUSE
+    STAT_MLP --&gt; FUSE
+
+    FUSE["Neural Additive Model\n(one shape function per system —\neach contribution stays individually plottable)\n[IMPLEMENTED &amp; DEFAULT in the notebook, §9.7;\nconcat/gated available as switchable ablations]"]
+
+    FUSE --&gt; OUT["Mortality risk\n+ per-system breakdown:\nRenal: CRITICAL | Cardio: OK\n(notebook §11.2)"]
+
+    style ROUTE fill:#f5f5f5,stroke:#888
+    style INF fill:#f0f0f0,stroke:#999,stroke-dasharray: 3 3
+    style G_TS fill:#fdf1e8,stroke:#dd8452
+    style S_TS fill:#fdf1e8,stroke:#dd8452
+    style G_ENC fill:#fdf1e8,stroke:#dd8452
+    style S_ENC fill:#fdf1e8,stroke:#dd8452
+    style FUSE fill:#e6f2f0,stroke:#0a7d6e
+    style OUT fill:#0a7d6e,color:#fff</code></pre>
+<p><strong>What's shown here vs. the actual notebook, made explicit rather than glossed over:</strong>
+- <code>PROC</code>/<code>OPHX</code>, <code>DX_EMB</code>/<code>MED_EMB</code>, and <code>G_ENC</code>/<code>S_ENC</code> all feed the <strong>static branch</strong>
+  (<code>STAT_MLP</code>) in the notebook as implemented, not their own dedicated fusion inputs — GI
+  and MSK are static/categorical features today (§4.1's note above), not separate encoders
+  with their own embeddings in <code>FUSE</code>.
+- The renal↔cardiovascular coupling is drawn as a direct <code>extra_context</code> edge from the
+  cardiovascular embedding into the renal encoder (matching notebook §9.2/§9.6 exactly),
+  rather than a separate bilinear "coupling" node feeding fusion — the notebook's
+  implementation folds the coupling into the renal encoder itself, plus the separate
+  hand-crafted interaction feature living inside <code>STAT_MLP</code>.
+- <code>INF</code> (the infection/inflammation cross-cutting flag) is now <strong>implemented</strong> (§6.6) and,
+  as drawn, feeds <code>STAT_MLP</code> as a set of static features — not its own encoder, and not a
+  direct input to <code>FUSE</code>, matching §4.1a's "modifier, not a competing system" design.
+- <code>FUSE</code> is marked as <strong>implemented and default</strong> (NAM), since this is no longer aspirational
+  — it runs end-to-end and is validated against a concat-fusion ablation in notebook §11.4.</p>
+<h2 id="43-why-a-neural-additive-model-for-fusion-not-plain-concatenation">4.3 Why a Neural Additive Model for fusion, not plain concatenation<a class="headerlink" href="#43-why-a-neural-additive-model-for-fusion-not-plain-concatenation" title="Permanent link">&para;</a></h2>
+<p><em>(Reasoning unchanged from earlier revisions — still correct, and now empirically
+testable rather than only argued.)</em> A <code>concatenate → Linear</code> fusion is simplest but is
+<strong>no more interpretable</strong> than a single flat transformer — the per-system split disappears
+again the moment the vectors are concatenated and mixed by a dense layer. A Neural
+Additive Model keeps each system's contribution to the final logit as its own
+separately-trained, separately-plottable shape function, so "Renal: CRITICAL" is a real
+decomposition of the prediction, not a post-hoc story attached to it.</p>
+<p><strong>Status update:</strong> this is no longer a proposed destination only — it is the notebook's
+<strong>default, implemented, and running</strong> fusion strategy (<code>CONFIG['FUSION_STRATEGY']='nam'</code>),
+with gated fusion and plain concatenation both implemented alongside it as switchable
+alternatives specifically so the trade-off argued here can be checked empirically
+(notebook §11.4) rather than asserted. Gated fusion — a learned per-patient weight per
+branch, rather than a fixed additive shape function — remains a reasonable, less complex
+<strong>intermediate point</strong> on the same interpretability spectrum, also implemented and
+available via <code>CONFIG['FUSION_STRATEGY']='gated'</code>.</p>
+<h2 id="44-interpretability-layers-built-on-top">4.4 Interpretability layers built on top<a class="headerlink" href="#44-interpretability-layers-built-on-top" title="Permanent link">&para;</a></h2>
+<p>Once the system-separated encoders exist, four complementary interpretability layers sit
+on top of them (<code>Research_Aim.md</code> §3C):</p>
+<ol>
+<li><strong>Concept Bottleneck head</strong> — predict named clinical concepts (AKI stage, haemodynamic
+   instability, respiratory failure stage) before predicting mortality. <em>(Open.)</em></li>
+<li><strong>Sparse autoencoder</strong> on each system's embedding — decompose a dense, tangled
+   embedding into sparse, individually-nameable directions. <em>(Open.)</em></li>
+<li><strong>Attention auditing</strong> — check whether attention concentrates on clinically sensible
+   time steps and features, especially around the acute-deterioration ICD-10 codes.
+   <em>(First pass implemented, notebook §11.3 — full audit against the specific EDA-flagged
+   codes is still open.)</em></li>
+<li><strong>Prototype retrieval</strong> — "this patient's renal trajectory resembles these 3 prior
+   patients, 2 of whom died." <em>(Open.)</em></li>
+</ol>
+<hr />
+<h2 id="45-open-decision-introduced-by-this-refinement-path-d">4.5 Open decision introduced by this refinement — "Path D"<a class="headerlink" href="#45-open-decision-introduced-by-this-refinement-path-d" title="Permanent link">&para;</a></h2>
+<h3 id="path-d-musculoskeletal-ck-split-or-shared">Path D — Musculoskeletal CK, split or shared?<a class="headerlink" href="#path-d-musculoskeletal-ck-split-or-shared" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Keep CK shared as-is (current)</td>
+<td>Simple; MSK branch gets a small physiology signal, but cardiac and skeletal-muscle injury are conflated</td>
+</tr>
+<tr>
+<td>Use CK-MB fraction to separate cardiac vs. skeletal CK</td>
+<td>More clinically correct, but CK-MB is itself only patchy coverage (20–50%) pre-op — may not add much in practice</td>
+</tr>
+<tr>
+<td>Split by context (recent cardiac surgery → assume CK is cardiac; recent orthopaedic surgery → assume CK is skeletal)</td>
+<td>Uses the operation-history features already being built (4.1c/OPHX) rather than a lab value that may not exist</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Status:</strong> open — worth a specific question to the clinical reviewer (already flagged in
+<code>Clinician_Questions.md</code>) before committing either way. <strong>Not currently relevant to the
+notebook's default implementation</strong>, since the notebook's GI/MSK branches don't yet use the
+shared-lab routing this path assumes (§4.1's note) — resolving Path D matters most if/when
+the notebook is extended to the richer shared-lab version of GI/MSK described in §4.1's
+table.</p>
+<hr />
+<p><em>This page is generated from, and should be kept consistent with, <code>Research_Aim.md</code> §4
+(consolidated roadmap), <code>index.md</code> §14–15, and <code>Multimodal_Notebook_Summary.md</code> (the
+notebook-level mapping). If these drift apart, <code>Research_Aim.md</code> is the more detailed
+narrative source and <code>Multimodal_Notebook_Summary.md</code> is the more detailed
+implementation-accurate source — update this page to match them, not the other way round.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.collapse", "content.code.copy", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

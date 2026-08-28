@@ -1,0 +1,2254 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+        <link rel="prev" href="../ICD10_Architecture_Research/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>PACO-Net Design - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#paco-net-a-phase-aware-coupled-organ-interpretable-architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              PACO-Net Design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Project_Notes/" class="md-tabs__link">
+          
+  
+  
+  Data & Pipeline
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Surgeon_Facing_Summary/" class="md-tabs__link">
+          
+  
+  
+  Clinician Inputs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-tabs__link">
+          
+  
+  
+  MULTIMODEL MODEL
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Research_Aim/" class="md-tabs__link">
+          
+  
+  
+  Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Next-Gen Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data & Pipeline
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data & Pipeline
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Project_Notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eda_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Complete_Findings_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete Findings Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinician Inputs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Clinician Inputs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Surgeon_Facing_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Surgeon Summanry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Novelty_Research_Ledger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Novelty & Clinical Relevance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MULTIMODEL MODEL
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MULTIMODEL MODEL
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Meeting_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Full-Scale Run — Meeting Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Base_Comparitive_Study_Models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Comparitive Study
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Aim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Aims & Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap_and_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap & Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Notes & Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meeting Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ICD10_Architecture_Research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ICD-10 Architecture Research
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next-Gen Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Next-Gen Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PACO-Net Design
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PACO-Net Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-one-paragraph-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. One-paragraph summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-architecture-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Architecture at a glance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-end-to-end-pipeline-step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The end-to-end pipeline, step by step
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The end-to-end pipeline, step by step">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-load-and-parse-patient-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Load and parse patient records
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-establish-the-ground-truth-label" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Establish the ground-truth label
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-build-the-phase-tagged-continuous-timeline-new-in-paco-net" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Build the phase-tagged continuous timeline (new in PACO-Net)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-route-signals-to-organ-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — Route signals to organ systems
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-handle-missing-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — Handle missing data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-standardise-and-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6 — Standardise and split
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-handle-class-imbalance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7 — Handle class imbalance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-encode-each-organ-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8 — Encode each organ system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-couple-systems-and-fuse-new-in-paco-net" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9 — Couple systems and fuse (new in PACO-Net)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-predict-a-risk-curve-not-a-single-number-new-in-paco-net" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10 — Predict a risk curve, not a single number (new in PACO-Net)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-novelty-being-aimed-for-stated-precisely-with-honest-bounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The novelty being aimed for — stated precisely, with honest bounds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-every-paper-this-design-is-grounded-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Every paper this design is grounded in
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Every paper this design is grounded in">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perioperative-postoperative-mortality-prediction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Perioperative / postoperative mortality prediction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-organ-organ-system-architectures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-organ / organ-system architectures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interpretability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpretability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#missing-data-and-imputation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing data and imputation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time-to-event-hazard-modelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time-to-event / hazard modelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class-imbalance-and-sampling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class imbalance and sampling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multimodal-fusion-general" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multimodal fusion (general)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clinical-domain-grounding-unchanged-from-the-current-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clinical domain grounding (unchanged from the current baseline)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-one-paragraph-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. One-paragraph summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-architecture-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Architecture at a glance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-end-to-end-pipeline-step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The end-to-end pipeline, step by step
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The end-to-end pipeline, step by step">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-load-and-parse-patient-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Load and parse patient records
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-establish-the-ground-truth-label" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Establish the ground-truth label
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-build-the-phase-tagged-continuous-timeline-new-in-paco-net" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Build the phase-tagged continuous timeline (new in PACO-Net)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-route-signals-to-organ-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — Route signals to organ systems
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-handle-missing-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — Handle missing data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-standardise-and-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6 — Standardise and split
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-handle-class-imbalance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7 — Handle class imbalance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-encode-each-organ-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8 — Encode each organ system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-couple-systems-and-fuse-new-in-paco-net" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9 — Couple systems and fuse (new in PACO-Net)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-predict-a-risk-curve-not-a-single-number-new-in-paco-net" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10 — Predict a risk curve, not a single number (new in PACO-Net)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-novelty-being-aimed-for-stated-precisely-with-honest-bounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The novelty being aimed for — stated precisely, with honest bounds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-every-paper-this-design-is-grounded-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Every paper this design is grounded in
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Every paper this design is grounded in">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perioperative-postoperative-mortality-prediction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Perioperative / postoperative mortality prediction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-organ-organ-system-architectures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-organ / organ-system architectures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interpretability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpretability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#missing-data-and-imputation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing data and imputation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#time-to-event-hazard-modelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time-to-event / hazard modelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class-imbalance-and-sampling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Class imbalance and sampling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multimodal-fusion-general" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multimodal fusion (general)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clinical-domain-grounding-unchanged-from-the-current-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clinical domain grounding (unchanged from the current baseline)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="paco-net-a-phase-aware-coupled-organ-interpretable-architecture">PACO-Net: a Phase-Aware, Coupled-Organ, Interpretable Architecture<a class="headerlink" href="#paco-net-a-phase-aware-coupled-organ-interpretable-architecture" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>What this page is.</strong> The next-generation architecture proposal that supersedes the
+current organ-system baseline described in <code>roadmap_and_architecture.md</code> §4. This page
+covers the complete end-to-end pipeline (data → prediction), the specific novelty being
+aimed for, and every paper the design decisions below are grounded in. Nothing on this
+page is built yet — this is the researched design, written up <em>before</em> implementation,
+per the working process for this project. See <code>roadmap_and_architecture.md</code> for what's
+actually running today.</p>
+<p><strong>Working name:</strong> PACO-Net — <strong>P</strong>hase-<strong>A</strong>ware, <strong>C</strong>oupled-<strong>O</strong>rgan Network. Four
+real ingredients, one name; rename freely once it has results behind it.</p>
+</blockquote>
+<hr />
+<h2 id="1-one-paragraph-summary">1. One-paragraph summary<a class="headerlink" href="#1-one-paragraph-summary" title="Permanent link">&para;</a></h2>
+<p>PACO-Net predicts perioperative mortality risk <strong>as a curve over time</strong> (not one number),
+built from <strong>organ-system-specific encoders</strong> that read a patient's full pre-op → intra-op
+→ post-op timeline at once (not three separate models bolted together), whose outputs are
+combined through a <strong>learned attention layer that discovers which organ systems move
+together</strong> (not a single hand-picked link), fused through an <strong>additive layer that keeps
+every organ system's contribution individually readable</strong> (not a black box), producing a
+prediction you can point at and say <em>why</em>, at <em>any point in the patient's timeline</em>.</p>
+<hr />
+<h2 id="2-architecture-at-a-glance">2. Architecture at a glance<a class="headerlink" href="#2-architecture-at-a-glance" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Input["One continuous timeline per patient, phase-tagged"]
+        direction LR
+        PRE["Pre-op\nreadings"] -.-&gt;|"phase tag: 0"| TL["Continuous sequence\n(admission -&gt; discharge)"]
+        PERI["Peri-op\nreadings"] -.-&gt;|"phase tag: 1"| TL
+        POST["Post-op\nreadings"] -.-&gt;|"phase tag: 2"| TL
+    end
+
+    TL --&gt; R["Renal encoder"]
+    TL --&gt; C["Cardiovascular encoder"]
+    TL --&gt; P["Respiratory encoder"]
+    TL --&gt; M["Metabolic/Hepatic encoder"]
+    TL --&gt; H["Haematology encoder"]
+    TL --&gt; N["Neurological encoder"]
+    TL --&gt; GI["GI encoder\n(ICD-10 + department, static)"]
+    TL --&gt; MSK["MSK encoder\n(ICD-10 + department, static)"]
+
+    R --&gt; COUPLE
+    C --&gt; COUPLE
+    P --&gt; COUPLE
+    M --&gt; COUPLE
+    H --&gt; COUPLE
+    N --&gt; COUPLE
+    GI --&gt; COUPLE
+    MSK --&gt; COUPLE
+
+    COUPLE["Learned inter-system coupling\n(graph-attention layer --\nreplaces the single hand-picked\nrenal&lt;-cardiac link; lets the model\ndiscover which systems move together)"]
+
+    COUPLE --&gt; FUSE["NAM-style additive fusion\n(one term per SYSTEM, each term\nitself a full network's output --\nnot per single feature, per system)"]
+
+    STATIC["Static: age, ASA, HFRS,\noperation history"] --&gt; FUSE
+    RULE["6-month cardiac washout\n-- kept as a hard rule,\nnot learned, on purpose"] -.-&gt;|"flags eligible\npatients"| FUSE
+
+    FUSE --&gt; HEAD["SurvTRACE-style discrete-time\nhazard head: P(dies in bin 1),\nP(dies in bin 2), ... not one number"]
+
+    HEAD --&gt; OUT["Risk curve over time +\nper-system breakdown at each point"]
+
+    style R fill:#0a7d6e,color:#fff
+    style C fill:#0a7d6e,color:#fff
+    style P fill:#0a7d6e,color:#fff
+    style M fill:#0a7d6e,color:#fff
+    style H fill:#0a7d6e,color:#fff
+    style N fill:#0a7d6e,color:#fff
+    style GI fill:#dd8452,color:#fff
+    style MSK fill:#dd8452,color:#fff
+    style COUPLE fill:#8e44ad,color:#fff
+    style FUSE fill:#2980b9,color:#fff
+    style HEAD fill:#c0392b,color:#fff
+    style OUT fill:#2c3e50,color:#fff</code></pre>
+<hr />
+<h2 id="3-the-end-to-end-pipeline-step-by-step">3. The end-to-end pipeline, step by step<a class="headerlink" href="#3-the-end-to-end-pipeline-step-by-step" title="Permanent link">&para;</a></h2>
+<p>Ten top-level steps. Each one expands into its own sub-steps — click to open only the ones
+you need; collapsed, this section is a 10-line map of the whole pipeline.</p>
+<h3 id="step-1-load-and-parse-patient-records">Step 1 — Load and parse patient records<a class="headerlink" href="#step-1-load-and-parse-patient-records" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>Stream-parse every patient JSON file exactly once, in chunks (not all-at-once),
+   to bound peak memory regardless of cohort size.</li>
+<li>Extract six raw tables in the same pass: labs, intra-op vitals, ward vitals,
+   operations, diagnoses, medications.</li>
+<li>Cache the parsed result to disk (Parquet) so re-runs load in seconds instead of
+   re-parsing every JSON file again.</li>
+<li>Apply memory-efficient dtypes throughout (categorical, nullable integer/float)
+   so schema stays consistent across chunks.</li>
+</ol>
+</details>
+<h3 id="step-2-establish-the-ground-truth-label">Step 2 — Establish the ground-truth label<a class="headerlink" href="#step-2-establish-the-ground-truth-label" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>Recompute 30-day mortality directly from operation timestamps — <strong>never</strong> trust
+   the raw folder/label provenance, which conflates "died at any point" with "died
+   within 30 days."</li>
+<li>Cross-check the recomputed label against the provided one and log the
+   disagreement rate as a standing data-quality metric.</li>
+<li>Resolve the multi-operation question explicitly (label from last operation vs.
+   first vs. exclusion) as a tracked, revisitable decision — not a silent default.</li>
+</ol>
+</details>
+<h3 id="step-3-build-the-phase-tagged-continuous-timeline-new-in-paco-net">Step 3 — Build the phase-tagged continuous timeline <strong>(new in PACO-Net)</strong><a class="headerlink" href="#step-3-build-the-phase-tagged-continuous-timeline-new-in-paco-net" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>For each patient, construct one timeline spanning admission → discharge, not
+   three separate windows.</li>
+<li>Tag every reading with a phase indicator (0 = pre-op, 1 = peri-op, 2 = post-op),
+   the same pattern BERT uses for segment embeddings — one shared encoder learns to
+   weigh phases differently via attention, instead of physically tripling the
+   network.</li>
+<li>Extend data loading to include true post-operative recovery data (ward vitals
+   after <code>orout_time</code>) — <strong>not present in the current baseline</strong>, a genuine gap this
+   step closes.</li>
+</ol>
+</details>
+<h3 id="step-4-route-signals-to-organ-systems">Step 4 — Route signals to organ systems<a class="headerlink" href="#step-4-route-signals-to-organ-systems" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>Six systems keep their existing real time-series routing (renal, cardiovascular,
+   respiratory, metabolic/hepatic, haematology, neurological) — unchanged from the
+   current baseline, re-verified against the item-name inventory each run.</li>
+<li>GI and MSK stay diagnosis/department-derived (ICD-10 chapters XI and XIII, <code>GS</code>/
+   <code>OS</code> departments) — confirmed programmatically, not assumed, that neither has a
+   dedicated lab/vital panel in this dataset.</li>
+<li>Document the hepatic/GI lab-overlap boundary explicitly (AST/ALT/bilirubin stay
+   in metabolic/hepatic, not duplicated into GI) to avoid double-counting the same
+   signal under two names.</li>
+</ol>
+</details>
+<h3 id="step-5-handle-missing-data">Step 5 — Handle missing data<a class="headerlink" href="#step-5-handle-missing-data" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>Apply the existing three-tier rule (interpolate-and-fade for fast-changing
+   vitals, forward-fill for slow-changing labs, population-average fallback) —
+   unchanged, already benchmarked per-system.</li>
+<li>Keep the observed/imputed mask feature alongside every value, always — the
+   mechanism that lets the model recover MNAR (missing-not-at-random) signal.</li>
+<li>Re-run the held-out masking accuracy benchmark (§7.6 of the current notebook) at
+   full cohort scale, since the small-sample result likely under-represents
+   regression imputation's real potential.</li>
+<li>Evaluate SAITS (self-attention imputation for time series) as a genuine upgrade
+   path beyond <code>IterativeImputer</code>/MICE — better-matched to irregular, sparse,
+   multivariate clinical data per the benchmarking literature (§5 below).</li>
+</ol>
+</details>
+<h3 id="step-6-standardise-and-split">Step 6 — Standardise and split<a class="headerlink" href="#step-6-standardise-and-split" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>Z-score standardise every continuous feature, fit on the training split only.</li>
+<li>Stratified train/validation/test split, preserving true label prevalence in
+   every fold.</li>
+<li>Validation and test folds stay 100% real data — the class-imbalance handling in
+   Step 7 never touches them.</li>
+</ol>
+</details>
+<h3 id="step-7-handle-class-imbalance">Step 7 — Handle class imbalance<a class="headerlink" href="#step-7-handle-class-imbalance" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>Grouped SMOTENC (synthetic patients blended only within clinically similar
+   strata — same department, similar ASA) for the static-feature branch.</li>
+<li>Tomek-link cleanup after synthesis, to sharpen the decision boundary.</li>
+<li>Jitter + time-masking augmentation for real minority (died) patients on the
+   sequence branch — real data, lightly perturbed, not invented.</li>
+<li>Residual class weighting in the loss function, combined with (not instead of)
+   the above.</li>
+<li>Target ratio capped conservatively (~1:10), not full 1:1 balance — informed by
+   the literature's caution against over-amplifying a small real minority class.</li>
+</ol>
+</details>
+<h3 id="step-8-encode-each-organ-system">Step 8 — Encode each organ system<a class="headerlink" href="#step-8-encode-each-organ-system" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>One transformer encoder per organ system (six real, two diagnosis-derived),
+   reading the <strong>whole phase-tagged timeline</strong> from Step 3, not a fixed pre-op-only
+   window.</li>
+<li>Mask-aware input: value and observed/imputed mask concatenated per feature,
+   carried into the encoder itself.</li>
+<li>Two-phase training per encoder: unsupervised autoencoder pre-training on the
+   full unlabelled cohort first (so splitting into systems doesn't also split the
+   scarce mortality labels six-plus ways before any branch has learned anything),
+   then supervised fine-tuning.</li>
+</ol>
+</details>
+<h3 id="step-9-couple-systems-and-fuse-new-in-paco-net">Step 9 — Couple systems and fuse <strong>(new in PACO-Net)</strong><a class="headerlink" href="#step-9-couple-systems-and-fuse-new-in-paco-net" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>Replace the single hand-picked renal←cardiovascular link with a small
+   graph-attention layer connecting <strong>every pair</strong> of system embeddings, letting the
+   model learn which systems move together from the data itself.</li>
+<li>Retain the hand-crafted renal-cardiac interaction feature (creatinine × MAP
+   deviation) in the static branch alongside the learned coupling — a
+   sample-efficient prior sitting next to a data-driven mechanism, not replaced by
+   it.</li>
+<li>Fuse all system embeddings (post-coupling) plus the static branch through a
+   Neural Additive Model, <strong>at the organ-system level</strong> — each additive term is a
+   whole sub-network's output over many raw features, not a single scalar feature
+   (see novelty, §4).</li>
+<li>Keep the 6-month post-cardiac-surgery washout as a <strong>hard rule</strong>, deliberately
+   outside the learned coupling layer — a stated, reasoned choice (sample size +
+   actionability), not an oversight.</li>
+</ol>
+</details>
+<h3 id="step-10-predict-a-risk-curve-not-a-single-number-new-in-paco-net">Step 10 — Predict a risk curve, not a single number <strong>(new in PACO-Net)</strong><a class="headerlink" href="#step-10-predict-a-risk-curve-not-a-single-number-new-in-paco-net" title="Permanent link">&para;</a></h3>
+<details class="note">
+<summary>Sub-steps</summary>
+<ol>
+<li>Discrete-time hazard output head (SurvTRACE-style): a probability per future
+   time bin, not one flat "died within 30 days" number.</li>
+<li>Auxiliary classification and regression losses alongside the main survival loss,
+   specifically to improve probability calibration — a documented SurvTRACE design
+   choice, not an ad hoc addition.</li>
+<li>At every prediction point, the per-system NAM breakdown remains readable — so the
+   output is simultaneously "when" (the hazard curve) and "why" (the per-system
+   decomposition) at each point on that curve.</li>
+</ol>
+</details>
+<hr />
+<h2 id="4-the-novelty-being-aimed-for-stated-precisely-with-honest-bounds">4. The novelty being aimed for — stated precisely, with honest bounds<a class="headerlink" href="#4-the-novelty-being-aimed-for-stated-precisely-with-honest-bounds" title="Permanent link">&para;</a></h2>
+<p><strong>The core claim:</strong> an additive, per-<strong>organ-system</strong> decomposition — where each additive
+term is the output of a full temporal deep network reading dozens of raw, time-varying
+features for that system — applied specifically to perioperative mortality, with the
+organ-system coupling itself learned rather than assumed.</p>
+<p>Broken into four checkable pieces, each compared against the closest real precedent found:</p>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>What's claimed</th>
+<th>Closest precedent found</th>
+<th>Why it's still different</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>System-level (not feature-level) additive decomposition</td>
+<td>Each NAM term is a whole sub-network's output over a <em>group</em> of raw time-series features</td>
+<td>An interpretable additive neural network already exists for postoperative mortality (59,985 patients, AUC 0.921)</td>
+<td>That model decomposes into <strong>single scalar features</strong> (age, one lab value), and explicitly avoids feature <em>interactions</em> "to avoid cluttering the interpretation"</td>
+</tr>
+<tr>
+<td>Learned inter-organ coupling</td>
+<td>A graph-attention layer discovers which systems move together</td>
+<td>IOC-MT (2025) — six organ systems, GAT-based inter-organ correlation</td>
+<td>IOC-MT is general ICU organ-dysfunction prediction (SOFA-derived labels), not perioperative mortality; its adjustment mechanism isn't a strict, guaranteed additive sum the way NAM is</td>
+</tr>
+<tr>
+<td>Mixed-modality organ set</td>
+<td>Six systems with real time series + two (GI, MSK) with only diagnosis/department proxies, unified in one framework</td>
+<td>IOC-MT's six organs are <em>all</em> time-series-derived</td>
+<td>No precedent found for a genuinely mixed real-data/proxy-data organ set inside one coupling-and-fusion framework</td>
+</tr>
+<tr>
+<td>Explicit hard-rule-vs-learned split</td>
+<td>The 6-month cardiac washout stays a fixed rule beside a learned coupling layer, for a stated reason</td>
+<td>Not discussed as a deliberate stance anywhere found — papers are either fully learned or fully rule-based (ASA/POSSUM-style)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The honest caveat, stated plainly (keep this in any presentation of this table):</strong> the
+searches behind this table are a targeted sample across Google Scholar, PubMed, and
+arXiv — real evidence, not a systematic review. Treat this as <em>"a strong reason to
+formally investigate this as a novelty claim,"</em> not as <em>"confirmed novel."</em> A proper
+systematic search — ideally with input from James/Julius on the review-methodology side —
+is the right next step before this goes in a paper or thesis.</p>
+<p><strong>One thing already checked and correctly ruled out:</strong> Monte Carlo dropout
+uncertainty-scoring is <strong>not</strong> novel here — Shickel et al. 2023 already applied it to
+nearly this same clinical problem. Flagged explicitly so it doesn't get claimed by
+accident.</p>
+<hr />
+<h2 id="5-every-paper-this-design-is-grounded-in">5. Every paper this design is grounded in<a class="headerlink" href="#5-every-paper-this-design-is-grounded-in" title="Permanent link">&para;</a></h2>
+<p>Grouped by what each one actually informed.</p>
+<h3 id="perioperative-postoperative-mortality-prediction">Perioperative / postoperative mortality prediction<a class="headerlink" href="#perioperative-postoperative-mortality-prediction" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Shickel et al. 2023</strong>, <em>Scientific Reports</em> — "Dynamic predictions of postoperative
+  complications from explainable, uncertainty-aware, and multi-task deep neural
+  networks." 56,242 patients. The closest precedent for the phase-split design; source of
+  the "combining phases doesn't significantly help mortality specifically" caution, and
+  of the MC-dropout uncertainty method (already used, not proposed as new here).</li>
+<li><strong>Fritz et al.</strong>, <em>British Journal of Anaesthesia</em> — multipath CNN for 30-day
+  postoperative mortality using intraoperative time series.</li>
+<li><strong>Development and validation of a DNN model to predict postoperative mortality, AKI,
+  and reintubation</strong> — single feature-set, multi-outcome comparison against ASA.</li>
+<li><strong>Predicting Postoperative Mortality With DNNs and NLP</strong> — fusion of structured data
+  with free-text preoperative notes.</li>
+<li><strong>2025 systematic review</strong>, PubMed/Scopus/Google Scholar, 21 studies (2015-2025) —
+  confirms ML outperforms traditional risk scores across all three perioperative phases
+  separately, supporting the phase-split premise generally.</li>
+<li><strong>TRAPOD (2024)</strong> — transformer-only architecture for intraoperative time series,
+  explicitly tested different observation-window lengths and found meaningful
+  differences — supports treating window/phase choice as a real design variable.</li>
+</ul>
+<h3 id="multi-organ-organ-system-architectures">Multi-organ / organ-system architectures<a class="headerlink" href="#multi-organ-organ-system-architectures" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Kong et al. 2025</strong>, <em>BioData Mining</em> — "Inter-organ correlation based multi-task deep
+  learning model" (IOC-MT). Six SOFA-derived organ systems, shared encoder + task heads,
+  Graph Attention Network for inter-organ correlation. The direct precedent for PACO-Net's
+  learned-coupling layer (§9 above).</li>
+</ul>
+<h3 id="interpretability">Interpretability<a class="headerlink" href="#interpretability" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Agarwal et al. 2021</strong>, NeurIPS — Neural Additive Models, the base mechanism behind
+  the fusion layer (§9). Original paper's own supplementary material already applies NAM
+  to ICU mortality (MIMIC-II) at the feature level.</li>
+<li><strong>Interpretable neural network for postoperative in-hospital mortality</strong> (GAM-NN),
+  <em>npj Digital Medicine</em> — 59,985 surgical records, AUC 0.921. The closest existing
+  additive/interpretable model for this exact clinical problem; the paper the novelty
+  table above is benchmarked against.</li>
+<li><strong>Bras-Geraldes et al.</strong> — GAM-NN for ICU mortality (cited within the above), earlier
+  and smaller-scale precedent for additive interpretable clinical models.</li>
+<li><strong>Koh et al. 2020</strong>, ICML — Concept Bottleneck Models, the general principle behind
+  forcing a network through named intermediate concepts.</li>
+<li><strong>Choi et al. 2016</strong>, NeurIPS — RETAIN, two-level attention over clinical time series;
+  early precedent for architecture-as-explanation.</li>
+</ul>
+<h3 id="missing-data-and-imputation">Missing data and imputation<a class="headerlink" href="#missing-data-and-imputation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Rubin 1976</strong>, <em>Biometrika</em> — the foundational MCAR/MAR/MNAR framework already
+  underpinning the current notebook's missing-data theory.</li>
+<li><strong>Van Buuren &amp; Groothuis-Oudshoorn 2011</strong> — MICE, the basis for the current
+  <code>IterativeImputer</code> regression-imputation option.</li>
+<li><strong>Che et al. 2018</strong>, <em>Scientific Reports</em> — GRU-D, an early deep-learning imputation
+  method with a temporal decay mechanism.</li>
+<li><strong>Cao et al. 2018</strong>, NeurIPS — BRITS, bidirectional recurrent imputation.</li>
+<li><strong>Du, Cote &amp; Liu 2023</strong>, <em>Expert Systems with Applications</em> — SAITS, self-attention
+  imputation for time series; the specific recommended upgrade path (§5, Step 5.4 above).</li>
+<li><strong>Yoon et al. 2019</strong> — M-RNN, multi-directional imputation across and within streams.</li>
+<li><strong>2026 Nature Scientific Reports benchmark</strong> — critical-care imputation strategy
+  comparison under real-world-inspired missingness scenarios; found deep methods (SAITS,
+  BRITS) generally ahead of MICE/MissForest for multivariate time series, though
+  method/dataset-dependent.</li>
+<li><strong>MICE-RF vs. BRITS vs. Transformer vs. SAITS comparison</strong> (healthcare noisy time
+  series) — found MICE-RF competitive at missingness under 60%, deep methods pulling
+  ahead on irregular multivariate data without periodic structure — directly informs why
+  our own regression-imputation benchmark result (1/6 systems) isn't surprising.</li>
+</ul>
+<h3 id="time-to-event-hazard-modelling">Time-to-event / hazard modelling<a class="headerlink" href="#time-to-event-hazard-modelling" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Lee et al. 2018</strong>, AAAI — DeepHit, discrete-time competing-risks survival model; the
+  original hazard-curve architecture discussed.</li>
+<li><strong>Lee et al. 2019</strong> — Dynamic-DeepHit, the longitudinal/time-varying-covariate
+  extension.</li>
+<li><strong>Wang &amp; Sun 2022</strong> — SurvTRACE, transformer-based discrete-time hazard model with
+  auxiliary calibration losses; the recommended upgrade over DeepHit (§10 above).</li>
+<li><strong>Shinohara et al. 2024</strong>, <em>PLOS ONE</em> — clinical validation of SurvTRACE on real
+  cardiovascular (PCI) patient data, beating a conventional risk score.</li>
+<li><strong>Landmarking-based dynamic prediction models</strong> — the formal name for the notebook's
+  existing "repeated snapshot" risk-over-time mechanism; a recognised, legitimate simpler
+  baseline against Dynamic-DeepHit/SurvTRACE.</li>
+</ul>
+<h3 id="class-imbalance-and-sampling">Class imbalance and sampling<a class="headerlink" href="#class-imbalance-and-sampling" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Chawla et al. 2002</strong>, JAIR — SMOTE, the base synthetic-oversampling method.</li>
+<li><strong>He et al. 2008</strong>, IJCNN — ADASYN.</li>
+<li><strong>Lin et al. 2017</strong>, ICCV — Focal loss.</li>
+</ul>
+<h3 id="multimodal-fusion-general">Multimodal fusion (general)<a class="headerlink" href="#multimodal-fusion-general" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Baltrušaitis, Ahuja &amp; Morency 2019</strong>, <em>IEEE TPAMI</em> — multimodal machine learning
+  survey and taxonomy; the early/late/hybrid fusion framing used throughout.</li>
+<li><strong>Devlin et al. 2019</strong> — BERT; source of the segment-embedding pattern proposed in
+  Step 3 (phase-tagging within one shared encoder instead of tripling networks).</li>
+</ul>
+<h3 id="clinical-domain-grounding-unchanged-from-the-current-baseline">Clinical domain grounding (unchanged from the current baseline)<a class="headerlink" href="#clinical-domain-grounding-unchanged-from-the-current-baseline" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ronco et al. 2008</strong>, <em>JACC</em> — cardiorenal syndrome, the clinical basis for the
+  renal↔cardiovascular coupling.</li>
+<li><strong>Gilbert et al. 2018</strong>, <em>The Lancet</em> — Hospital Frailty Risk Score (HFRS).</li>
+<li><strong>Vincent et al. 1996</strong> — SOFA; <strong>Singer et al. 2016</strong> — Sepsis-3; together the basis
+  for treating infection as a cross-cutting modifier rather than its own organ system.</li>
+</ul>
+<hr />
+<h2 id="6-status">6. Status<a class="headerlink" href="#6-status" title="Permanent link">&para;</a></h2>
+<p>Design stage only — nothing on this page is implemented. See <code>roadmap_and_architecture.md</code>
+for the currently-running baseline, and <code>Multimodal_Notebook_Summary.md</code> for how that
+baseline maps to actual notebook code. This page will be updated as pieces of PACO-Net
+move from researched → prototyped → validated.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.collapse", "content.code.copy", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

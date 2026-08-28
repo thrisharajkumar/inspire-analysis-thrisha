@@ -1,0 +1,2765 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+        <link rel="prev" href="../Base_Comparitive_Study_Models/">
+      
+      
+        <link rel="next" href="../roadmap_and_architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Research Aims & Objectives - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#inspire-project-research-questions-explorations-roadmap" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Research Aims & Objectives
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Project_Notes/" class="md-tabs__link">
+          
+  
+  
+  Data & Pipeline
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Surgeon_Facing_Summary/" class="md-tabs__link">
+          
+  
+  
+  Clinician Inputs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-tabs__link">
+          
+  
+  
+  MULTIMODEL MODEL
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../PACO_Net_Architecture/" class="md-tabs__link">
+          
+  
+  
+  Next-Gen Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data & Pipeline
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data & Pipeline
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Project_Notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eda_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Complete_Findings_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete Findings Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinician Inputs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Clinician Inputs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Surgeon_Facing_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Surgeon Summanry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Novelty_Research_Ledger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Novelty & Clinical Relevance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MULTIMODEL MODEL
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MULTIMODEL MODEL
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Meeting_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Full-Scale Run — Meeting Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Base_Comparitive_Study_Models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Comparitive Study
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Aims & Objectives
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Aims & Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-how-this-fits-with-the-rest-of-the-repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. How this fits with the rest of the repo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-where-the-project-stands-right-now-one-paragraph-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Where the project stands right now — one-paragraph version
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-the-research-questions-worked-through" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The research questions, worked through
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. The research questions, worked through">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-30-day-perioperative-mortality-prediction-what-exactly-is-being-predicted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 "30-day perioperative mortality prediction" — what exactly is being predicted?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-multiple-surgeries-last-surgery-first-surgery-or-exclude" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Multiple surgeries — last surgery, first surgery, or exclude?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-understanding-asa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Understanding ASA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-asa-vs-possum-vs-nela-laid-out-clearly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 ASA vs. POSSUM vs. NELA — laid out clearly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-feature-selection-model-per-systemfunction-feature-embeddings-autoencoder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 Feature selection → model per system/function → feature embeddings → autoencoder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-pre-operative-peri-operative-and-post-operative-what-actually-helps-decide-mortality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 Pre-operative, peri-operative, and post-operative — what actually helps decide mortality?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27-vitals-are-more-accurate-during-surgery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.7 "Vitals are more accurate during surgery"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#28-from-a-single-risk-number-to-a-risk-trajectory-time-to-event-deterioration-timing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.8 From a single risk number to a risk trajectory — time-to-event / deterioration timing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#29-a-multimodal-modelling-pipeline-like-the-figure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.9 A multimodal modelling pipeline, like the figure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#210-learning-embeddings-for-categorical-entities-medications-diagnoses-and-beyond" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.10 Learning embeddings for categorical entities — medications, diagnoses, and beyond
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#211-research-papers-for-icd-10-asa-possum-style-categorisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.11 Research papers for ICD-10 / ASA / POSSUM-style categorisation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#212-a-more-concrete-picture-of-the-architecture-what-do-the-categories-actually-look-like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.12 A more concrete picture of the architecture — what do the "categories" actually look like?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#213-what-further-analysis-can-be-done-with-whats-already-here-no-new-engineering-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.13 What further analysis can be done with what's already here — no new engineering required
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-new-research-ideas-additions-beyond-whats-already-documented" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. New research ideas — additions beyond what's already documented
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. New research ideas — additions beyond what&#39;s already documented">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-data-and-labelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Data and labelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-modelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Modelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-interpretability-directly-addressing-the-stated-main-aim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Interpretability — directly addressing the stated main aim
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-consolidated-reprioritised-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Consolidated, reprioritised roadmap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap_and_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap & Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Notes & Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meeting Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ICD10_Architecture_Research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ICD-10 Architecture Research
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next-Gen Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Next-Gen Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACO_Net_Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PACO-Net Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-how-this-fits-with-the-rest-of-the-repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. How this fits with the rest of the repo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-where-the-project-stands-right-now-one-paragraph-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Where the project stands right now — one-paragraph version
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-the-research-questions-worked-through" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The research questions, worked through
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. The research questions, worked through">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-30-day-perioperative-mortality-prediction-what-exactly-is-being-predicted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 "30-day perioperative mortality prediction" — what exactly is being predicted?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-multiple-surgeries-last-surgery-first-surgery-or-exclude" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Multiple surgeries — last surgery, first surgery, or exclude?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-understanding-asa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Understanding ASA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-asa-vs-possum-vs-nela-laid-out-clearly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 ASA vs. POSSUM vs. NELA — laid out clearly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-feature-selection-model-per-systemfunction-feature-embeddings-autoencoder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 Feature selection → model per system/function → feature embeddings → autoencoder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-pre-operative-peri-operative-and-post-operative-what-actually-helps-decide-mortality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 Pre-operative, peri-operative, and post-operative — what actually helps decide mortality?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27-vitals-are-more-accurate-during-surgery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.7 "Vitals are more accurate during surgery"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#28-from-a-single-risk-number-to-a-risk-trajectory-time-to-event-deterioration-timing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.8 From a single risk number to a risk trajectory — time-to-event / deterioration timing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#29-a-multimodal-modelling-pipeline-like-the-figure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.9 A multimodal modelling pipeline, like the figure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#210-learning-embeddings-for-categorical-entities-medications-diagnoses-and-beyond" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.10 Learning embeddings for categorical entities — medications, diagnoses, and beyond
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#211-research-papers-for-icd-10-asa-possum-style-categorisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.11 Research papers for ICD-10 / ASA / POSSUM-style categorisation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#212-a-more-concrete-picture-of-the-architecture-what-do-the-categories-actually-look-like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.12 A more concrete picture of the architecture — what do the "categories" actually look like?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#213-what-further-analysis-can-be-done-with-whats-already-here-no-new-engineering-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.13 What further analysis can be done with what's already here — no new engineering required
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-new-research-ideas-additions-beyond-whats-already-documented" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. New research ideas — additions beyond what's already documented
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. New research ideas — additions beyond what&#39;s already documented">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-data-and-labelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Data and labelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-modelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Modelling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-interpretability-directly-addressing-the-stated-main-aim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Interpretability — directly addressing the stated main aim
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-consolidated-reprioritised-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Consolidated, reprioritised roadmap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="inspire-project-research-questions-explorations-roadmap">INSPIRE Project — Research Questions, Explorations &amp; Roadmap<a class="headerlink" href="#inspire-project-research-questions-explorations-roadmap" title="Permanent link">&para;</a></h1>
+<h2 id="0-how-this-fits-with-the-rest-of-the-repo">0. How this fits with the rest of the repo<a class="headerlink" href="#0-how-this-fits-with-the-rest-of-the-repo" title="Permanent link">&para;</a></h2>
+<p>The repo already has four documentation files, and they are not redundant with each
+other or with this one — each answers a different question:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Answers</th>
+<th>Read this if you want...</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>README.md</code></td>
+<td>What are the five raw INSPIRE CSV tables?</td>
+<td>The original data dictionary, as published with the dataset</td>
+</tr>
+<tr>
+<td><code>docs/index.md</code> (site "Home")</td>
+<td>What is the current architecture, current config, current results, and the full prioritised roadmap?</td>
+<td><strong>The single source of truth.</strong> Everything technical and current.</td>
+</tr>
+<tr>
+<td><code>docs/INSPIRE_Project_Notes.md</code></td>
+<td>How does the pipeline work, explained simply, end to end?</td>
+<td>A plain-English walkthrough of the transformer, attention, pre-training, class imbalance, and the three comparison models (NELA / GBM / DNN)</td>
+</tr>
+<tr>
+<td><code>docs/eda_findings.md</code></td>
+<td>What does the full 99,886-patient cohort actually look like?</td>
+<td>Cohort-level findings — who dies, which departments, which ICD-10 codes, feature coverage, correlations, frailty</td>
+</tr>
+<tr>
+<td><code>docs/feature_audit_findings.md</code></td>
+<td>What data does each <em>individual</em> patient actually have?</td>
+<td>Per-patient completeness on the 30-patient development subset</td>
+</tr>
+<tr>
+<td><code>docs/Multimodal_Notebook_Summary.md</code> <strong>(new)</strong></td>
+<td>What does the new multimodal notebook actually implement, and how does it map onto this doc's §2.5/§2.9 architecture?</td>
+<td>The runnable-code counterpart to this file's system-separated-architecture reasoning</td>
+</tr>
+<tr>
+<td><code>docs/roadmap_and_architecture.md</code> §4 <strong>(updated)</strong></td>
+<td>What is the current, implemented target architecture (post-GI/MSK, post-cardiorenal-coupling)?</td>
+<td>The up-to-date architecture diagram and checklist — supersedes the architecture sketch in this file's §2.5 where the two disagree on implementation status (this file has the fuller original reasoning; the roadmap doc has the current build status)</td>
+</tr>
+<tr>
+<td><code>docs/INSPIRE_Complete_Findings_Summary.md</code> <strong>(new)</strong></td>
+<td>What full-scale (99,886-patient) numbers are now confirmed?</td>
+<td>Resolves several items this file's §1–2 originally flagged as open (e.g. the true 30-day death count: 469/99,886 = 0.47%)</td>
+</tr>
+<tr>
+<td><strong>This file</strong></td>
+<td>What were the open research questions, and what do they lead to?</td>
+<td>The connective layer: your questions → what's already answered → what's still open → new ideas</td>
+</tr>
+</tbody>
+</table>
+<p>If you're starting a new conversation with no other context loaded, <code>docs/index.md</code> is
+still the one file to paste in first — it's the project's memory. This file is the
+research-direction layer on top of it.</p>
+<hr />
+<h2 id="1-where-the-project-stands-right-now-one-paragraph-version">1. Where the project stands right now — one-paragraph version<a class="headerlink" href="#1-where-the-project-stands-right-now-one-paragraph-version" title="Permanent link">&para;</a></h2>
+<p><strong>Goal:</strong> predict 30-day post-surgical mortality from the INSPIRE Korean perioperative
+dataset (~99,886 patients, 2011–2020), using a deep learning model that reads clinical
+time series rather than a single snapshot — and, critically, that can <em>explain</em> its
+predictions in a way a surgeon could act on (which organ system is driving the risk, not
+just a number). <strong>Current pipeline:</strong> a two-phase transformer (<code>dnn_mortality_pipeline.py</code>)
+— autoencoder pre-training on unlabelled time series, then a classifier fine-tuned
+end-to-end — running on a 29–30 patient development subset, with AUROC fluctuating
+between 0.67 and 0.86 depending on the run (not yet meaningful; the test set is too small
+— one wrong prediction moves AUROC by ~0.11). <strong>Comparison baselines:</strong> NELA (fixed
+clinical equation, implemented, <code>nela.py</code>), GBM (Saranya's XGBoost model with/without
+frailty, <code>gbm_mortality.py</code>), and the DNN. <strong>Benchmark to beat:</strong> Shickel et al. 2023
+(<em>Scientific Reports</em>), AUROC 0.92 on 56,242 patients from a similar (though not
+identical) problem. <strong>The single highest-priority open issue</strong>, found during EDA and not
+yet fixed in the pipeline: the <code>survived/</code>/<code>died/</code> folder labels were built from "died at
+any point in this record," not "died within 30 days of the last operation" — 473 of the
+942 all-cause deaths in the full cohort are likely <strong>not</strong> true 30-day deaths, and this
+has not yet been corrected in the loader. Everything downstream — every AUROC number, the
+<code>pos_weight</code> calculation, the whole class-imbalance strategy — is provisional until this
+is fixed.</p>
+<hr />
+<h2 id="2-the-research-questions-worked-through">2. The research questions, worked through<a class="headerlink" href="#2-the-research-questions-worked-through" title="Permanent link">&para;</a></h2>
+<p>This section takes the questions and ideas from the working session, in the rough order
+they came up, and works through each one against what's already in the repo.</p>
+<h3 id="21-30-day-perioperative-mortality-prediction-what-exactly-is-being-predicted">2.1 "30-day perioperative mortality prediction" — what exactly is being predicted?<a class="headerlink" href="#21-30-day-perioperative-mortality-prediction-what-exactly-is-being-predicted" title="Permanent link">&para;</a></h3>
+<p>The target is clear in principle: <code>inhosp_death_30day</code>, defined in the codebase as</p>
+<div class="highlight"><pre><span></span><code><span class="n">label</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">inhosp_death_time</span> <span class="o">&lt;</span> <span class="n">orout_time</span> <span class="o">+</span> <span class="p">(</span><span class="mi">30</span> <span class="err">×</span> <span class="mi">24</span> <span class="err">×</span> <span class="mi">60</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
+<span class="c1"># died within 30 days of leaving the operating room</span>
+</code></pre></div>
+<p>But two things about this definition are still open, and both matter more than they look:</p>
+<ol>
+<li><strong>The label bug above (Section 1).</strong> The folder structure everyone has been loading
+   data from encodes "died ever," not "died within 30 days." This needs fixing before any
+   number from this project should be trusted or published.</li>
+<li><strong>"Perioperative" vs. "pre-operative."</strong> The project is <em>described</em> as peri-operative,
+   but the pipeline as implemented only reads data from the 5 days <em>before</em> surgery — it
+   never looks at what happens during or after the operation. This is a real, undecided
+   scope question (see Section 2.6 below), not a technical limitation — the peri-operative
+   window (intraoperative vitals) is fully available in the data, just not wired in.</li>
+</ol>
+<p><strong>Recommendation:</strong> treat definition #1 as a blocking bug fix (see the roadmap in Section
+3), and definition #2 as a genuine research question to answer empirically — build both a
+pre-op-only and a peri-operative version and report both, rather than picking one by
+assumption.</p>
+<hr />
+<h3 id="22-multiple-surgeries-last-surgery-first-surgery-or-exclude">2.2 Multiple surgeries — last surgery, first surgery, or exclude?<a class="headerlink" href="#22-multiple-surgeries-last-surgery-first-surgery-or-exclude" title="Permanent link">&para;</a></h3>
+<p>This came up as an open argument: should patients with more than one recorded operation
+be excluded entirely (as an experiment), or should the label be computed relative to
+their first operation or their last?</p>
+<p>There's already a code-level flag about exactly this in <code>subject.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Should it not be 30 days from the last operation not the first operation?</span>
+<span class="c1">#  Could be that subsequent operations are seen as causal consequence of initial operation?</span>
+<span class="c1">#  This still seems wrong, many subjects have multiple operations over 10 years.</span>
+</code></pre></div>
+<p>Laying out the three options properly:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What it means</th>
+<th>Argument for</th>
+<th>Argument against</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>From last operation</strong> (current implementation)</td>
+<td>30-day window starts at the most recent surgery before the outcome</td>
+<td>Matches "did this specific operation, the one we're predicting risk for, kill the patient"</td>
+<td>If a patient had 4 operations over 6 years, the earlier ones tell you nothing about <em>this</em> prediction task even though they're in the record</td>
+</tr>
+<tr>
+<td><strong>From first operation</strong></td>
+<td>30-day window starts at the patient's earliest recorded surgery</td>
+<td>Captures "this patient's surgical journey started here"</td>
+<td>Loses the fact that most recent surgery is usually what's clinically relevant to current risk; a patient who had a minor procedure in 2012 and a major one in 2019 gets the wrong reference point</td>
+</tr>
+<tr>
+<td><strong>Exclude multi-operation patients</strong></td>
+<td>Only model patients with exactly one recorded operation</td>
+<td>Cleanest possible label — no ambiguity about which surgery caused what</td>
+<td><strong>Selection bias risk</strong>: patients who need multiple operations are very plausibly the <em>sicker</em> patients (repeat interventions, complications, staged procedures for cancer, etc.) — dropping them could make the remaining cohort look artificially healthy and the model's risk estimates artificially optimistic. This needs checking, not assuming.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the repo already tells us about this question:</strong> <code>docs/eda_findings.md</code> §12 has
+already run "mortality rate vs. number of operations" as an open EDA cell — that chart
+(<code>16_multi_operation_mortality.png</code>) is the direct empirical answer to whether multi-op
+patients are higher risk, which is exactly the evidence needed before deciding whether
+excluding them would introduce selection bias.</p>
+<p><strong>Recommendation:</strong> don't pick one definition — treat this as a <strong>sensitivity analysis</strong>
+that is itself a small, reportable piece of research: run the pipeline under all three
+definitions and see whether the model's conclusions (which features matter, which AUROC
+range) are stable across them. If they are, that's a robustness finding worth stating in
+the paper. If they aren't, that tells you the operation-selection question genuinely
+changes what "risk" means in this dataset — also worth reporting, and it would settle the
+argument with real evidence.</p>
+<hr />
+<h3 id="23-understanding-asa">2.3 Understanding ASA<a class="headerlink" href="#23-understanding-asa" title="Permanent link">&para;</a></h3>
+<p>The <strong>ASA Physical Status Classification System</strong> (American Society of Anesthesiologists)
+is the oldest and simplest of the three clinical scores in this project. Some
+context that's useful for the comparison in 2.4:</p>
+<ul>
+<li>It's a <strong>subjective clinical judgement</strong>, not a calculation — an anaesthesiologist looks
+  at the patient and assigns a class from <strong>I to VI</strong>, on the day of surgery.</li>
+<li><strong>I</strong> = healthy patient; <strong>II</strong> = mild systemic disease, no functional limitation; <strong>III</strong>
+  = severe systemic disease; <strong>IV</strong> = severe systemic disease that is a constant threat to
+  life; <strong>V</strong> = moribund, not expected to survive without the operation; <strong>VI</strong> = declared
+  brain-dead organ donor.</li>
+<li>An <strong>"E"</strong> suffix (e.g. "III E") denotes an emergency — defined as a situation where
+  delaying treatment would significantly increase the threat to life or limb.</li>
+<li>It has been in continuous use since <strong>1961/1963</strong>, and is explicitly <em>not</em> recommended by
+  the ASA itself as a standalone risk-prediction tool — the ASA House of Delegates has
+  stated it should be combined with other factors (surgery type, frailty, deconditioning),
+  not used in isolation.</li>
+<li>Its main known weakness is <strong>inter-rater reliability</strong> — different anaesthesiologists can
+  and do assign different classes to the same patient, because it's a gestalt judgement,
+  not a formula.</li>
+</ul>
+<p>In INSPIRE, the <code>asa</code> field lives in the <code>operations</code> table (values 1–5 observed in this
+dataset) and is already validated in the repo's own EDA: <code>docs/eda_findings.md</code> §2 shows
+mortality rate climbing steadily and monotonically from ASA 1 through ASA 6, under both
+the all-cause and 30-day definitions — exactly what you'd expect if the data and labels
+are trustworthy. <strong>It is currently not used as an input feature anywhere in the DNN
+pipeline</strong> (only NELA and the GBM's clinical baseline reference it) — this is a concrete,
+low-effort thing to add, given it has 100% coverage (every patient has exactly one
+operation record) and is one of the strongest, most established predictors in the
+literature.</p>
+<hr />
+<h3 id="24-asa-vs-possum-vs-nela-laid-out-clearly">2.4 ASA vs. POSSUM vs. NELA — laid out clearly<a class="headerlink" href="#24-asa-vs-possum-vs-nela-laid-out-clearly" title="Permanent link">&para;</a></h3>
+<p>All three are pre-existing clinical tools this project compares itself against. None of
+them are machine-learned — they're either a judgement call (ASA) or a fixed equation
+fitted once, long ago, on a specific cohort, and then frozen. That's the point of
+including them: they're the thing any new model has to beat to be worth using clinically.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>ASA</strong></th>
+<th><strong>POSSUM / P-POSSUM</strong></th>
+<th><strong>NELA</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Full name</strong></td>
+<td>American Society of Anesthesiologists Physical Status</td>
+<td>Physiological and Operative Severity Score for the enUmeration of Mortality and morbidity</td>
+<td>National Emergency Laparotomy Audit</td>
+</tr>
+<tr>
+<td><strong>What it is</strong></td>
+<td>A clinician's subjective judgement, class I–VI</td>
+<td>A statistical equation: 12 physiological factors + 6 operative factors, each scored 1/2/4/8 (exponential severity), summed and fed through logistic regression</td>
+<td>A statistical equation: 25 variables (age, ASA class, albumin, urea, blood pressure, urgency, etc.), fed through logistic regression</td>
+</tr>
+<tr>
+<td><strong>Developed for</strong></td>
+<td>General pre-anaesthesia assessment, any surgery</td>
+<td>Auditing/comparing surgical unit performance across <em>any</em> general surgery (originally a quality-improvement tool, not meant for individual-patient prediction)</td>
+<td>Specifically emergency (unplanned) laparotomy, as a UK national audit standard</td>
+</tr>
+<tr>
+<td><strong>Equation (mortality)</strong></td>
+<td>None — ordinal category only</td>
+<td><code>ln(R/(1-R)) = -7.04 + 0.13×PhysiologyScore + 0.16×OperativeScore</code> (original); Portsmouth revision uses different, better-calibrated coefficients because the original consistently <strong>overestimates</strong> mortality in low-risk patients</td>
+<td>Published logistic-regression equation with 25 coefficients, e.g. <code>logit = -3.04678 + 0.06660×age + 1.13007×(ASA=3) + ... - 0.04323×albumin + ...</code> — implemented directly in <code>nela.py</code></td>
+</tr>
+<tr>
+<td><strong>Needs data from</strong></td>
+<td>Clinical gestalt only</td>
+<td>Pre-op labs/vitals + intra-operative findings (blood loss, contamination, malignancy)</td>
+<td>Pre-op labs/vitals + urgency + operative severity, specific to laparotomy</td>
+</tr>
+<tr>
+<td><strong>Known bias</strong></td>
+<td>Inter-rater variability; explicitly <em>not</em> validated as a standalone predictor by its own governing body</td>
+<td>Systematically <strong>overestimates</strong> mortality, especially in low-risk patients — this is <em>why</em> P-POSSUM exists as a correction</td>
+<td>Built and validated on a large, specific UK population (emergency laparotomy only) — applying it to INSPIRE's broader, non-UK, mixed elective/emergency population is a genuine external-validation question, not a given</td>
+</tr>
+<tr>
+<td><strong>Status in this project</strong></td>
+<td>Not currently a model input</td>
+<td>Not implemented</td>
+<td>Implemented (<code>nela.py</code>), used as the fixed clinical baseline</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this table matters for the project, beyond background:</strong> all three tools share one
+property that makes them a fair and important baseline — they are <strong>fixed, published, and
+frozen</strong>. They don't learn from INSPIRE data at all (NELA in particular was built on a UK
+population, not INSPIRE). Their performance on INSPIRE tells you two different things at
+once: (1) how good the <em>idea</em> of pre-operative risk scoring is in general, and (2) how well
+a UK/general-surgery-derived tool transfers to a Korean, mixed-department population — a
+distribution-shift question worth stating explicitly in any write-up, since a
+lower-than-published NELA AUROC on INSPIRE could mean the tool travels poorly, not that the
+tool is bad. <strong>POSSUM is the one of the three not yet implemented in this codebase</strong> — it
+would be a natural fourth baseline alongside NELA, since its variable list overlaps heavily
+with what's already extracted for NELA and the GBM.</p>
+<hr />
+<h3 id="25-feature-selection-model-per-systemfunction-feature-embeddings-autoencoder">2.5 Feature selection → model per system/function → feature embeddings → autoencoder<a class="headerlink" href="#25-feature-selection-model-per-systemfunction-feature-embeddings-autoencoder" title="Permanent link">&para;</a></h3>
+<p>This is the architecture from the diagram you brought to this conversation, and it turns
+out to match — almost exactly — the target architecture already sketched in
+<code>docs/index.md</code> §14 (written before this conversation, from earlier discussions with your
+supervisor). Worth stating plainly: <strong>this is not a new idea to introduce, it's the
+existing target design, and this project already has the two building blocks it needs
+(organ-system feature groupings, and a working autoencoder-pretraining pipeline) — they
+just haven't been connected yet.</strong></p>
+<p>Reading your diagram against the current codebase:</p>
+<div class="highlight"><pre><span></span><code>Meds ~500, Ward Vitals ~120, Labs ~75   ← raw inputs (medications.csv, ward_vitals.csv, labs.csv)
+        ↓ (each arrow = feature routed to its physiological system)
+Respiratory / Nervous / Cardiovascular / Neurological   ← "clinically meaningful function/system"
+        ↓
+Mr, Mn, Mc, Mn (orange)   ← one MODEL (encoder) per system
+        ↓
+Fr, Fn, Fc, Fn (green)    ← one FEATURE/EMBEDDING per system, output of that system's model
+        ↓ (all converge)
+Mr (large orange, right)  ← a final fusion/meta-model combining all system embeddings
+        ↓
+D̈ (green circle)          ← the final prediction (death / mortality risk)
+</code></pre></div>
+<p>This is precisely the "system-separated embedding architecture" already described (with
+slightly different notation) in <code>docs/index.md</code> §14:</p>
+<div class="highlight"><pre><span></span><code>Current (black box):        7 features → 1 transformer → 1 embedding → mortality
+Target (explainable):
+  Renal features          → Encoder 1 → renal_embedding
+  Cardiovascular features → Encoder 2 → cardio_embedding
+  Respiratory features    → Encoder 3 → resp_embedding
+  Metabolic features      → Encoder 4 → metabolic_embedding
+                                   ↓ concatenate
+                          NAM classifier (one shape function per system)
+                                   ↓
+     "Renal: CRITICAL | Respiratory: CONCERN | Cardio: OK | Metabolic: OK" → mortality = 0.84
+</code></pre></div>
+<p><strong>Concretely, how to build it, using what already exists in this repo:</strong></p>
+<ol>
+<li><strong>Feature selection</strong> — already scoped in <code>docs/index.md</code> §15 item 4 (the 6-system
+   grouping of all 126 parameters into Renal / Cardiovascular / Respiratory /
+   Metabolic-hepatic / Haematology-coagulation / Neurological) and <em>already implemented and
+   running</em> as statistical feature selection in <code>feature_selection_pipeline.py</code> (see
+   Section 2.13 below — this script already does univariate testing, multiple-comparison
+   correction, redundancy removal, and department-adjusted significance checking; it just
+   hasn't been surfaced as "done" in earlier docs).</li>
+<li><strong>Model per system</strong> — replace the single <code>TimeSeriesTransformer</code> in
+   <code>dnn_mortality_pipeline.py</code> with <strong>N separate instances</strong> of it, one per organ system,
+   each taking only that system's features as input. The existing two-phase training
+   pattern (autoencode → freeze/unfreeze → classify) applies to each system encoder
+   independently.</li>
+<li><strong>Feature embeddings per system</strong> — each system's encoder, after mean-pooling over time
+   (exactly as the current single encoder does), produces one embedding vector per system
+   per patient. This is the <code>Fr</code> / <code>Fn</code> / <code>Fc</code> / <code>Fn</code> layer in your diagram.</li>
+<li><strong>Autoencoder</strong> — unchanged in principle, just run per-system rather than once — each
+   system's encoder is still pre-trained unsupervised on reconstruction, which matters even
+   more here because splitting into systems also splits the already-scarce mortality
+   labels' effective sample size per branch.</li>
+<li><strong>Fusion / final model</strong> — this is the one genuinely new design decision, and it's the
+   one that determines how interpretable the result actually is (see Section 2.14C). A
+   plain concatenation + <code>Linear</code> layer works but is not meaningfully more interpretable
+   than the current single model — a <strong>Neural Additive Model</strong> (each system embedding
+   contributes its own separately-plottable, additive shape function to the final logit)
+   is the version that actually delivers "Renal: CRITICAL, Respiratory: CONCERN" as a real
+   decomposition rather than a post-hoc story.</li>
+</ol>
+<hr />
+<h3 id="26-pre-operative-peri-operative-and-post-operative-what-actually-helps-decide-mortality">2.6 Pre-operative, peri-operative, and post-operative — what actually helps decide mortality?<a class="headerlink" href="#26-pre-operative-peri-operative-and-post-operative-what-actually-helps-decide-mortality" title="Permanent link">&para;</a></h3>
+<p>The three windows map onto real fields already in every subject JSON:</p>
+<div class="highlight"><pre><span></span><code>[admission_time=0] ... [orin_time] —— surgery —— [orout_time] ... [discharge_time]
+        ↑ pre-op window                              ↑ post-op window
+                        ↑ intra-op window (orin_time to orout_time)
+</code></pre></div>
+<ul>
+<li><strong>Pre-operative</strong> — the only window the current pipeline reads (5 days before <code>orin_time</code>).
+  Captures the patient's <em>baseline</em> state: chronic disease, nutritional status, kidney/liver
+  function, how sick they already were walking in. This is what ASA, POSSUM, and NELA are
+  all fundamentally trying to summarise in a single number.</li>
+<li><strong>Intra-operative</strong> — not used by the current pipeline at all (72-parameter <code>vitals</code> table,
+  entirely unused — see Section 2.7). Captures the <em>acute physiological stress response</em> to
+  the surgery and anaesthesia itself: how much blood was lost, how unstable the blood
+  pressure was, how long anaesthesia ran, whether oxygenation held up. Two patients with
+  identical pre-op labs can have very different intra-operative courses.</li>
+<li><strong>Post-operative</strong> — captures whether the patient is <em>recovering or deteriorating</em>: ICU
+  length of stay, whether CRRT/ECMO/IABP got started, trending labs after surgery. This is
+  the window where the time-to-event/deterioration-timing question in Section 2.8 lives.</li>
+</ul>
+<p><strong>Which one "helps decide"?</strong> All three carry different, complementary information, and
+the honest answer is that this is an empirical question this project is well-positioned to
+answer directly, because — unusually — it has all three windows available in the same
+dataset:</p>
+<ul>
+<li>Train a <strong>pre-op-only</strong> model (what exists today).</li>
+<li>Train a <strong>pre-op + intra-op</strong> model (a true peri-operative model).</li>
+<li>Train a <strong>pre-op + intra-op + early post-op</strong> model, and see where the AUROC gain plateaus.</li>
+</ul>
+<p>This directly answers a clinically meaningful question with three distinct use cases: a
+pre-op-only model is a <strong>decision-support tool</strong> (should we operate, should ICU be booked
+in advance); a peri-operative model is a <strong>real-time monitoring tool</strong> (should the surgical
+team escalate mid-case); a model that includes early post-op data is an <strong>early-warning /
+rescue tool</strong> (should this patient be flagged now, before a formal deterioration event).
+These are three different products, not three versions of the same one — worth framing that
+way in any write-up, rather than treating "more data = better AUROC" as the only finding.</p>
+<hr />
+<h3 id="27-vitals-are-more-accurate-during-surgery">2.7 "Vitals are more accurate during surgery"<a class="headerlink" href="#27-vitals-are-more-accurate-during-surgery" title="Permanent link">&para;</a></h3>
+<p>This intuition is directly confirmed by the repo's own EDA, not just plausible reasoning.
+Two concrete findings from <code>docs/eda_findings.md</code> §6–7 explain <em>why</em>:</p>
+<ul>
+<li><strong><code>spo2</code> coverage drops from 93% "anywhere in the record" to 40% "in the pre-op
+  window"</strong> — the explanation given in the doc is that monitors get physically attached to
+  a patient once they're admitted or in theatre, not beforehand. The same pattern holds for
+  <code>uo</code> (urine output): 63% "anywhere," <strong>0% pre-op</strong>.</li>
+<li>The intra-operative <code>vitals</code> table is populated automatically by anaesthesia machines and
+  monitors, at regular (often minute-level) intervals, for the entire duration of surgery —
+  a fundamentally different data-generating process from ward vitals, which are manually
+  charted by nursing staff at irregular intervals and are much sparser (the worked patient
+  example in <code>docs/index.md</code> §6 has 7,567 ward-vital rows vs. 457 intra-op vital rows over a
+  much shorter window — intra-op vitals are denser <em>per minute of coverage</em>, even though
+  fewer total rows exist because surgery itself is short).</li>
+</ul>
+<p><strong>Why this matters for interpreting any future AUROC gain from adding intra-op data:</strong> if
+adding intra-op vitals improves the model, part of that improvement is genuinely new
+physiological information (Section 2.6), and part of it may simply be <em>better measurement
+quality</em> — less missingness, less linear-interpolation guessing (<code>align_time_series()</code>
+currently fills gaps by drawing straight lines between sparse points; there's much less
+gap-filling to do when a monitor samples every minute). A fair comparison should report
+the missingness/coverage rate for each window alongside the AUROC, so a reviewer can see how
+much of the gain is "more information" vs. "less noisy information."</p>
+<hr />
+<h3 id="28-from-a-single-risk-number-to-a-risk-trajectory-time-to-event-deterioration-timing">2.8 From a single risk number to a risk trajectory — time-to-event / deterioration timing<a class="headerlink" href="#28-from-a-single-risk-number-to-a-risk-trajectory-time-to-event-deterioration-timing" title="Permanent link">&para;</a></h3>
+<p>The idea raised in the session — using a <strong>risk score regression or probability model</strong> so
+that it's possible to analyse <strong>when</strong> a patient started to decline, rather than just
+whether they eventually died — is a well-established shift in framing called <strong>survival
+analysis</strong> or <strong>time-to-event modelling</strong>, and it fits this dataset unusually well because
+every measurement already carries a precise <code>chart_time</code> in minutes.</p>
+<p><strong>The core reframe:</strong></p>
+<div class="highlight"><pre><span></span><code>Current:  P(died within 30 days) = 0.73          ← one number, computed once, pre-op
+Target:   h(t) for t = 0 ... 30 days              ← a hazard/risk curve, updated as new
+                                                     data arrives, showing WHEN risk rose
+</code></pre></div>
+<p>A short, honest tour of the relevant model family, roughly in order of how far each moves
+away from classical statistics:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Idea</th>
+<th>Relevant limitation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cox Proportional Hazards</strong> (classical)</td>
+<td>Linear model of log-hazard; assumes each covariate's effect on risk is constant over time (the "proportional hazards" assumption)</td>
+<td>Too rigid for a physiology that changes hour to hour</td>
+</tr>
+<tr>
+<td><strong>DeepSurv</strong></td>
+<td>Replaces Cox's linear risk function with a neural network, but keeps the proportional-hazards assumption and the Cox partial-likelihood loss</td>
+<td>On purely tabular clinical data, gains over plain Cox are often modest — it doesn't use the time series <em>within</em> a patient, only a static snapshot</td>
+</tr>
+<tr>
+<td><strong>DeepHit</strong></td>
+<td>Fully discrete-time, distribution-free — learns the probability mass function of "time to event" directly, with a ranking loss on top, and natively supports <strong>competing risks</strong> (more than one possible cause of the event)</td>
+<td>Static — one prediction per patient, made once</td>
+</tr>
+<tr>
+<td><strong>Dynamic-DeepHit</strong></td>
+<td>Extends DeepHit to <strong>longitudinal</strong> data — re-estimates the risk distribution every time new measurements arrive, using an RNN to summarise the patient's history so far</td>
+<td>This is the closest existing published architecture to "when did this patient start to decline"</td>
+</tr>
+<tr>
+<td><strong>DySurv</strong> (2024–2025, conditional-VAE based)</td>
+<td>Combines static admission data <em>and</em> time-series data in a single multimodal dynamic model; evaluated specifically on ICU data (MIMIC-IV, eICU) and shown to <strong>outperform APACHE and SOFA scores</strong> — the ICU-equivalent of NELA/POSSUM for this kind of problem</td>
+<td>Newest of the family; worth reading as the most directly comparable prior work to what this project is trying to build</td>
+</tr>
+</tbody>
+</table>
+<p>One finding from the DySurv paper is worth quoting because it is exactly the pattern this
+project is asking about: in ICU-style data, <strong>predicted survival curves show a visible drop
+starting a few days before death</strong>, rather than dropping suddenly at the moment of death —
+i.e. the deterioration is detectable in the trajectory before the event, which is the
+entire premise behind wanting a time-to-event model instead of a single pre-op number.</p>
+<p><strong>What this looks like concretely for INSPIRE:</strong> instead of one label
+(<code>inhosp_death_30day</code>), define a <em>discrete-time hazard target</em> — did the patient die in
+[day 0–1], [day 1–3], [day 3–7], [day 7–14], [day 14–30], not-yet-observed? — and train the
+existing transformer encoder to output a hazard at each interval, updated every time a new
+lab/vital arrives, instead of a single sigmoid at the end. <strong>Censoring and competing risks
+need explicit handling</strong>: patients discharged alive before 30 days are <em>censored</em>, not
+labelled "survived" with certainty about what happens after discharge; and the ICD-10
+cause-of-instability codes already surfaced in EDA (D65 disseminated intravascular
+coagulation, I46 cardiac arrest, R57 shock, J80 ARDS, K72 hepatic failure, A41 sepsis —
+<code>docs/eda_findings.md</code> §4) are a natural, already-available set of <strong>competing-risk labels</strong>
+(died-of-bleeding vs. died-of-cardiac-cause vs. died-of-sepsis), rather than treating "death"
+as one undifferentiated event.</p>
+<hr />
+<h3 id="29-a-multimodal-modelling-pipeline-like-the-figure">2.9 A multimodal modelling pipeline, like the figure<a class="headerlink" href="#29-a-multimodal-modelling-pipeline-like-the-figure" title="Permanent link">&para;</a></h3>
+<p>Putting Sections 2.5 and 2.8 together, here is a fully spelled-out version of the pipeline
+in your diagram, using the actual INSPIRE modalities:</p>
+<p><strong>Modality-specific encoders</strong> (each handles a genuinely different data type correctly,
+rather than forcing everything into one shape):</p>
+<table>
+<thead>
+<tr>
+<th>Modality</th>
+<th>Data type</th>
+<th>How to encode it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Labs, ward vitals, intra-op vitals</td>
+<td>Continuous time series, irregular sampling</td>
+<td>The existing <code>TimeSeriesTransformer</code>, one instance per organ system (Section 2.5)</td>
+</tr>
+<tr>
+<td>Medications</td>
+<td>Categorical sequence (1,238 distinct drugs × route, timestamped)</td>
+<td>Learned embedding table per drug/ATC code (Section 2.10), fed through a sequence model or simple time-windowed aggregation</td>
+</tr>
+<tr>
+<td>Diagnoses (ICD-10)</td>
+<td>Categorical, mostly static-ish (diagnosed at a point in time, relevant thereafter)</td>
+<td>Learned embedding per code, or — as a validated starting point — reuse the existing HFRS-weighted sum (<code>frailty_hfrs.py</code>) as a hand-crafted feature until a learned embedding is validated against it</td>
+</tr>
+<tr>
+<td>Static operative/demographic (age, sex, ASA, <code>emop</code>, department)</td>
+<td>Fixed-size vector, one row per patient, 100% coverage</td>
+<td>A small MLP — cheap, currently entirely unused by the DNN (Section 2.3)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Fusion strategies</strong>, from simplest to most interpretable:</p>
+<ol>
+<li><strong>Early concatenation</strong> — stack all system/modality embeddings into one vector, one
+   final classifier. Simplest to implement, but no more interpretable than what exists now.</li>
+<li><strong>Gated / mixture-of-experts fusion</strong> — a small gating network learns <em>how much weight</em>
+   to give each modality's embedding per patient, and that gate is itself inspectable
+   ("for this patient, 70% of the decision weight came from the renal branch") — a genuine
+   step up in interpretability over (1) for very little extra complexity.</li>
+<li><strong>Hierarchical / additive fusion</strong> — each system produces its own interpretable
+   sub-score first (closer to a differentiable POSSUM/NELA sub-component than a raw
+   embedding), and a <strong>Neural Additive Model</strong> combines those sub-scores into the final
+   risk, with each system's contribution individually plottable as its own shape function.
+   This is the version that actually earns the word "clinically interpretable" rather than
+   "clinically inspired" (expanded in Section 2.14C).</li>
+</ol>
+<hr />
+<h3 id="210-learning-embeddings-for-categorical-entities-medications-diagnoses-and-beyond">2.10 Learning embeddings for categorical entities — medications, diagnoses, and beyond<a class="headerlink" href="#210-learning-embeddings-for-categorical-entities-medications-diagnoses-and-beyond" title="Permanent link">&para;</a></h3>
+<p>There are two genuinely different embedding problems hiding under one word here, and it's
+worth being explicit about the difference:</p>
+<ol>
+<li><strong>Embedding a continuous time series</strong> (glucose over time, heart rate over time) — this
+   is what the transformer encoder already does; the "embedding" is the pooled output of
+   the sequence model.</li>
+<li><strong>Embedding a categorical entity</strong> (a specific drug, a specific ICD-10 code, a specific
+   ATC therapeutic class) — this needs a <strong>learned lookup table</strong>: every distinct entity
+   gets its own trainable dense vector, the same idea as word embeddings in NLP, adapted to
+   clinical codes. This is genuinely new work relative to what the pipeline does today.</li>
+</ol>
+<p>Two ways to train such a table, both established in the clinical-ML literature:</p>
+<ul>
+<li><strong>Supervised, end-to-end</strong>: the embedding table is just another set of parameters,
+  trained jointly with the mortality objective. Simple, but with only 469–942 positive
+  labels in the whole dataset and potentially 1,000+ distinct drug codes, this table would
+  be badly under-constrained — most codes would see too few examples to learn anything
+  reliable (the same sparsity problem already flagged for the main model's <code>pos_weight</code>).</li>
+<li><strong>Unsupervised pre-training on co-occurrence</strong>, before mortality labels are touched at
+  all — e.g. two drugs that are frequently prescribed together, or a diagnosis and a drug
+  that typically co-occur, end up with similar vectors, learned purely from patterns across
+  all ~100k patients regardless of outcome. This is the approach taken by established
+  EHR-embedding methods in the literature (e.g. the <em>Med2Vec</em>-style approach from Choi et
+  al., and <em>RETAIN</em> — already cited in <code>docs/index.md</code> §16 for its two-level attention over
+  clinical time series) — it makes full use of the large unlabelled cohort exactly the way
+  the current autoencoder pre-training phase already does for lab time series, just applied
+  to categorical codes instead of continuous ones.</li>
+</ul>
+<p><strong>A concrete, low-risk starting point using what's already in the repo:</strong> rather than
+learning one embedding per raw drug name (1,238 distinct types, most very rare — the raw
+data was already filtered to exclude drugs given to fewer than 100 patients, so the tail is
+still long), start one level up the hierarchy using the <strong>WHO ATC classification</strong> already
+included in the repo (<code>codes/WHO_ATC-DDD_2024-07-31.csv</code>) — embed at the ATC level-2 or
+level-3 (therapeutic subgroup, e.g. "beta-blocking agents" rather than a specific brand),
+which shrinks the vocabulary enormously and gives each embedding far more training
+examples to learn from, before considering whether finer-grained drug-level embeddings are
+worth the added sparsity risk.</p>
+<hr />
+<h3 id="211-research-papers-for-icd-10-asa-possum-style-categorisation">2.11 Research papers for ICD-10 / ASA / POSSUM-style categorisation<a class="headerlink" href="#211-research-papers-for-icd-10-asa-possum-style-categorisation" title="Permanent link">&para;</a></h3>
+<p>What the repo already has and cites:</p>
+<ul>
+<li><strong>HFRS</strong> (Hospital Frailty Risk Score) — Gilbert et al. 2018, <em>The Lancet</em> — already
+  fully implemented in <code>frailty_hfrs.py</code>, with all 109 weighted ICD-10 codes. This is
+  itself a validated example of exactly the kind of "categorise ICD-10 codes into a
+  clinically meaningful score" task being asked about — worth treating as the working
+  template rather than starting from nothing.</li>
+<li><strong>Shickel et al. 2023</strong>, <em>Scientific Reports</em> (doi:10.1038/s41598-023-27418-5) — the
+  closest published comparison for the overall project (56,242 patients, AUROC 0.92,
+  includes MC Dropout and integrated gradients).</li>
+<li><strong>Koh et al. 2020</strong> (ICML) — original Concept Bottleneck Models paper — already flagged
+  in <code>docs/index.md</code> §14/§16.</li>
+<li><strong>Choi et al. 2016</strong> (NeurIPS) — RETAIN, two-level attention for clinical time series —
+  already cited.</li>
+</ul>
+<p>New references worth adding, found in support of the sections above:</p>
+<ul>
+<li><strong>POSSUM</strong>: Copeland et al. 1991 — original 12-physiology + 6-operative-factor equation;
+  <strong>Portsmouth-POSSUM (P-POSSUM)</strong>: Prytherch et al. 1998, <em>British Journal of Surgery</em> —
+  the correction for POSSUM's known tendency to overestimate mortality in low-risk
+  patients.</li>
+<li><strong>ASA governance</strong>: the current (December 2020-amended) ASA Physical Status
+  Classification, as maintained by the ASA House of Delegates — useful as the primary
+  source if the paper needs to cite the classification itself rather than a secondary
+  description of it.</li>
+<li><strong>DeepHit</strong>: Lee et al. 2018 — discrete-time, competing-risks survival model.</li>
+<li><strong>Dynamic-DeepHit</strong>: Lee et al. 2019 — longitudinal extension of DeepHit.</li>
+<li><strong>DySurv</strong>: 2024–2025 (JAMIA / arXiv) — conditional-VAE dynamic survival model,
+  multimodal static + time-series, validated on MIMIC-IV and eICU against APACHE/SOFA —
+  the most directly comparable recent architecture to the time-to-event reframing in
+  Section 2.8.</li>
+<li><strong>Concept Bottleneck Models, recent extensions</strong> (2024–2025): clinical-knowledge-guided
+  CBMs, label-free CBMs (Oikarinen et al. 2023), and CBMs learned from mechanistic
+  explanations — relevant to Section 2.14C.</li>
+</ul>
+<p><strong>On categorising ICD-10 itself:</strong> rather than inventing a new grouping from scratch, two
+options already sit inside this project and are worth trying first, before reaching for a
+novel scheme: (1) the <strong>official ICD-10 chapter structure</strong> (21 chapters, e.g. "Diseases of
+the circulatory system," "Endocrine, nutritional and metabolic diseases") as a coarse,
+already-standardised category system, and (2) the <strong>HFRS's own curated 109-code list</strong>
+(Gilbert et al.) as a validated "high-frailty-relevance" subset, which the project already
+has full weights for and can check for overlap against the mortality-linked codes already
+surfaced in EDA (D65, I46, R57, J80, K72, A41 — <code>docs/eda_findings.md</code> §4).</p>
+<p><em>(Note, matching the caution already present in <code>docs/index.md</code> — the exact NELA original
+citation and the exact INSPIRE dataset paper citation are both flagged there as
+"needs confirming before publication." That caution should extend to the new references
+listed here too — treat all of the above as strong starting points for a literature
+search, not as final, verified citations to paste into a manuscript.)</em></p>
+<hr />
+<h3 id="212-a-more-concrete-picture-of-the-architecture-what-do-the-categories-actually-look-like">2.12 A more concrete picture of the architecture — what do the "categories" actually look like?<a class="headerlink" href="#212-a-more-concrete-picture-of-the-architecture-what-do-the-categories-actually-look-like" title="Permanent link">&para;</a></h3>
+<p>The diagram is easiest to reason about with a real patient plugged in. The repo already
+has a fully worked example — <strong>Subject 100033460</strong> (<code>docs/index.md</code> §6) — an 80-year-old
+woman who died 15 days after an emergency bowel operation, with chronic + acute kidney
+failure, peritonitis, and colon cancer. Here's what her "system boxes" would literally
+contain, if the target architecture in Section 2.5 existed today:</p>
+<table>
+<thead>
+<tr>
+<th>System box</th>
+<th>What would feed into it, for this patient</th>
+<th>What the system encoder would plausibly need to output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Renal</strong></td>
+<td>Creatinine trajectory (up to 5.55 mg/dL pre-op, severely elevated), sodium (128 → 132, hyponatraemia), potassium (5.3, elevated), diagnosis codes N18 (chronic kidney disease, ×6) and N17 (acute kidney failure), <code>crrt</code> ward-vital flag (792 dialysis-active readings)</td>
+<td>A <code>renal_embedding</code> that a downstream classifier would very plausibly flag as <strong>CRITICAL</strong></td>
+</tr>
+<tr>
+<td><strong>Metabolic</strong></td>
+<td>Glucose spike (78 → 264 → 84 mg/dL — a classic stress-hyperglycaemia pattern around the time of surgery)</td>
+<td>Likely <strong>CONCERN</strong>, transient rather than chronic</td>
+</tr>
+<tr>
+<td><strong>Cardiovascular</strong></td>
+<td>Heart rate, non-invasive blood pressure from ward vitals (908–941 readings)</td>
+<td>Depends on values not detailed here — this is exactly the kind of gap a real system-level audit would fill in</td>
+</tr>
+<tr>
+<td><strong>Infection/inflammation-adjacent</strong> (not yet a named system in the current 6-group scheme)</td>
+<td>Diagnosis K65 (peritonitis — the reason for the emergency operation)</td>
+<td>Currently has nowhere clean to go — worth deciding whether "infection/sepsis" deserves its own system box, since D65/I46/R57/J80/K72/A41 (the most mortality-linked ICD-10 codes found in EDA) cluster around acute infective/inflammatory deterioration, not neatly under Renal/Cardiac/Respiratory alone</td>
+</tr>
+</tbody>
+</table>
+<p>This worked-through example does two useful things: it makes the abstract diagram
+concrete, and it gives a ready-made <strong>qualitative validation case</strong> — once the
+system-separated architecture exists, this patient is a natural first check: does the
+renal branch actually light up as critical for her, the way the clinical narrative says it
+should?</p>
+<hr />
+<h3 id="213-what-further-analysis-can-be-done-with-whats-already-here-no-new-engineering-required">2.13 What further analysis can be done with what's already here — no new engineering required<a class="headerlink" href="#213-what-further-analysis-can-be-done-with-whats-already-here-no-new-engineering-required" title="Permanent link">&para;</a></h3>
+<p>Several of the things asked about in this session are <strong>already partly built</strong> in this
+repo and just haven't been run at full scale or surfaced clearly in the docs yet. Worth
+listing explicitly, because some of these are genuinely just "run this":</p>
+<ol>
+<li><strong><code>feature_selection_pipeline.py</code></strong> already does almost exactly the "feature
+   selection" step requested: it (a) tests each of the 54 pre-op features for a
+   died-vs-survived difference, (b) corrects for testing 54 things at once (multiple
+   comparisons), (c) drops features that are redundant with each other (e.g. haemoglobin
+   vs. haematocrit), and (d) fits a model that includes department, age, ASA, and
+   emergency-status <em>alongside</em> each lab feature specifically to check whether a lab looks
+   predictive only because sicker departments happen to order it more — i.e. it already
+   distinguishes a genuinely useful feature from a department proxy. This has apparently
+   only been run on a small config so far; running it at full scale is close to zero new
+   engineering.</li>
+<li><strong><code>audit_features.py</code> and <code>audit_static_categorical.py</code></strong>, currently run only on the
+   30-patient subset (<code>docs/feature_audit_findings.md</code>) — re-running both against the full
+   99,886-patient cohort would upgrade every coverage-tier number in that document from
+   "small-sample estimate" to "real."</li>
+<li><strong>Resolving the label-definition bug</strong> (Section 1/2.1) — the single highest-value,
+   lowest-effort fix available, and it's a strict prerequisite for trusting any of the
+   above.</li>
+<li><strong>Cross-tabulating department × ICD-10 × mortality jointly</strong> — flagged as the direct
+   next step in <code>docs/eda_findings.md</code> §3, and it's exactly the analysis the ICD-10/department
+   interpretability focus (Section 2 of <code>docs/index.md</code>) needs.</li>
+<li><strong>The HFRS 2-year time-window fix</strong> — the current <code>compute_hfrs()</code> counts a patient's
+   entire diagnosis history with no limit, rather than the published Gilbert et al. 2-year
+   window for patients 75+; flagged repeatedly in the repo as a known correctness gap.</li>
+<li><strong><code>score_models.py</code> contains a complete, working NEWS2 implementation</strong>
+   (National Early Warning Score 2) that isn't mentioned anywhere in the existing docs or
+   compared against anything. NEWS2 is a fourth, genuinely independent clinical scoring
+   system (vitals-based, ward-deterioration-focused, rather than pre-op-risk-focused like
+   ASA/POSSUM/NELA) — worth a deliberate decision on whether to fold it into the ASA vs.
+   POSSUM vs. NELA comparison table in Section 2.4, since the code to do so already exists.</li>
+</ol>
+<hr />
+<h2 id="3-new-research-ideas-additions-beyond-whats-already-documented">3. New research ideas — additions beyond what's already documented<a class="headerlink" href="#3-new-research-ideas-additions-beyond-whats-already-documented" title="Permanent link">&para;</a></h2>
+<p>Organised by theme, each one chosen to be a natural extension of a question raised in this
+session rather than an unrelated idea.</p>
+<h3 id="a-data-and-labelling">A. Data and labelling<a class="headerlink" href="#a-data-and-labelling" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Competing-risks relabelling using the project's own 30-day/all-cause gap.</strong> The 473
+  patients who died <em>after</em> 30 days but are currently folder-labelled "died" are not just a
+  bug to fix — they're a genuinely interesting comparison group. A model that can
+  distinguish "died acutely, likely surgery-related" from "died later, likely
+  surgery-unrelated" is answering a more clinically specific and more defensible question
+  than a single undifferentiated "died" label.</li>
+<li><strong>Explicit distribution-shift framing for the NELA/POSSUM comparison.</strong> NELA was built
+  and validated on a UK national emergency-laparotomy population; INSPIRE is a single
+  Korean centre, mixed elective/emergency, all departments. A lower NELA AUROC on INSPIRE
+  is at least as likely to be a population-mismatch finding as a "NELA is a weak tool"
+  finding — worth stating and, ideally, testing directly (e.g. does NELA perform closer to
+  its published numbers specifically on INSPIRE's emergency-laparotomy-equivalent subset?).</li>
+</ul>
+<h3 id="b-modelling">B. Modelling<a class="headerlink" href="#b-modelling" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Treat missingness as a signal, not just noise to interpolate away.</strong> The current
+  pipeline fills every gap with linear interpolation and a mask flag. A complementary
+  hypothesis worth testing directly against the repo's own missingness heatmap
+  (<code>docs/eda_findings.md</code> §7): a clinician's <em>decision not to order a test</em> may itself carry
+  information (e.g. a test skipped because the patient looked well enough not to need it) —
+  this is a missing-not-at-random hypothesis that's directly testable with the data already
+  audited.</li>
+<li><strong>Move pre-training beyond plain reconstruction.</strong> The known "0.47 for everyone" failure
+  mode (<code>docs/index.md</code> §13, now partly fixed by unfreezing the encoder) exists because
+  reconstruction and mortality-discrimination are different objectives. Two established
+  alternatives, both compatible with the existing transformer: a masked-value objective
+  (mask a lab value, predict it from surrounding context — the BERT-style approach) and a
+  contrastive objective (pull same-outcome patients' embeddings closer together, push
+  different-outcome patients apart) — both are known to transfer better to a downstream
+  discriminative task than plain autoencoding.</li>
+<li><strong>Fully unsupervised foundation-model-style pre-training on the complete 99,886-patient
+  cohort</strong>, before any label is touched. With only 469–942 positive examples total, the
+  unlabelled pool is by far the largest source of information available — worth treating
+  pre-training as the primary event, not a preliminary step before the "real" supervised
+  phase.</li>
+</ul>
+<h3 id="c-interpretability-directly-addressing-the-stated-main-aim">C. Interpretability — directly addressing the stated main aim<a class="headerlink" href="#c-interpretability-directly-addressing-the-stated-main-aim" title="Permanent link">&para;</a></h3>
+<p>The project's stated aim is a genuinely interpretable model, explicitly <em>not</em> one that
+relies on SHAP-style post-hoc explanation. That distinction is worth taking seriously:
+SHAP and similar methods (LIME, Grad-CAM-style saliency) approximate a trained black box
+<em>after the fact</em> — they don't reveal what the network actually computed internally, they
+fit a separate, simpler explanation model around it, and for correlated or
+temporally-dependent features (exactly what this dataset has — labs that move together,
+time steps that depend on each other) those approximations are known to be unstable and
+sometimes misleading. The alternative is to build interpretability <strong>into the
+architecture</strong>, so the explanation <em>is</em> the mechanism, not a story told about it
+afterwards. Four complementary layers, all buildable on top of what already exists here:</p>
+<ol>
+<li><strong>Concept Bottleneck Models (already flagged in <code>docs/index.md</code> §14, worth expanding).</strong>
+   Force the network to predict clinically defined, named intermediate concepts <em>before</em>
+   it predicts mortality — AKI stage (0–3) from creatinine via KDIGO criteria, a
+   haemodynamic-instability score from blood pressure and vasopressor use, respiratory
+   failure staging from PaO2/FiO2 via Berlin criteria. The mortality prediction is then
+   <em>read off</em> those named concepts, not off an opaque embedding — a genuine mechanism, not
+   a rationalisation. Recent work (2024–2025) extends this specifically with
+   clinically-guided and label-free variants, worth reading before implementing.</li>
+<li><strong>Prototype / case-based reasoning.</strong> Rather than "this patient has a 0.84 risk because
+   feature X contributed +0.3," a prototype network explains a prediction as "this
+   patient's renal trajectory closely resembles these 3 prior patients' trajectories, 2 of
+   whom died" — an explanation format doctors already use natively (case-based clinical
+   reasoning), originally developed for image classification ("This Looks Like That," Chen
+   et al.) and increasingly adapted to clinical time series and medical imaging.</li>
+<li><strong>Sparse autoencoders on the learned embeddings — a genuine mechanistic-interpretability
+   step, and a natural fit here specifically because the pipeline already does autoencoder
+   pre-training.</strong> Rather than trusting the raw 8–14 dimensional embedding vector as-is,
+   train a second, sparse, overcomplete autoencoder on top of it (the approach behind
+   recent mechanistic-interpretability work on decomposing neural representations into
+   sparse, individually-nameable "directions" rather than dense, tangled ones) — the aim is
+   to end up with a larger set of <em>sparse</em> features, each of which reliably tracks one
+   recognisable clinical pattern, instead of one dense vector where every dimension mixes
+   several things together (the "polysemanticity" problem). This reuses machinery the
+   project already has working.</li>
+<li><strong>Attention auditing, not just attention as a mechanism.</strong> The transformer already has
+   8 attention heads — currently used only to produce predictions, never inspected. Logging
+   and visualising which time steps and features each head attends to, specifically for
+   correctly vs. incorrectly classified patients, and checking whether attention reliably
+   concentrates around the acute deterioration diagnoses already found in EDA (D65, I46,
+   R57, J80, K72, A41) is a direct, checkable test of whether the network is attending to
+   clinically sensible moments — genuine evidence about internal behaviour, not a
+   post-hoc plot.</li>
+</ol>
+<p><strong>How these fit together, and why this is a stronger design than SHAP-on-top:</strong> Concept
+Bottleneck answers <em>what</em> clinical concept is driving a prediction; the sparse-autoencoder
+and attention audit together answer <em>how</em> the network's internal computation actually
+produces that; prototype retrieval answers <em>who else</em> looked like this before, grounding
+the prediction in real precedent. Together they form three different, complementary views
+into the same model, built as part of training it — not one explanation method wrapped
+around a finished black box after the fact.</p>
+<h3 id="d-evaluation">D. Evaluation<a class="headerlink" href="#d-evaluation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Calibration, not just discrimination.</strong> AUROC and AUPRC measure whether the model
+  <em>ranks</em> patients correctly relative to each other — neither tells you whether a predicted
+  "0.3" genuinely corresponds to a 30% chance of death. Given how rare deaths are here
+  (0.3–1% depending on the label definition), calibration curves and the Brier score are
+  essential additions before any clinical framing of the output as an actual probability —
+  a "high AUROC, badly calibrated" model is a real and common failure mode in exactly this
+  kind of imbalanced clinical setting.</li>
+<li><strong>Connect uncertainty quantification (already flagged — MC Dropout, conformal
+  prediction) to the time-to-event reframing in Section 2.8</strong>, so the output becomes not
+  just "mortality ∈ [0.58, 0.84] with 90% guaranteed coverage" but a <em>trajectory</em> with
+  uncertainty bands that widen or narrow as more peri-operative data arrives — directly
+  useful for the "when did this patient start to decline" question, and directly gives a
+  clinician a sense of how much to trust an early prediction versus a later one.</li>
+</ul>
+<hr />
+<h2 id="4-consolidated-reprioritised-roadmap">4. Consolidated, reprioritised roadmap<a class="headerlink" href="#4-consolidated-reprioritised-roadmap" title="Permanent link">&para;</a></h2>
+<p>This merges the existing roadmap in <code>docs/index.md</code> §15 with everything raised in this
+session. Numbering restarts here deliberately — this is a fresh prioritisation, not a
+renumbering of the old list, though every existing item is still present (cross-referenced
+in the right-hand column).</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Why it's at this priority</th>
+<th>Where else it's discussed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Fix the 30-day vs. all-cause label definition</strong></td>
+<td>Blocks every other number in the project — <code>pos_weight</code>, AUROC, everything</td>
+<td>§1, §2.1; <code>docs/index.md</code> §4, §13</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Run <code>feature_selection_pipeline.py</code> and both audit scripts at full 99,886-patient scale</strong></td>
+<td>Already built, close to zero new engineering, upgrades every "small-sample" caveat in the existing docs</td>
+<td>§2.13; <code>docs/feature_audit_findings.md</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Decide the pre-op-only vs. peri-operative scope question</strong></td>
+<td>Determines whether 72 intra-op parameters are even in scope for everything downstream</td>
+<td>§2.6; <code>docs/index.md</code> §4, §15 item 5</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Build the organ-system feature grouping + system-separated encoder architecture</strong> (matches the session's diagram)</td>
+<td>The project's core stated contribution — everything else feeds into this</td>
+<td>§2.5, §2.12; <code>docs/index.md</code> §14, §15 item 4</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>HFRS 2-year time-window fix, then re-run frailty comparisons</strong></td>
+<td>Known correctness gap, flagged repeatedly, currently invalidates the frailty numbers</td>
+<td>§2.13; <code>docs/eda_findings.md</code> §10</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Joint department × ICD-10 × mortality analysis</strong></td>
+<td>Directly the current stated interpretability focus</td>
+<td>§2.13; <code>docs/eda_findings.md</code> §3</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Multi-operation sensitivity analysis</strong> (last-op vs. first-op vs. exclude)</td>
+<td>Settles an open argument with evidence instead of assumption; EDA chart already exists</td>
+<td>§2.2; <code>docs/eda_findings.md</code> §12</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Implement POSSUM (and consider NEWS2) alongside the existing ASA/NELA comparison</strong></td>
+<td>Completes the clinical-baseline comparison table; NEWS2 code already exists and is unused</td>
+<td>§2.4, §2.13</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Time-to-event reframing</strong> (Dynamic-DeepHit / DySurv-style dynamic hazard model), as a parallel track alongside the binary classifier</td>
+<td>Directly answers the "when did decline start" question; genuinely different output type, not a replacement</td>
+<td>§2.8</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Interpretability layer</strong>: Concept Bottleneck head + sparse autoencoder on embeddings + attention audit + prototype retrieval</td>
+<td>The project's stated main aim; builds on machinery already in place</td>
+<td>§2.14C</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Categorical embeddings for medications and diagnoses</strong> (starting at ATC level-2/3, not raw drug name)</td>
+<td>Feeds directly into the multimodal architecture in item 4</td>
+<td>§2.9, §2.10</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>Full-scale run and formal benchmark against Shickel et al. 2023 (0.92 AUROC)</strong>, once items 1–4 are stable</td>
+<td>The eventual headline comparison for the paper</td>
+<td><code>docs/index.md</code> §14, §16</td>
+</tr>
+</tbody>
+</table>
+<p>Items 1–3 are genuine prerequisites for everything below them — the rest can and should
+proceed in parallel, exactly as the existing roadmap in <code>docs/index.md</code> §15 already notes.</p>
+<hr />
+<h2 id="5-references">5. References<a class="headerlink" href="#5-references" title="Permanent link">&para;</a></h2>
+<p><strong>Already cited in this repo</strong> (<code>docs/index.md</code> §16) — kept here for completeness:</p>
+<ul>
+<li>Shickel et al. 2023, <em>Scientific Reports</em>, doi:10.1038/s41598-023-27418-5 — closest
+  published benchmark for the overall task.</li>
+<li>Koh et al. 2020 (ICML) — Concept Bottleneck Models.</li>
+<li>Choi et al. 2016 (NeurIPS) — RETAIN, two-level attention for clinical time series.</li>
+<li>Bento et al. 2021 (KDD) — TimeSHAP.</li>
+<li>Gilbert et al. 2018 — Hospital Frailty Risk Score, implemented in <code>frailty_hfrs.py</code>.</li>
+<li>INSPIRE dataset paper (Lee et al.) — exact citation still needs confirming per the
+  existing note in <code>docs/index.md</code>.</li>
+</ul>
+<p><strong>New, added by this document:</strong></p>
+<ul>
+<li>Copeland et al. 1991 — original POSSUM equation (12 physiological + 6 operative factors).</li>
+<li>Prytherch et al. 1998, <em>British Journal of Surgery</em> — Portsmouth-POSSUM (P-POSSUM)
+  correction for POSSUM's overestimation of mortality in low-risk patients.</li>
+<li>ASA Physical Status Classification System, as maintained by the ASA House of Delegates
+  (current version amended December 2020) — primary source for the classification itself.</li>
+<li>Lee et al. 2018 — DeepHit: discrete-time, competing-risks deep survival model.</li>
+<li>Lee et al. 2019 — Dynamic-DeepHit: longitudinal extension of DeepHit.</li>
+<li>DySurv, 2024–2025 (<em>JAMIA</em>; also on arXiv) — conditional-VAE dynamic, multimodal
+  (static + time-series) survival model, validated against APACHE/SOFA on MIMIC-IV and
+  eICU — closest recent comparator for the time-to-event reframing in Section 2.8.</li>
+<li>Recent (2024–2025) Concept Bottleneck Model extensions: label-free CBMs (Oikarinen et
+  al. 2023), clinically-guided CBMs, and CBMs derived from mechanistic explanations —
+  relevant to Section 2.14C.</li>
+<li>Bricken et al. 2023 — sparse autoencoders for decomposing neural network
+  representations into sparse, individually interpretable features (the mechanistic-
+  interpretability approach referenced in Section 2.14C).</li>
+<li>Chen et al. — "This Looks Like That": prototype-based, case-based-reasoning
+  interpretable networks, the origin of the prototype-network family referenced in
+  Section 2.14C.</li>
+</ul>
+<p><em>As with the existing citations in this repo, the new references above are strong starting
+points for a literature search and have not all been independently verified for exact
+volume/page/DOI — confirm each before it goes into a manuscript, consistent with the
+caution already applied to the NELA and INSPIRE citations elsewhere in this project.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.collapse", "content.code.copy", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

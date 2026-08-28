@@ -1,0 +1,1664 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Data imbalance and missing-data reference — INSPIRE multimodal notebook - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#data-imbalance-and-missing-data-reference-inspire-multimodal-notebook" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Data imbalance and missing-data reference — INSPIRE multimodal notebook
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Project_Notes/" class="md-tabs__link">
+          
+  
+  
+  Data & Pipeline
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Surgeon_Facing_Summary/" class="md-tabs__link">
+          
+  
+  
+  Clinician Inputs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-tabs__link">
+          
+  
+  
+  MULTIMODEL MODEL
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Research_Aim/" class="md-tabs__link">
+          
+  
+  
+  Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../PACO_Net_Architecture/" class="md-tabs__link">
+          
+  
+  
+  Next-Gen Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data & Pipeline
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data & Pipeline
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Project_Notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eda_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Complete_Findings_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete Findings Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinician Inputs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Clinician Inputs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Surgeon_Facing_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Surgeon Summanry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Novelty_Research_Ledger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Novelty & Clinical Relevance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MULTIMODEL MODEL
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MULTIMODEL MODEL
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Meeting_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Full-Scale Run — Meeting Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Base_Comparitive_Study_Models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Comparitive Study
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Aim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Aims & Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap_and_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap & Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Notes & Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meeting Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ICD10_Architecture_Research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ICD-10 Architecture Research
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next-Gen Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Next-Gen Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACO_Net_Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PACO-Net Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#part-a-class-imbalance-sampling-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part A — Class imbalance / sampling techniques
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Part A — Class imbalance / sampling techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a1-techniques-that-touch-the-static-branch-only-tabular-age-asa-department-icd-10-flags-etc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A.1 Techniques that touch the STATIC branch only (tabular: age, ASA, department, ICD-10 flags, etc.)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a2-techniques-for-the-sequence-branch-the-raw-per-timestep-organ-system-time-series" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A.2 Techniques for the SEQUENCE branch (the raw per-timestep organ-system time series)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-b-missing-data-imputation-techniques-already-in-the-notebooks-theory-restated-here-since-you-asked-for-filling-values-too" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part B — Missing data / imputation techniques (already in the notebook's theory, restated here since you asked for "filling values" too)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-c-the-recommended-combined-pipeline-for-inspire-in-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part C — The recommended combined pipeline for INSPIRE, in order
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="data-imbalance-and-missing-data-reference-inspire-multimodal-notebook">Data imbalance and missing-data reference — INSPIRE multimodal notebook<a class="headerlink" href="#data-imbalance-and-missing-data-reference-inspire-multimodal-notebook" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>Consolidates every technique discussed across this conversation (mine) and the three
+external AI responses you pasted in, with pros/cons and a concrete verdict for <em>this</em>
+architecture specifically (six per-system transformer encoders on raw sequences + one
+static/tabular branch). Confirmed numbers used throughout: <strong>469 true 30-day deaths /
+99,886 patients (~212:1)</strong> — not the folder label's incorrect 942/99,886 (~105:1).</p>
+</blockquote>
+<hr />
+<h2 id="part-a-class-imbalance-sampling-techniques">Part A — Class imbalance / sampling techniques<a class="headerlink" href="#part-a-class-imbalance-sampling-techniques" title="Permanent link">&para;</a></h2>
+<h3 id="a1-techniques-that-touch-the-static-branch-only-tabular-age-asa-department-icd-10-flags-etc">A.1 Techniques that touch the STATIC branch only (tabular: age, ASA, department, ICD-10 flags, etc.)<a class="headerlink" href="#a1-techniques-that-touch-the-static-branch-only-tabular-age-asa-department-icd-10-flags-etc" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Source</th>
+<th>What it does</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Fit for INSPIRE</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random oversampling</td>
+<td>Me</td>
+<td>Duplicates real minority rows</td>
+<td>Trivial, zero risk of inventing bad data</td>
+<td>No new information; encourages memorization</td>
+<td>Works but weak at 469 real cases</td>
+<td>Skip — SMOTE variants below dominate it</td>
+</tr>
+<tr>
+<td>Random undersampling</td>
+<td>Me</td>
+<td>Drops majority rows to balance</td>
+<td>Simple; sometimes helps very large majority classes train faster</td>
+<td>Throws away real survived-patient diversity, which the autoencoder pre-training phase needs</td>
+<td>Bad fit — we specifically want the full survived pool for unsupervised pre-training</td>
+<td>Skip</td>
+</tr>
+<tr>
+<td>Plain SMOTE</td>
+<td>Me / Doc 1</td>
+<td>Linear interpolation between two minority neighbors</td>
+<td>Well-established, cheap</td>
+<td>Assumes all-continuous features; corrupts one-hot/binary columns (e.g. <code>dept_GS = 0.6</code>)</td>
+<td>Our static vector has one-hot department + binary ICD-10/exception flags → breaks</td>
+<td>Don't use as-is</td>
+</tr>
+<tr>
+<td>Borderline-SMOTE</td>
+<td>Me</td>
+<td>Only interpolates near the decision boundary</td>
+<td>Focuses effort on ambiguous cases, not "obvious" deaths</td>
+<td>Same continuous-only assumption as plain SMOTE</td>
+<td>Same categorical-corruption problem</td>
+<td>Skip unless combined with SMOTENC's categorical handling</td>
+</tr>
+<tr>
+<td>ADASYN</td>
+<td>Me</td>
+<td>Like SMOTE, generates more synthetic points for <em>hard</em> minority cases</td>
+<td>Adaptive to difficulty</td>
+<td>Same categorical-corruption problem; less predictable than SMOTE</td>
+<td>Same issue</td>
+<td>Skip for now</td>
+</tr>
+<tr>
+<td><strong>SMOTENC</strong></td>
+<td>Doc 1</td>
+<td>SMOTE variant that explicitly declares which columns are categorical, uses mode/median instead of interpolation for them</td>
+<td>Fixes the exact problem above</td>
+<td>Needs you to pass exact column indices; still needs enough minority rows to find k neighbors</td>
+<td><strong>Correct SMOTE variant for our static branch</strong> (one-hot dept + binary flags)</td>
+<td><strong>Adopt</strong></td>
+</tr>
+<tr>
+<td>SMOTEN</td>
+<td>Doc 1</td>
+<td>SMOTENC's all-categorical sibling</td>
+<td>Right tool if every feature were categorical</td>
+<td>Our static vector also has continuous fields (age, HFRS, op-recency days) — not a full match</td>
+<td>Not quite our shape</td>
+<td>Skip (SMOTENC is the right one, not SMOTEN)</td>
+</tr>
+<tr>
+<td>SMOTE-Tomek</td>
+<td>Doc 1</td>
+<td>SMOTE, then deletes majority-class patient from any "Tomek link" pair (opposite-class nearest neighbors)</td>
+<td>Widens the decision margin, cheap cleanup step</td>
+<td>Removes real survived patients — small effect at low synthesis rates, larger at high ones</td>
+<td>Good paired with SMOTENC</td>
+<td><strong>Adopt</strong>, as a cleanup step after SMOTENC</td>
+</tr>
+<tr>
+<td>SMOTE-ENN</td>
+<td>Doc 1</td>
+<td>SMOTE, then deletes any point whose 3 nearest neighbors mismatch its class</td>
+<td>More aggressive cleanup than Tomek</td>
+<td>Can delete a lot of data; more aggressive than needed for our modest target ratio</td>
+<td>Not necessary if Tomek is enough</td>
+<td>Optional / skip initially</td>
+</tr>
+<tr>
+<td><strong>Grouped (stratified) SMOTENC + Tomek</strong></td>
+<td>Doc 3, code included</td>
+<td>Split minority cohort into clinical strata (department × ASA), run SMOTENC <em>within</em> each stratum only, then a global Tomek cleanup</td>
+<td>This is the "clinically constrained" version — never blends a cardiac patient with an orthopedic one</td>
+<td>Many strata will have &lt;3 minority cases and get skipped entirely → actual achieved ratio likely falls short of the target, needs checking empirically. The reference code's <code>X_res.iloc[len(X_g):]</code> trick for finding synthetic rows relies on unstable ordering — track synthetic rows by an explicit tag instead</td>
+<td><strong>This is the best-fit version for our data</strong></td>
+<td><strong>Adopt, with the indexing fix</strong></td>
+</tr>
+<tr>
+<td>Class weighting (<code>pos_weight</code> / <code>scale_pos_weight</code>)</td>
+<td>Me / Doc 1</td>
+<td>Leave data untouched; scale the loss so the rare class counts more</td>
+<td>No synthetic data, no data loss, already implemented in our notebook</td>
+<td>Doesn't help if the model never sees <em>enough distinct</em> examples, only under-weighted ones</td>
+<td>Always safe, always worth using</td>
+<td><strong>Adopt — combine with sampling, don't replace it</strong></td>
+</tr>
+<tr>
+<td>Focal loss</td>
+<td>Me</td>
+<td>Down-weights already-easy examples, focuses gradient on hard ones</td>
+<td>Complements class weighting</td>
+<td>One more hyperparameter (γ) to tune</td>
+<td>Optional refinement</td>
+<td>Optional</td>
+</tr>
+<tr>
+<td>Threshold tuning off the PR curve</td>
+<td>Doc 1</td>
+<td>Pick the operating probability cutoff (not 0.5) from the precision-recall trade-off</td>
+<td>Free, no retraining needed, directly clinically actionable</td>
+<td>Needs a clinician-agreed cost trade-off (missed death vs. false alarm) to pick the actual number</td>
+<td>Directly usable once the model is trained</td>
+<td><strong>Adopt</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="a2-techniques-for-the-sequence-branch-the-raw-per-timestep-organ-system-time-series">A.2 Techniques for the SEQUENCE branch (the raw per-timestep organ-system time series)<a class="headerlink" href="#a2-techniques-for-the-sequence-branch-the-raw-per-timestep-organ-system-time-series" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Source</th>
+<th>What it does</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Fit for INSPIRE</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Window slicing / cropping</strong></td>
+<td>Doc 3</td>
+<td>Extract random sub-intervals from a real minority patient's trajectory</td>
+<td>Zero invented values — it's real data, just re-windowed; trivial to implement</td>
+<td>Only works if the trajectory is long enough to sub-sample meaningfully</td>
+<td>Intra-op vitals (many points) — good fit; sparse pre-op labs — poor fit (too few points to slice)</td>
+<td><strong>Adopt for intra-op/peri-op windows</strong></td>
+</tr>
+<tr>
+<td><strong>Magnitude jittering</strong> (Gaussian noise, σ ≈ 0.05×std)</td>
+<td>Doc 3</td>
+<td>Adds small random noise to real values</td>
+<td>Simple, well-established (originates in wearable-sensor augmentation literature, Um et al. 2017)</td>
+<td>Can't fix sparsity — a patient with 2 real points still only has 2 (noisy) points</td>
+<td>Reasonable regularizer regardless of sparsity</td>
+<td><strong>Adopt</strong></td>
+</tr>
+<tr>
+<td><strong>DTW Barycentric Averaging (DBA)</strong></td>
+<td>Doc 3</td>
+<td>Averages two real minority trajectories in "aligned time" space rather than raw time — the sequence-level equivalent of SMOTE</td>
+<td>Doesn't require fixed-interval sampling in principle; respects trajectory <em>shape</em></td>
+<td>Real algorithmic complexity to implement correctly on irregularly-sampled, already-imputed sequences; needs the underlying <code>tslearn</code>-style DBA implementation, not something to hand-roll quickly</td>
+<td>Worth it, but the highest-effort item on this list</td>
+<td><strong>Adopt later</strong>, after A.1 is validated — not a first pass</td>
+</tr>
+<tr>
+<td><strong>Embedding-space SMOTE</strong> (SMOTE after passing sequences through a <em>pre-trained</em> encoder)</td>
+<td>Doc 3</td>
+<td>Run SMOTE on the pooled embeddings our autoencoder pre-training (Part 9.4) already produces, not raw values</td>
+<td>Uses the model's own learned representation, where interpolation is more likely to stay meaningful</td>
+<td>Only valid <strong>after</strong> pre-training, not before (an untrained encoder's embeddings are random and meaningless to interpolate) — Doc 3's own text is ambiguous on this and should be read as "self-supervised, i.e. post-pretraining" only</td>
+<td>Directly compatible with our two-phase pretrain→finetune design</td>
+<td><strong>Adopt as a later experiment</strong>, gated on pre-training being done first</td>
+</tr>
+<tr>
+<td>TimeGAN</td>
+<td>Me / Doc 2 / Doc 3</td>
+<td>GAN trained specifically to generate realistic multi-channel time series</td>
+<td>Most expressive option for trajectories specifically; Doc 3 gives a concrete recipe (train only on first 120 min of intra-op vitals for deceased patients)</td>
+<td>Doc 3's own threshold: needs 1,500-2,000+ real minority examples to avoid mode collapse — we have 469. <strong>Below the usable threshold right now</strong></td>
+<td>Not yet viable at our sample size</td>
+<td><strong>Skip until the death count grows</strong> (unlikely without a bigger cohort — flag as long-term, not this project phase)</td>
+</tr>
+<tr>
+<td>Conditional VAE</td>
+<td>Me</td>
+<td>Generative model trained on real minority examples, samples new plausible ones</td>
+<td>More expressive than SMOTE in principle</td>
+<td>Same sub-1,000-example instability Doc 2 flags for TimeGAN applies here too</td>
+<td>Same sample-size problem as TimeGAN</td>
+<td>Skip for now</td>
+</tr>
+<tr>
+<td>medGAN / EHR-GAN</td>
+<td>Me</td>
+<td>GAN built for mixed continuous+categorical EHR rows</td>
+<td>State-of-the-art for tabular EHR specifically</td>
+<td>Same instability at small N; heavier infrastructure to validate</td>
+<td>Same sample-size problem</td>
+<td>Skip for now</td>
+</tr>
+<tr>
+<td>TabDDPM / tabular diffusion</td>
+<td>Me / Doc 2</td>
+<td>Diffusion-based tabular data synthesis</td>
+<td>Newest, strong benchmark results on tabular data</td>
+<td>Doc 2 correctly notes: only sensible on the <em>engineered static matrix</em>, not raw relational tables; least mature tooling for our specific shape</td>
+<td>Same instability concerns as GANs/VAEs at 469 examples</td>
+<td>Skip for now</td>
+</tr>
+</tbody>
+</table>
+<p><strong>On the "how much to synthesize" question, both external sources converge:</strong> Doc 2 mentions no synthetic-to-real ratio directly; Doc 3 gives a concrete range — <strong>1:10 to 1:4</strong> (positive:negative), i.e. 4,700-25,000 synthetic positives from 469 real ones, but its own "information saturation beyond ~20x" argument actually argues against its own 1:4 upper bound (that's ~53x). <strong>Recommended target: 1:10</strong> (≈4,700 synthetic positives) — the conservative end of their range, consistent with everything discussed in this thread.</p>
+<hr />
+<h2 id="part-b-missing-data-imputation-techniques-already-in-the-notebooks-theory-restated-here-since-you-asked-for-filling-values-too">Part B — Missing data / imputation techniques (already in the notebook's theory, restated here since you asked for "filling values" too)<a class="headerlink" href="#part-b-missing-data-imputation-techniques-already-in-the-notebooks-theory-restated-here-since-you-asked-for-filling-values-too" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>What it does</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Fit for INSPIRE</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Median/mode fill</td>
+<td>Replace every gap with the training-set median/mode</td>
+<td>Fast, safe baseline</td>
+<td>Ignores time — a 2am value and a 2pm value get the same fill</td>
+<td>Fine for static features (age missing → median age)</td>
+<td><strong>Adopt for static features</strong></td>
+</tr>
+<tr>
+<td>Population mean/stats fill</td>
+<td>Same idea, used when a patient has <em>zero</em> observations of a feature at all</td>
+<td>Only option when there's nothing to interpolate from</td>
+<td>Same as above</td>
+<td>Needed as the fallback for entirely-missing time series per patient</td>
+<td><strong>Adopt as fallback</strong></td>
+</tr>
+<tr>
+<td>Linear interpolation, fading to population mean outside the observed range</td>
+<td>Straight line between real observed points; fades toward the average the further from any real data</td>
+<td>Good for values that plausibly change smoothly (heart rate, blood pressure)</td>
+<td>Poor for values that jump (a single abnormal lab spike gets smoothed away)</td>
+<td>Matches the source repo's existing <code>smooth_fade_to_mean_interpolator</code> approach</td>
+<td><strong>Adopt for fast-changing vitals</strong></td>
+</tr>
+<tr>
+<td>Forward-fill (LOCF)</td>
+<td>Repeat the last real value forward</td>
+<td>Simple, defensible for slow-changing labs</td>
+<td>Poor for genuinely fast-changing values</td>
+<td>Good for creatinine/albumin-type labs</td>
+<td><strong>Adopt for slow-changing labs</strong></td>
+</tr>
+<tr>
+<td>KNN imputation</td>
+<td>Fill a gap using similar <em>other patients'</em> values for that feature</td>
+<td>Useful when a patient has almost no data of their own</td>
+<td>Computationally heavier; needs a sensible distance metric across mixed feature types</td>
+<td>Reasonable alternative, not the default</td>
+<td>Optional, available as a switchable strategy</td>
+</tr>
+<tr>
+<td>MICE / <code>IterativeImputer</code></td>
+<td>Iteratively predicts each missing feature from all the others</td>
+<td>The statistically principled choice under "missing at random"</td>
+<td>Needs enough rows to fit stable per-feature models; expensive at small N</td>
+<td>Same small-N caution as SMOTE — not reliable yet at 469 positive examples, more so at full cohort</td>
+<td>Available, not default yet</td>
+</tr>
+<tr>
+<td><strong>Missingness mask feature</strong> (always applied, regardless of fill method)</td>
+<td>A second 0/1 feature: was this value real or filled in?</td>
+<td>Lets the model recover signal from <em>why</em> something is missing (e.g. a clinician chose not to order a test because the patient looked fine) — this is a real, not hypothetical, MNAR mechanism in EHR data</td>
+<td>Doubles the feature count</td>
+<td>Already implemented throughout the notebook</td>
+<td><strong>Always keep this — never drop it, regardless of which fill method above is chosen</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Order of operations that avoids leaking test data into training statistics (this matters for every method above, and for sampling):</strong>
+<div class="highlight"><pre><span></span><code>1. Split into train / val / test (stratified) FIRST
+2. Compute imputation statistics (medians, MICE model, KNN neighbors) from TRAIN ONLY
+3. Impute train, val, test using those train-only statistics
+4. Standardize (z-score) using TRAIN-ONLY mean/std
+5. THEN apply sampling (SMOTENC + Tomek) — to the TRAIN split only, never val/test
+</code></pre></div>
+Steps 1-4 are already correct in the current notebook (Parts 7-8). Sampling is the next
+piece to update to match this reference.</p>
+<hr />
+<h2 id="part-c-the-recommended-combined-pipeline-for-inspire-in-order">Part C — The recommended combined pipeline for INSPIRE, in order<a class="headerlink" href="#part-c-the-recommended-combined-pipeline-for-inspire-in-order" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Impute</strong> using the notebook's existing decision-tree strategy (interpolate-and-fade
+   for fast-changing vitals, forward-fill for slow-changing labs, population mean
+   fallback for zero-observation features) — fit on train only.</li>
+<li><strong>Keep the missingness mask</strong> for every value, no exceptions.</li>
+<li><strong>Standardize</strong> (z-score, train-fit).</li>
+<li><strong>Enrich the static branch</strong> with the aggregated-time-series features flagged in the
+   second document — mean/min/max/std per key lab and vital, time spent in severe
+   hypotension (MAP &lt; 65), cumulative high-alert drug doses, count of vasopressor
+   escalations. This also gives SMOTENC more to work with.</li>
+<li><strong>Split</strong> (stratified, train/val/test) — before any sampling.</li>
+<li><strong>On the static branch only</strong>: grouped SMOTENC (stratified by department × ASA) +
+   Tomek-link cleanup, targeting <strong>1:10</strong> (≈4,700 synthetic positives from 469 real, at
+   full scale) — with the synthetic-row-tracking fix from Part A.1.</li>
+<li><strong>On the sequence branch, for real minority patients only</strong> (no change to survived
+   patients): window-slicing/cropping for intra-op vitals, magnitude jittering
+   everywhere. DBA and embedding-space SMOTE deferred to a later pass.</li>
+<li><strong>Loss function</strong>: <code>pos_weight</code>/<code>scale_pos_weight</code> combined with the above — sampling
+   takes the edge off severe imbalance, loss-weighting finishes the job. Don't rely on
+   either alone.</li>
+<li><strong>Evaluate primarily on PR-AUC</strong>, report ROC-AUC alongside for reference, and pick the
+   decision threshold from the precision-recall curve against an agreed clinical cost
+   trade-off — not the default 0.5.</li>
+<li><strong>Deferred, not now</strong>: TimeGAN, conditional VAE, medGAN, TabDDPM — all correctly
+    flagged by the external sources as needing more real minority examples (~1,500-2,000+)
+    than the confirmed 469 we currently have. Revisit only if the cohort or label
+    definition changes to give more positive examples.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.collapse", "content.code.copy", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

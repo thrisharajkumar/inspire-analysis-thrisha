@@ -1,0 +1,2181 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+        <link rel="prev" href="../eda_findings/">
+      
+      
+        <link rel="next" href="../Surgeon_Facing_Summary/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Complete Findings Summary - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#inspire-project-complete-findings-summary" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Complete Findings Summary
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../INSPIRE_Project_Notes/" class="md-tabs__link">
+          
+  
+  
+  Data & Pipeline
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Surgeon_Facing_Summary/" class="md-tabs__link">
+          
+  
+  
+  Clinician Inputs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-tabs__link">
+          
+  
+  
+  MULTIMODEL MODEL
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Research_Aim/" class="md-tabs__link">
+          
+  
+  
+  Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../PACO_Net_Architecture/" class="md-tabs__link">
+          
+  
+  
+  Next-Gen Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data & Pipeline
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data & Pipeline
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Project_Notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eda_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete Findings Summary
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete Findings Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-mortality-label-resolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Mortality Label — ✅ RESOLVED
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-multi-operation-patients-resolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Multi-Operation Patients — ✅ RESOLVED
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-asa-possum-nela-data-checks-done-clinical-sign-off-still-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. ASA, POSSUM, NELA — 🔶 DATA CHECKS DONE, clinical sign-off still needed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-frailty-hfrs-resolved-real-bug-found-and-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Frailty (HFRS) — ✅ RESOLVED (real bug found and fixed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-organ-system-feature-grouping-resolved-literature-data-driven" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Organ-System Feature Grouping — ✅ RESOLVED (literature + data-driven)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Organ-System Feature Grouping — ✅ RESOLVED (literature + data-driven)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#literature-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Literature evidence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-icd-10-chapter-mapping-all-22-chapters-checked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete ICD-10 chapter mapping (all 22 chapters checked)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-driven-validation-real-hierarchical-clustering-on-5000-patients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data-driven validation — real hierarchical clustering on 5,000 patients
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-8-not-yet-resolved-no-data-analysis-attempted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-8. Not Yet Resolved — no data analysis attempted
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference-all-supporting-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference — all supporting files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinician Inputs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Clinician Inputs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Surgeon_Facing_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Surgeon Summanry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Novelty_Research_Ledger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Novelty & Clinical Relevance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MULTIMODEL MODEL
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MULTIMODEL MODEL
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Meeting_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Full-Scale Run — Meeting Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Base_Comparitive_Study_Models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Comparitive Study
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Aim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Aims & Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap_and_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap & Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Notes & Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meeting Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ICD10_Architecture_Research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ICD-10 Architecture Research
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next-Gen Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Next-Gen Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACO_Net_Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PACO-Net Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-mortality-label-resolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Mortality Label — ✅ RESOLVED
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-multi-operation-patients-resolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Multi-Operation Patients — ✅ RESOLVED
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-asa-possum-nela-data-checks-done-clinical-sign-off-still-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. ASA, POSSUM, NELA — 🔶 DATA CHECKS DONE, clinical sign-off still needed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-frailty-hfrs-resolved-real-bug-found-and-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Frailty (HFRS) — ✅ RESOLVED (real bug found and fixed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-organ-system-feature-grouping-resolved-literature-data-driven" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Organ-System Feature Grouping — ✅ RESOLVED (literature + data-driven)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Organ-System Feature Grouping — ✅ RESOLVED (literature + data-driven)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#literature-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Literature evidence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-icd-10-chapter-mapping-all-22-chapters-checked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete ICD-10 chapter mapping (all 22 chapters checked)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-driven-validation-real-hierarchical-clustering-on-5000-patients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data-driven validation — real hierarchical clustering on 5,000 patients
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-8-not-yet-resolved-no-data-analysis-attempted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-8. Not Yet Resolved — no data analysis attempted
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference-all-supporting-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference — all supporting files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="inspire-project-complete-findings-summary">INSPIRE Project — Complete Findings Summary<a class="headerlink" href="#inspire-project-complete-findings-summary" title="Permanent link">&para;</a></h1>
+<p>Everything <strong>resolved or empirically tested so far</strong>, consolidated in one place: every
+real number, every table, every plot. Sections 1-5 have real findings below. Sections 6-8
+remain genuinely open — no data resolution attempted yet, listed at the end for
+completeness.</p>
+<hr />
+<h2 id="1-the-mortality-label-resolved">1. The Mortality Label — ✅ RESOLVED<a class="headerlink" href="#1-the-mortality-label-resolved" title="Permanent link">&para;</a></h2>
+<p><strong>The answer:</strong> True 30-day mortality = <strong>469 deaths / 99,886 patients = 0.47%</strong>
+(not 942 / ~0.9% from the raw folder label).</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total cohort</td>
+<td>99,886</td>
+</tr>
+<tr>
+<td>Folder-labeled "died"</td>
+<td>942</td>
+</tr>
+<tr>
+<td><strong>True 30-day deaths (settled)</strong></td>
+<td><strong>469</strong></td>
+</tr>
+<tr>
+<td>...single-op patients</td>
+<td>301</td>
+</tr>
+<tr>
+<td>...multi-op patients</td>
+<td>168 (111 + 57)</td>
+</tr>
+<tr>
+<td>Folder-labeled "died" but died <strong>after</strong> 30 days</td>
+<td>473</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Still open:</strong> whether 30-day all-cause is the right window (vs. 90-day/in-hospital), and
+whether the 473 "died after 30 days" should be their own labeled cohort.</p>
+<hr />
+<h2 id="2-multi-operation-patients-resolved">2. Multi-Operation Patients — ✅ RESOLVED<a class="headerlink" href="#2-multi-operation-patients-resolved" title="Permanent link">&para;</a></h2>
+<p><strong>Does operation count itself predict risk? Yes.</strong></p>
+<p><img alt="Mortality rate by number of operations" src="../plots/mortality_by_n_ops.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Operations</th>
+<th>Mortality</th>
+<th>Patients</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0.4%</td>
+<td>78,321</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0.6%</td>
+<td>15,869</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1.2%</td>
+<td>3,689</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1.3%</td>
+<td>1,189</td>
+</tr>
+<tr>
+<td>5+</td>
+<td>1.0%</td>
+<td>818</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Which operation should anchor the 30-day label — first or last?</strong></p>
+<p><img alt="Label agreement: last-op vs first-op anchor" src="../plots/label_agreement.png" /></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Survived (first-op)</th>
+<th>Died (first-op)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Survived (last-op)</td>
+<td>21,397</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Died (last-op)</td>
+<td>111</td>
+<td>57</td>
+</tr>
+</tbody>
+</table>
+<p>Only 111 of 21,565 multi-op patients get a different answer depending on anchor — and the
+disagreement only ever runs one direction (mathematically guaranteed).</p>
+<p><strong>Why only one direction — the time gap between operations:</strong></p>
+<p><img alt="Gap between first and last operation" src="../plots/operation_gap.png" /></p>
+<ul>
+<li>Median gap for the 111 flip patients: <strong>11 months</strong> (mean 700 days, up to ~8 years)</li>
+<li><strong>Conclusion: last-operation is the correct anchor.</strong> These aren't staged procedures —
+  they're old, unrelated earlier surgeries followed by a separate, later operation. <strong>469
+  is the settled, defensible death count.</strong></li>
+</ul>
+<hr />
+<h2 id="3-asa-possum-nela-data-checks-done-clinical-sign-off-still-needed">3. ASA, POSSUM, NELA — 🔶 DATA CHECKS DONE, clinical sign-off still needed<a class="headerlink" href="#3-asa-possum-nela-data-checks-done-clinical-sign-off-still-needed" title="Permanent link">&para;</a></h2>
+<p><strong>ASA alone is a very strong predictor:</strong></p>
+<table>
+<thead>
+<tr>
+<th>ASA class</th>
+<th>Mortality</th>
+<th>Patients</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0.07%</td>
+<td>34,748</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0.17%</td>
+<td>54,107</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2.16%</td>
+<td>8,024</td>
+</tr>
+<tr>
+<td>4</td>
+<td>10.3%</td>
+<td>464</td>
+</tr>
+<tr>
+<td>5</td>
+<td>24.2%</td>
+<td>33</td>
+</tr>
+<tr>
+<td>6</td>
+<td>82.5%</td>
+<td>57</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Real INSPIRE field availability for POSSUM/NELA (5,000-patient audit):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Status</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>age</td>
+<td>✅ Available</td>
+<td>Static field</td>
+</tr>
+<tr>
+<td>systolic_bp</td>
+<td>✅ Available (renamed)</td>
+<td><code>nibp_sbp</code>, 98.2%/99.4%</td>
+</tr>
+<tr>
+<td>pulse</td>
+<td>✅ Available (renamed)</td>
+<td><code>hr</code>, 98.4%/100%</td>
+</tr>
+<tr>
+<td>hb, wbc, sodium, potassium, albumin</td>
+<td>✅ Available</td>
+<td>93-95%</td>
+</tr>
+<tr>
+<td>urea</td>
+<td>✅ Available (renamed)</td>
+<td><code>bun</code>, 93.2%</td>
+</tr>
+<tr>
+<td>n_procedures</td>
+<td>✅ Available</td>
+<td><code>n_operations</code>, 100%</td>
+</tr>
+<tr>
+<td>blood_loss</td>
+<td>✅ Available (renamed)</td>
+<td><code>ebl</code>, 59.3%</td>
+</tr>
+<tr>
+<td>gcs</td>
+<td>⚠️ Partial</td>
+<td>Only 8.4% coverage, <strong>not random</strong> (see below)</td>
+</tr>
+<tr>
+<td>urgency banding</td>
+<td>⚠️ Partial</td>
+<td>Only binary <code>emop</code></td>
+</tr>
+<tr>
+<td>malignancy</td>
+<td>✅ Derivable</td>
+<td>37.2% via ICD-10</td>
+</tr>
+<tr>
+<td>sepsis/ischaemia/bleeding indication</td>
+<td>❌/🔧 Attempted, unreliable</td>
+<td>Narrow code ranges — likely fixable, see Section 5</td>
+</tr>
+<tr>
+<td>cardiac/respiratory exam grade, ECG, peritoneal soiling</td>
+<td>❌ Not available</td>
+<td>Genuinely absent from dataset</td>
+</tr>
+</tbody>
+</table>
+<p><strong>GCS missingness by department/urgency/ASA (proves it's not random):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Breakdown</th>
+<th>GCS coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CTS (cardiothoracic)</td>
+<td>37.5%</td>
+</tr>
+<tr>
+<td>NS (neurosurgery)</td>
+<td>25.2%</td>
+</tr>
+<tr>
+<td>Most other departments</td>
+<td>1.7%–7.5%</td>
+</tr>
+<tr>
+<td>Emergency (<code>emop</code>=1)</td>
+<td>20.7%</td>
+</tr>
+<tr>
+<td>Elective (<code>emop</code>=0)</td>
+<td>7.1%</td>
+</tr>
+<tr>
+<td>ASA 6</td>
+<td>60.0%</td>
+</tr>
+<tr>
+<td>ASA 1</td>
+<td>3.2%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ICD-10 malignancy/indication coverage (first-pass, narrow code ranges):</strong></p>
+<p><img alt="ICD-10 coverage: malignancy vs indication categories" src="../plots/icd10_coverage.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Malignancy (active)</td>
+<td>37.2%</td>
+</tr>
+<tr>
+<td>Malignancy (in-situ)</td>
+<td>2.8%</td>
+</tr>
+<tr>
+<td>Sepsis</td>
+<td>0.3%</td>
+</tr>
+<tr>
+<td>Cardiac ischaemia</td>
+<td>4.5%</td>
+</tr>
+<tr>
+<td>Bowel ischaemia</td>
+<td>0.2%</td>
+</tr>
+<tr>
+<td>GI bleeding</td>
+<td>0.0%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Likely explanation, not yet re-confirmed:</strong> narrow hand-picked codes (<code>A40-A41</code>) instead
+of full WHO chapter ranges (<code>A00-B99</code>) — corrected audit code exists in
+<code>ICD10_Architecture_Research.md</code>, rerun pending.</p>
+<p><strong>Still open:</strong> whether ASA is circular with model predictions, whether POSSUM/NELA add
+value beyond ASA, and clinical sign-off on ICD-10-derived indication categories.</p>
+<hr />
+<h2 id="4-frailty-hfrs-resolved-real-bug-found-and-fixed">4. Frailty (HFRS) — ✅ RESOLVED (real bug found and fixed)<a class="headerlink" href="#4-frailty-hfrs-resolved-real-bug-found-and-fixed" title="Permanent link">&para;</a></h2>
+<p><strong>Bug confirmed directly in the code:</strong> the 2-year lookback window was never implemented,
+and the age≥75 eligibility check was written but commented out.</p>
+<p><strong>Real impact of fixing it (5,000-patient sample):</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Patients actually age-eligible (75+)</td>
+<td>735 / 5,000 (14.7%)</td>
+</tr>
+<tr>
+<td>Mean score, current (no window)</td>
+<td>7.48</td>
+</tr>
+<tr>
+<td>Mean score, corrected (2-yr window)</td>
+<td>3.74</td>
+</tr>
+<tr>
+<td>Eligible patients who change category</td>
+<td>119 / 735 (16.2%)</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="HFRS mortality by category, current vs corrected" src="../plots/hfrs_mortality_comparison.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Current mortality</th>
+<th>Corrected mortality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Low</td>
+<td>0.97%</td>
+<td>1.01%</td>
+</tr>
+<tr>
+<td>Intermediate</td>
+<td>1.80%</td>
+<td>1.19%</td>
+</tr>
+<tr>
+<td>High</td>
+<td>1.96%</td>
+<td><strong>4.08%</strong></td>
+</tr>
+</tbody>
+</table>
+<p><img alt="HFRS category shift, current to corrected" src="../plots/hfrs_category_shift.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Current →</th>
+<th>High</th>
+<th>Intermediate</th>
+<th>Low</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>High</strong></td>
+<td>49</td>
+<td>37</td>
+<td>16</td>
+</tr>
+<tr>
+<td><strong>Intermediate</strong></td>
+<td>0</td>
+<td>47</td>
+<td>63</td>
+</tr>
+<tr>
+<td><strong>Low</strong></td>
+<td>0</td>
+<td>0</td>
+<td>513</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key finding: the corrected version is a genuinely better predictor</strong> — current HFRS
+barely separates intermediate from high mortality (1.80% vs 1.96%); corrected HFRS shows a
+clean 4x jump at high frailty. Fixing the bug isn't just methodologically correct, it makes
+the score more clinically useful.</p>
+<p><strong>Still open:</strong> whether this matches clinical expectation, and whether HFRS (only
+applicable to ~15% of this cohort) is worth the complexity vs. a simpler age-based proxy.</p>
+<hr />
+<h2 id="5-organ-system-feature-grouping-resolved-literature-data-driven">5. Organ-System Feature Grouping — ✅ RESOLVED (literature + data-driven)<a class="headerlink" href="#5-organ-system-feature-grouping-resolved-literature-data-driven" title="Permanent link">&para;</a></h2>
+<h3 id="literature-evidence">Literature evidence<a class="headerlink" href="#literature-evidence" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>SOFA</strong> (Vincent et al. 1996) — the clinical gold standard — uses exactly 6 organ
+  systems, near-identical to ours, and <strong>deliberately has no 7th "infection" system</strong>.</li>
+<li><strong>Sepsis-3</strong> (Singer et al. 2016, <em>JAMA</em>) — defines sepsis as infection <em>triggering</em> a
+  SOFA change. Infection is a cross-cutting flag, not a competing system.</li>
+<li><strong>ICD-10's own WHO chapter structure</strong> independently agrees — Chapter I (infectious
+  disease, A00-B99) is its own dedicated chapter, separate from every organ chapter. Two
+  independent sources reach the same conclusion.</li>
+<li><strong>Decision: no 7th infection system.</strong> CRP/WBC stay in haematology (they're blood
+  tests) and also serve as an infection-context flag.</li>
+</ul>
+<h3 id="complete-icd-10-chapter-mapping-all-22-chapters-checked">Complete ICD-10 chapter mapping (all 22 chapters checked)<a class="headerlink" href="#complete-icd-10-chapter-mapping-all-22-chapters-checked" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Letter(s)</th>
+<th>Chapter</th>
+<th>Maps to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A-B</td>
+<td>Infectious diseases</td>
+<td>Infection context flag</td>
+</tr>
+<tr>
+<td>C, D(00-49)</td>
+<td>Neoplasms</td>
+<td>Malignancy (handled separately)</td>
+</tr>
+<tr>
+<td>D(50-89)</td>
+<td>Blood/blood-forming organs</td>
+<td>✅ haematology_coag</td>
+</tr>
+<tr>
+<td>E</td>
+<td>Endocrine/metabolic</td>
+<td>✅ metabolic_hepatic</td>
+</tr>
+<tr>
+<td>F</td>
+<td>Mental disorders</td>
+<td>Out of scope</td>
+</tr>
+<tr>
+<td>G</td>
+<td>Nervous system</td>
+<td>✅ neurological</td>
+</tr>
+<tr>
+<td>H</td>
+<td>Eye/ear</td>
+<td>Out of scope</td>
+</tr>
+<tr>
+<td>I</td>
+<td>Circulatory</td>
+<td>✅ cardiovascular</td>
+</tr>
+<tr>
+<td>J</td>
+<td>Respiratory</td>
+<td>✅ respiratory</td>
+</tr>
+<tr>
+<td>K</td>
+<td>Digestive</td>
+<td>✅ metabolic_hepatic (K70-K77 = liver)</td>
+</tr>
+<tr>
+<td>L</td>
+<td>Skin</td>
+<td>Out of scope</td>
+</tr>
+<tr>
+<td>M</td>
+<td>Musculoskeletal</td>
+<td>Frailty-adjacent (HFRS fracture codes)</td>
+</tr>
+<tr>
+<td>N</td>
+<td>Genitourinary</td>
+<td>✅ renal</td>
+</tr>
+<tr>
+<td>O, P, Q</td>
+<td>Pregnancy/perinatal/congenital</td>
+<td>Out of scope</td>
+</tr>
+<tr>
+<td><strong>R</strong></td>
+<td>Symptoms/signs</td>
+<td><strong>R57 (shock)</strong> — one of our own top mortality codes, initially missed</td>
+</tr>
+<tr>
+<td>S-T</td>
+<td>Injury/poisoning</td>
+<td>Trauma-adjacent</td>
+</tr>
+<tr>
+<td>V-Y</td>
+<td>External causes</td>
+<td>Not clinically useful as a feature</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>Health status</td>
+<td><strong>Z94 (transplant)</strong> sub-codes map by organ: kidney/heart/lung/liver</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Better long-term alternative found:</strong> AHRQ/HCUP's <strong>CCSR</strong> — 530+ official clinical
+categories across 21 body systems, free, government-maintained, far more granular than
+hand-rolled letter mapping. Recommended foundation for the <code>DX_EMB</code> pipeline component.</p>
+<h3 id="data-driven-validation-real-hierarchical-clustering-on-5000-patients">Data-driven validation — real hierarchical clustering on 5,000 patients<a class="headerlink" href="#data-driven-validation-real-hierarchical-clustering-on-5000-patients" title="Permanent link">&para;</a></h3>
+<p><img alt="Hierarchical clustering of real INSPIRE lab/vital values" src="../plots/organ_clustering_dendrogram.png" /></p>
+<p><strong>Strongly confirmed</strong> (tight, independent clusters matching assigned systems):
+creatinine+bun (renal), alt+ast (hepatic), ptinr+aptt (coagulation), sodium+chloride
+(renal), hco3+ph+paco2 (acid-base).</p>
+<p><strong>CRP/WBC finding — supports the cross-cutting-flag decision:</strong> WBC actually correlates
+more with platelet (haematology) than CRP; CRP's single strongest correlate is albumin
+(r=-0.487 — the classic acute-phase response: CRP rises, albumin falls). Real evidence
+these markers genuinely span systems rather than owning one.</p>
+<p><strong>Lactate — genuinely unresolved, not a clean confirmation:</strong></p>
+<table>
+<thead>
+<tr>
+<th>lactate's top correlates</th>
+<th>r</th>
+<th>Assigned system</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hco3 (bicarbonate)</td>
+<td>-0.207</td>
+<td>respiratory</td>
+</tr>
+<tr>
+<td>glucose</td>
+<td>+0.204</td>
+<td>metabolic_hepatic</td>
+</tr>
+<tr>
+<td>ph</td>
+<td>-0.161</td>
+<td>respiratory</td>
+</tr>
+<tr>
+<td>ptinr</td>
+<td>+0.123</td>
+<td>haematology_coag</td>
+</tr>
+<tr>
+<td>hr (heart rate)</td>
+<td>+0.120</td>
+<td>cardiovascular</td>
+</tr>
+</tbody>
+</table>
+<p>All correlations are weak (max 0.21). Literature says cardiovascular (perfusion/shock
+marker); data leans slightly toward acid-base chemistry instead. Two caveats limit this:
+only 10% of patients have a pre-op lactate at all (likely a biased, sicker subsample), and
+lactate's clinical role is fundamentally about <em>trends</em>, which a single pre-op value can't
+capture. <strong>Kept as cardiovascular (literature-backed default), flagged as open, not
+settled.</strong></p>
+<p><strong>Still open:</strong> final clinical sign-off on all of the above.</p>
+<hr />
+<h2 id="6-8-not-yet-resolved-no-data-analysis-attempted">6-8. Not Yet Resolved — no data analysis attempted<a class="headerlink" href="#6-8-not-yet-resolved-no-data-analysis-attempted" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Section 6 — Scope</strong> (pre-op only vs. peri-operative vs. post-op): a product decision,
+  not a data question. Recommendation on file: start pre-op only.</li>
+<li><strong>Section 7 — Concept Bottleneck</strong>: needs clinical staging definitions (AKI, haemodynamic
+  instability, respiratory failure) before any building can start.</li>
+<li><strong>Section 8 — Departments</strong>: one model vs. department-specific models — needs clinical
+  input on whether department physiology differs enough to warrant separate models.</li>
+</ul>
+<hr />
+<h2 id="quick-reference-all-supporting-files">Quick reference — all supporting files<a class="headerlink" href="#quick-reference-all-supporting-files" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full clinician-facing question list</td>
+<td><code>Clinician_Questions.md</code></td>
+</tr>
+<tr>
+<td>ASA/POSSUM/NELA math, references, field audit</td>
+<td><code>ASA_POSSUM_NELA_Theory_and_Validation.md</code></td>
+</tr>
+<tr>
+<td>ICD-10 chapter mapping, embedding methods literature</td>
+<td><code>ICD10_Architecture_Research.md</code></td>
+</tr>
+<tr>
+<td>Organ-system grouping code (revised)</td>
+<td><code>multimodal_step1_organ_systems.py</code></td>
+</tr>
+<tr>
+<td>Clustering validation code</td>
+<td><code>organ_system_clustering_validation.py</code></td>
+</tr>
+<tr>
+<td>HFRS correction code</td>
+<td><code>hfrs_corrected_comparison.py</code></td>
+</tr>
+<tr>
+<td>Multi-op deep-dive code</td>
+<td><code>multi_op_analysis_cell.py</code></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.collapse", "content.code.copy", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

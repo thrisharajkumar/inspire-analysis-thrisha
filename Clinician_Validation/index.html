@@ -1,0 +1,4399 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+        <link rel="prev" href="../Clinician_Questions/">
+      
+      
+        <link rel="next" href="../ICD10_Architecture_Research/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Meeting Questions - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#clinician-validation-comparative-study-mapping-checks-and-open-questions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Meeting Questions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Project_Notes/" class="md-tabs__link">
+          
+  
+  
+  Data & Pipeline
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Surgeon_Facing_Summary/" class="md-tabs__link">
+          
+  
+  
+  Clinician Inputs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-tabs__link">
+          
+  
+  
+  MULTIMODEL MODEL
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../Research_Aim/" class="md-tabs__link">
+          
+  
+  
+  Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../PACO_Net_Architecture/" class="md-tabs__link">
+          
+  
+  
+  Next-Gen Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data & Pipeline
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data & Pipeline
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Project_Notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eda_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Complete_Findings_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete Findings Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinician Inputs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Clinician Inputs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Surgeon_Facing_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Surgeon Summanry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Novelty_Research_Ledger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Novelty & Clinical Relevance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MULTIMODEL MODEL
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MULTIMODEL MODEL
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Meeting_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Full-Scale Run — Meeting Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Base_Comparitive_Study_Models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Comparitive Study
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Aim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Aims & Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap_and_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap & Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Notes & Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meeting Questions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meeting Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-hfrs-frailty-score-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. HFRS (frailty score) analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. HFRS (frailty score) analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#impact-of-fixing-it-5000-patient-sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impact of fixing it (5,000-patient sample)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-corrected-version-is-a-meaningfully-better-predictor-not-just-more-methodologically-correct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The corrected version is a meaningfully better predictor, not just more methodologically correct
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#at-full-scale-before-the-fix-was-applied-cohort-wide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At full-scale (before the fix was applied cohort-wide)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-frailty-matter-more-for-emergency-surgery-now-answered-on-the-full-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does frailty matter more for emergency surgery? — now answered on the full dataset
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-which-icd-10-diagnosis-codes-actually-drive-the-frailty-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Which ICD-10 diagnosis codes actually drive the frailty score
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Which ICD-10 diagnosis codes actually drive the frailty score">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-it-comes-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where it comes from
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-its-actually-computed-compute_hfrs-subjectpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it's actually computed (compute_hfrs(), subject.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-this-connects-to-the-organ-system-mapping-in-section-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How this connects to the organ-system mapping in Section 5
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-comparative-study-asa-vs-possum-vs-nela-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Comparative study — ASA vs. POSSUM vs. NELA validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Comparative study — ASA vs. POSSUM vs. NELA validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-three-differ-structurally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the three differ structurally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-asa-behave-the-way-it-clinically-should-in-our-data-yes-a-clean-staircase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does ASA behave the way it clinically should in our data? Yes — a clean staircase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-field-by-field-availability-audit-5000-patient-sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real field-by-field availability audit (5,000-patient sample)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bottom-line-per-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bottom line, per score
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-a-real-comparative-study-would-need-to-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a real comparative study would need to run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-circularity-question-this-comparative-study-should-carry-alongside-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The circularity question this comparative study should carry alongside it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-featureparameter-table-validation-mapping-from-clinicians" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Feature/parameter table validation — mapping from clinicians
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Feature/parameter table validation — mapping from clinicians">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-real-schema-audited-not-assumed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The real schema, audited (not assumed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-patient-completeness-coverage-tiers-30-patient-audit-replicated-at-5000-patient-scale-in-other-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-patient completeness — coverage tiers (30-patient audit, replicated at 5,000-patient scale in other sections)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-open-validation-ask-for-clinicians" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The open validation ask for clinicians
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-labs-organ-systems-many-to-one-many-to-many-mapping-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Labs → organ systems: many-to-one / many-to-many mapping check
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Labs → organ systems: many-to-one / many-to-many mapping check">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-check-was-actually-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the check was actually run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strongly-confirmed-clean-one-to-one-clusters-mapping-holds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strongly confirmed — clean one-to-one clusters, mapping holds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genuinely-many-to-many-the-mapping-checks-real-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Genuinely many-to-many — the mapping check's real findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters-and-the-resolution-path-taken" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters, and the resolution path taken
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-multi-surgery-patients-should-all-of-them-be-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Multi-surgery patients — should all of them be used?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Multi-surgery patients — should all of them be used?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-scale-of-the-issue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The scale of the issue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-full-dataset-unbinned-view-every-operation-count-from-1-to-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The full-dataset, unbinned view — every operation count from 1 to 30
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-operation-should-anchor-the-30-day-death-label-first-or-last" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which operation should anchor the 30-day death label — first or last?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#should-multi-op-patients-be-excluded-to-simplify-the-cohort-no-this-was-tested-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Should multi-op patients be excluded to "simplify" the cohort? No — this was tested directly.
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-1-year-6-month-window-question-addressed-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The "1-year / 6-month window" question, addressed directly
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-does-clustering-of-surgeries-in-a-short-window-carry-its-own-risk-signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Does clustering of surgeries in a short window carry its own risk signal?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Does clustering of surgeries in a short window carry its own risk signal?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#whats-already-known-thats-adjacent-to-this-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's already known that's adjacent to this question
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-this-analysis-would-need-to-compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this analysis would need to compute
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-pre-op-peri-op-and-post-op-which-windows-to-build-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Pre-op, peri-op, and post-op — which window(s) to build for
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Pre-op, peri-op, and post-op — which window(s) to build for">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-three-windows-mapped-onto-real-fields-that-already-exist-in-every-patient-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three windows, mapped onto real fields that already exist in every patient record
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-vitals-really-are-more-reliable-intra-operatively-not-just-an-assumption" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why vitals really are more reliable intra-operatively (not just an assumption)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#three-genuinely-different-products-not-three-versions-of-one-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three genuinely different products, not three versions of one model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-concept-bottleneck-naming-intermediate-clinical-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Concept Bottleneck — naming intermediate clinical concepts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Concept Bottleneck — naming intermediate clinical concepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-is-being-proposed-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this is being proposed at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#whats-blocking-it-clinical-staging-definitions-not-data-or-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's blocking it — clinical staging definitions, not data or code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-departments-and-case-mix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Departments and case mix
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Departments and case mix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#whats-already-known" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's already known
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-real-tension-this-question-is-pointing-at" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The real tension this question is pointing at
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-system-level-breakdown-every-parameter-per-organ-system-as-a-flowchart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. System-level breakdown — every parameter, per organ system, as a flowchart
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. System-level breakdown — every parameter, per organ system, as a flowchart">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-renal-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 Renal system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-cardiovascular-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 Cardiovascular system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-respiratory-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3 Respiratory system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#114-metabolic-hepatic-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4 Metabolic / hepatic system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#115-haematology-coagulation-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5 Haematology / coagulation system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#116-neurological-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.6 Neurological system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#117-non-time-series-inputs-diagnoses-medications-static-facts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.7 Non-time-series inputs — diagnoses, medications, static facts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#118-full-picture-all-systems-feeding-the-fusion-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.8 Full picture — all systems feeding the fusion layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-appendix-all-21-original-clinician-questions-cross-referenced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Appendix — all 21 original clinician questions, cross-referenced
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Appendix — all 21 original clinician questions, cross-referenced">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mortality-label-clinician_questionsmd-1-resolved-optional-context-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mortality label (Clinician_Questions.md §1) — ✅ resolved, optional context only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-operations-clinician_questionsmd-2-resolved-optional-context-two-genuinely-open-follow-ups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple operations (Clinician_Questions.md §2) — ✅ resolved, optional context + two genuinely open follow-ups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asa-possum-nela-clinician_questionsmd-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASA / POSSUM / NELA (Clinician_Questions.md §3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frailty-hfrs-clinician_questionsmd-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frailty / HFRS (Clinician_Questions.md §4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organ-system-feature-grouping-clinician_questionsmd-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Organ-system feature grouping (Clinician_Questions.md §5)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope-pre-op-peri-op-or-post-op-clinician_questionsmd-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope: pre-op, peri-op, or post-op (Clinician_Questions.md §6)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-bottleneck-clinician_questionsmd-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Bottleneck (Clinician_Questions.md §7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#departments-and-case-mix-clinician_questionsmd-8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Departments and case mix (Clinician_Questions.md §8)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-documents-this-page-consolidates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source documents this page consolidates
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ICD10_Architecture_Research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ICD-10 Architecture Research
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next-Gen Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Next-Gen Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACO_Net_Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PACO-Net Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-hfrs-frailty-score-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. HFRS (frailty score) analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. HFRS (frailty score) analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#impact-of-fixing-it-5000-patient-sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impact of fixing it (5,000-patient sample)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-corrected-version-is-a-meaningfully-better-predictor-not-just-more-methodologically-correct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The corrected version is a meaningfully better predictor, not just more methodologically correct
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#at-full-scale-before-the-fix-was-applied-cohort-wide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        At full-scale (before the fix was applied cohort-wide)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-frailty-matter-more-for-emergency-surgery-now-answered-on-the-full-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does frailty matter more for emergency surgery? — now answered on the full dataset
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-which-icd-10-diagnosis-codes-actually-drive-the-frailty-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Which ICD-10 diagnosis codes actually drive the frailty score
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Which ICD-10 diagnosis codes actually drive the frailty score">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-it-comes-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where it comes from
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-its-actually-computed-compute_hfrs-subjectpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it's actually computed (compute_hfrs(), subject.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-this-connects-to-the-organ-system-mapping-in-section-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How this connects to the organ-system mapping in Section 5
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-comparative-study-asa-vs-possum-vs-nela-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Comparative study — ASA vs. POSSUM vs. NELA validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Comparative study — ASA vs. POSSUM vs. NELA validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-three-differ-structurally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the three differ structurally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-asa-behave-the-way-it-clinically-should-in-our-data-yes-a-clean-staircase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does ASA behave the way it clinically should in our data? Yes — a clean staircase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#real-field-by-field-availability-audit-5000-patient-sample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real field-by-field availability audit (5,000-patient sample)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bottom-line-per-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bottom line, per score
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-a-real-comparative-study-would-need-to-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a real comparative study would need to run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-circularity-question-this-comparative-study-should-carry-alongside-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The circularity question this comparative study should carry alongside it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-featureparameter-table-validation-mapping-from-clinicians" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Feature/parameter table validation — mapping from clinicians
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Feature/parameter table validation — mapping from clinicians">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-real-schema-audited-not-assumed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The real schema, audited (not assumed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-patient-completeness-coverage-tiers-30-patient-audit-replicated-at-5000-patient-scale-in-other-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-patient completeness — coverage tiers (30-patient audit, replicated at 5,000-patient scale in other sections)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-open-validation-ask-for-clinicians" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The open validation ask for clinicians
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-labs-organ-systems-many-to-one-many-to-many-mapping-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Labs → organ systems: many-to-one / many-to-many mapping check
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Labs → organ systems: many-to-one / many-to-many mapping check">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-check-was-actually-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the check was actually run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strongly-confirmed-clean-one-to-one-clusters-mapping-holds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strongly confirmed — clean one-to-one clusters, mapping holds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genuinely-many-to-many-the-mapping-checks-real-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Genuinely many-to-many — the mapping check's real findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters-and-the-resolution-path-taken" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters, and the resolution path taken
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-multi-surgery-patients-should-all-of-them-be-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Multi-surgery patients — should all of them be used?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Multi-surgery patients — should all of them be used?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-scale-of-the-issue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The scale of the issue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-full-dataset-unbinned-view-every-operation-count-from-1-to-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The full-dataset, unbinned view — every operation count from 1 to 30
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-operation-should-anchor-the-30-day-death-label-first-or-last" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which operation should anchor the 30-day death label — first or last?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#should-multi-op-patients-be-excluded-to-simplify-the-cohort-no-this-was-tested-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Should multi-op patients be excluded to "simplify" the cohort? No — this was tested directly.
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-1-year-6-month-window-question-addressed-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The "1-year / 6-month window" question, addressed directly
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-does-clustering-of-surgeries-in-a-short-window-carry-its-own-risk-signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Does clustering of surgeries in a short window carry its own risk signal?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Does clustering of surgeries in a short window carry its own risk signal?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#whats-already-known-thats-adjacent-to-this-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's already known that's adjacent to this question
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-this-analysis-would-need-to-compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this analysis would need to compute
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-pre-op-peri-op-and-post-op-which-windows-to-build-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Pre-op, peri-op, and post-op — which window(s) to build for
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Pre-op, peri-op, and post-op — which window(s) to build for">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-three-windows-mapped-onto-real-fields-that-already-exist-in-every-patient-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three windows, mapped onto real fields that already exist in every patient record
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-vitals-really-are-more-reliable-intra-operatively-not-just-an-assumption" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why vitals really are more reliable intra-operatively (not just an assumption)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#three-genuinely-different-products-not-three-versions-of-one-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three genuinely different products, not three versions of one model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-concept-bottleneck-naming-intermediate-clinical-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Concept Bottleneck — naming intermediate clinical concepts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Concept Bottleneck — naming intermediate clinical concepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-is-being-proposed-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this is being proposed at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#whats-blocking-it-clinical-staging-definitions-not-data-or-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's blocking it — clinical staging definitions, not data or code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-departments-and-case-mix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Departments and case mix
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Departments and case mix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#whats-already-known" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's already known
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-real-tension-this-question-is-pointing-at" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The real tension this question is pointing at
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-system-level-breakdown-every-parameter-per-organ-system-as-a-flowchart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. System-level breakdown — every parameter, per organ system, as a flowchart
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. System-level breakdown — every parameter, per organ system, as a flowchart">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-renal-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 Renal system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-cardiovascular-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 Cardiovascular system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-respiratory-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3 Respiratory system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#114-metabolic-hepatic-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4 Metabolic / hepatic system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#115-haematology-coagulation-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5 Haematology / coagulation system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#116-neurological-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.6 Neurological system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#117-non-time-series-inputs-diagnoses-medications-static-facts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.7 Non-time-series inputs — diagnoses, medications, static facts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#118-full-picture-all-systems-feeding-the-fusion-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.8 Full picture — all systems feeding the fusion layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-appendix-all-21-original-clinician-questions-cross-referenced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Appendix — all 21 original clinician questions, cross-referenced
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Appendix — all 21 original clinician questions, cross-referenced">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mortality-label-clinician_questionsmd-1-resolved-optional-context-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mortality label (Clinician_Questions.md §1) — ✅ resolved, optional context only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-operations-clinician_questionsmd-2-resolved-optional-context-two-genuinely-open-follow-ups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple operations (Clinician_Questions.md §2) — ✅ resolved, optional context + two genuinely open follow-ups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asa-possum-nela-clinician_questionsmd-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASA / POSSUM / NELA (Clinician_Questions.md §3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frailty-hfrs-clinician_questionsmd-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frailty / HFRS (Clinician_Questions.md §4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organ-system-feature-grouping-clinician_questionsmd-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Organ-system feature grouping (Clinician_Questions.md §5)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope-pre-op-peri-op-or-post-op-clinician_questionsmd-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope: pre-op, peri-op, or post-op (Clinician_Questions.md §6)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-bottleneck-clinician_questionsmd-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Bottleneck (Clinician_Questions.md §7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#departments-and-case-mix-clinician_questionsmd-8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Departments and case mix (Clinician_Questions.md §8)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-documents-this-page-consolidates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source documents this page consolidates
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="clinician-validation-comparative-study-mapping-checks-and-open-questions">Clinician Validation — Comparative Study, Mapping Checks, and Open Questions<a class="headerlink" href="#clinician-validation-comparative-study-mapping-checks-and-open-questions" title="Permanent link">&para;</a></h1>
+<p><strong>What this page is:</strong> every question below was asked in one batch, about work already
+scattered across <code>Clinician_Questions.md</code>, <code>ASA_POSSUM_NELA_Theory_and_Validation.md</code>,
+<code>ICD10_Architecture_Research.md</code>, <code>INSPIRE_Complete_Findings_Summary.md</code>, and
+<code>roadmap_and_architecture.md</code>. This page pulls all of it into one place, next to a
+<strong>clean restatement of the question</strong>, the <strong>existing analysis + pictures</strong> where they
+exist, and an honest <strong>status tag</strong> — so it's obvious at a glance what's already answered
+with real data vs. what genuinely still needs a clinician's sign-off.</p>
+<hr />
+<h2 id="contents">Contents<a class="headerlink" href="#contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#1-hfrs-frailty-score-analysis">HFRS (frailty score) analysis</a></li>
+<li><a href="#2-which-icd-10-diagnosis-codes-actually-drive-the-frailty-score">Which ICD-10 diagnosis codes actually drive the frailty score</a></li>
+<li><a href="#3-comparative-study--asa-vs-possum-vs-nela-validation">Comparative study — ASA vs. POSSUM vs. NELA validation</a></li>
+<li><a href="#4-featureparameter-table-validation--mapping-from-clinicians">Feature/parameter table validation — mapping from clinicians</a></li>
+<li><a href="#5-labs--organ-systems-many-to-one--many-to-many-mapping-check">Labs → organ systems: many-to-one / many-to-many mapping check</a></li>
+<li><a href="#6-multi-surgery-patients--should-all-of-them-be-used">Multi-surgery patients — should all of them be used?</a></li>
+<li><a href="#7-does-clustering-of-surgeries-in-a-short-window-carry-its-own-risk-signal">Does clustering of surgeries in a short window carry its own risk signal?</a></li>
+<li><a href="#8-pre-op-peri-op-and-post-op--which-windows-to-build-for">Pre-op, peri-op, and post-op — which window(s) to build for</a></li>
+<li><a href="#9-concept-bottleneck--naming-intermediate-clinical-concepts">Concept Bottleneck — naming intermediate clinical concepts</a></li>
+<li><a href="#10-departments-and-case-mix">Departments and case mix</a></li>
+<li><a href="#11-system-level-breakdown--every-parameter-per-organ-system-as-a-flowchart">System-level breakdown — every parameter, per organ system, as a flowchart</a></li>
+<li><a href="#12-appendix--all-21-original-clinician-questions-cross-referenced">Appendix — all 21 original clinician questions, cross-referenced</a></li>
+</ol>
+<hr />
+<h2 id="1-hfrs-frailty-score-analysis">1. HFRS (frailty score) analysis<a class="headerlink" href="#1-hfrs-frailty-score-analysis" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> Is the Hospital Frailty Risk Score (HFRS), as currently
+implemented, computing frailty correctly, and how predictive is it once computed
+correctly?</p>
+<h3 id="impact-of-fixing-it-5000-patient-sample">Impact of fixing it (5,000-patient sample)<a class="headerlink" href="#impact-of-fixing-it-5000-patient-sample" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Patients actually age-eligible (75+)</td>
+<td>735 / 5,000 (<strong>14.7%</strong>) — the other ~85% should never have been scored at all</td>
+</tr>
+<tr>
+<td>Mean score, current (no window)</td>
+<td>7.48</td>
+</tr>
+<tr>
+<td>Mean score, corrected (2-yr window)</td>
+<td>3.74 — roughly <strong>halved</strong></td>
+</tr>
+<tr>
+<td>Eligible patients who change frailty category</td>
+<td>119 / 735 (<strong>16.2%</strong>)</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="HFRS mortality by category, current vs corrected" src="../plots/hfrs_mortality_comparison.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Current mortality</th>
+<th>Corrected mortality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Low</td>
+<td>0.97%</td>
+<td>1.01%</td>
+</tr>
+<tr>
+<td>Intermediate</td>
+<td>1.80%</td>
+<td>1.19%</td>
+</tr>
+<tr>
+<td>High</td>
+<td>1.96%</td>
+<td><strong>4.08%</strong></td>
+</tr>
+</tbody>
+</table>
+<p><img alt="HFRS category shift, current to corrected" src="../plots/hfrs_category_shift.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Current → Corrected</th>
+<th>High</th>
+<th>Intermediate</th>
+<th>Low</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>High</strong></td>
+<td>49</td>
+<td>37</td>
+<td>16</td>
+</tr>
+<tr>
+<td><strong>Intermediate</strong></td>
+<td>0</td>
+<td>47</td>
+<td>63</td>
+</tr>
+<tr>
+<td><strong>Low</strong></td>
+<td>0</td>
+<td>0</td>
+<td>513</td>
+</tr>
+</tbody>
+</table>
+<p>Over half of currently "high"-frailty patients (53 of 102 shown in the earlier eligible
+subset) drop to intermediate/low once stale diagnoses are excluded.</p>
+<h3 id="the-corrected-version-is-a-meaningfully-better-predictor-not-just-more-methodologically-correct">The corrected version is a meaningfully better predictor, not just more methodologically correct<a class="headerlink" href="#the-corrected-version-is-a-meaningfully-better-predictor-not-just-more-methodologically-correct" title="Permanent link">&para;</a></h3>
+<p>Current HFRS barely separates intermediate (1.80%) from high (1.96%) mortality. Corrected
+HFRS shows a clean jump to <strong>4.08%</strong> mortality at high frailty vs. ~1% at low/intermediate
+— fixing the bug makes the score more useful, not just more defensible.</p>
+<h3 id="at-full-scale-before-the-fix-was-applied-cohort-wide">At full-scale (before the fix was applied cohort-wide)<a class="headerlink" href="#at-full-scale-before-the-fix-was-applied-cohort-wide" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>HFRS category</th>
+<th>Mortality rate</th>
+<th>Patients</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>High</td>
+<td>1.01%</td>
+<td>6,024</td>
+</tr>
+<tr>
+<td>Intermediate</td>
+<td>0.77%</td>
+<td>8,457</td>
+</tr>
+<tr>
+<td>Low</td>
+<td>0.41%</td>
+<td>80,865</td>
+</tr>
+<tr>
+<td>Unknown (no diagnoses)</td>
+<td>0.18%</td>
+<td>4,540</td>
+</tr>
+</tbody>
+</table>
+<p>High-frailty patients die at roughly 5–6× the rate of low-frailty patients — a real,
+ordered signal, but weaker on its own than ASA (which reaches 82% mortality at its
+extreme vs. HFRS's ~1–4%). HFRS looks like a legitimate contributing feature, not a
+standalone dominant predictor.</p>
+<h3 id="does-frailty-matter-more-for-emergency-surgery-now-answered-on-the-full-dataset">Does frailty matter more for emergency surgery? — now answered on the full dataset<a class="headerlink" href="#does-frailty-matter-more-for-emergency-surgery-now-answered-on-the-full-dataset" title="Permanent link">&para;</a></h3>
+<p><img alt="Frailty vs. mortality, split by scheduled/emergency — full dataset" src="eda_images/18_hfrs_emergency_vs_scheduled_full.png" /></p>
+<p>The reasoning: a surgeon who schedules an elective operation has already, informally,
+screened the patient for fitness, so frailty should carry <em>less</em> extra information for
+scheduled surgery. For emergency surgery, no such screening happens, so frailty should
+matter <em>more</em>. <strong>Confirmed on the full cohort:</strong> emergency mortality is far higher than
+scheduled mortality at every frailty level — low (2.7% vs. 0.2%), intermediate (4.1% vs.
+0.4%), high (3.4% vs. 0.6%) — roughly a 6–13× gap depending on category.</p>
+<p><strong>One real, unexpected wrinkle:</strong> intermediate-frailty emergency patients (4.1%) show
+<em>higher</em> mortality than high-frailty emergency patients (3.4%) — not the clean staircase
+you'd expect. This could be a genuine clinical pattern or a small-subgroup artifact (the
+high-frailty + emergency cell is a much smaller slice of the cohort than intermediate);
+worth a clinician's read before treating it as a real finding.</p>
+<p><strong>Question for the clinician:</strong> the emergency-vs-scheduled gap is confirmed and large — but
+why does <em>intermediate</em> frailty show higher emergency mortality than <em>high</em> frailty? Is
+this a real clinical pattern (e.g. the highest-frailty patients get triaged toward
+different, more conservative management, which paradoxically shows up as lower measured
+mortality), or should we treat it as noise from a small subgroup and expect it to smooth
+out with more data?</p>
+<p><strong>Still open for clinicians:</strong>
+- Does the corrected split (4.08% high vs. ~1% low/intermediate) match clinical
+  expectation better than the original buggy numbers (1.96% vs. 1.80%)?
+- Is chronological age alone expected to be a stronger or weaker predictor than HFRS in
+  this population?
+- Given HFRS only ever applies to ~15% of this surgical cohort (age 75+), is it worth the
+  added model complexity, or would a simpler age-based frailty proxy cover most of the
+  same ground?</p>
+<hr />
+<h2 id="2-which-icd-10-diagnosis-codes-actually-drive-the-frailty-score">2. Which ICD-10 diagnosis codes actually drive the frailty score<a class="headerlink" href="#2-which-icd-10-diagnosis-codes-actually-drive-the-frailty-score" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> What are the actual diagnosis (ICD-10) codes being fed into
+the frailty calculation, and how does the pipeline turn a patient's diagnosis history into
+the HFRS number?</p>
+<h3 id="where-it-comes-from">Where it comes from<a class="headerlink" href="#where-it-comes-from" title="Permanent link">&para;</a></h3>
+<p>HFRS uses <strong>109 specific ICD-10 diagnosis clusters</strong>, each with its own point value,
+originally derived by Gilbert et al. (2018, <em>Lancet</em>) from a cluster analysis of frail vs.
+non-frail hospital patients. The full weight table is hard-coded in
+<code>src/frailty_hfrs.py</code>, function <code>get_hfrs_weights()</code> — a direct, complete transcription of
+the original paper's Table A2, not an approximation. A representative sample of the 109
+codes (full list is in the source file):</p>
+<table>
+<thead>
+<tr>
+<th>ICD-10 code</th>
+<th>Description</th>
+<th>Points</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A04</td>
+<td>Other bacterial intestinal infections</td>
+<td>1.1</td>
+</tr>
+<tr>
+<td>A09</td>
+<td>Diarrhoea and gastroenteritis of presumed infectious origin</td>
+<td>1.1</td>
+</tr>
+<tr>
+<td>A41</td>
+<td>Other septicaemia</td>
+<td>1.6</td>
+</tr>
+<tr>
+<td>B96</td>
+<td>Other bacterial agents as the cause of diseases classified elsewhere</td>
+<td>2.9</td>
+</tr>
+<tr>
+<td>D64</td>
+<td>Other anaemias</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td>E86</td>
+<td>Volume depletion</td>
+<td>2.3</td>
+</tr>
+<tr>
+<td>E87</td>
+<td>Other disorders of fluid, electrolyte and acid-base balance</td>
+<td>2.3</td>
+</tr>
+<tr>
+<td>F00</td>
+<td>Dementia in Alzheimer's disease</td>
+<td>7.1</td>
+</tr>
+<tr>
+<td>F03</td>
+<td>Unspecified dementia</td>
+<td>2.1</td>
+</tr>
+<tr>
+<td>F05</td>
+<td>Delirium, not induced by alcohol and other psychoactive substances</td>
+<td>3.2</td>
+</tr>
+<tr>
+<td><em>(101 more codes, spanning falls/fractures, incontinence, pressure ulcers, malnutrition, mobility disorders, etc.)</em></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-its-actually-computed-compute_hfrs-subjectpy">How it's actually computed (<code>compute_hfrs()</code>, <code>subject.py</code>)<a class="headerlink" href="#how-its-actually-computed-compute_hfrs-subjectpy" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Take every ICD-10 diagnosis code on record for the patient.</li>
+<li>Match each code against the 109-cluster weight table above (3–4 character match).</li>
+<li>Sum the matched points.</li>
+<li>Bucket the total: <strong>&lt; 5 = low, 5–15 = intermediate, &gt; 15 = high</strong>.</li>
+</ol>
+<p><strong>The two eligibility bugs described in Section 1 live exactly here:</strong> step 1 should only
+include diagnoses from the <strong>2 years before the operation</strong> (not the patient's entire
+history), and the whole calculation should only run for patients <strong>age 75+</strong> (the
+population HFRS was actually validated on). Both are now fixed in the corrected version
+whose results are shown in Section 1.</p>
+<h3 id="how-this-connects-to-the-organ-system-mapping-in-section-5">How this connects to the organ-system mapping in Section 5<a class="headerlink" href="#how-this-connects-to-the-organ-system-mapping-in-section-5" title="Permanent link">&para;</a></h3>
+<p>These 109 codes are a <strong>separate, purpose-built list</strong> for frailty specifically — distinct
+from the organ-system ICD-10 chapter mapping used elsewhere (Section 11 below). There's a
+real overlap point worth flagging: <strong>ICD-10 Chapter M (musculoskeletal — fractures,
+osteoporosis)</strong> shows up both as "frailty-adjacent" in the organ-system mapping <em>and</em>
+contributes to several of the 109 HFRS codes directly (fall/fracture codes are a
+recognized frailty marker in the original Gilbert et al. methodology). This is one more
+concrete instance of the many-to-many mapping question from Section 5 — a diagnosis code
+can legitimately inform both a general frailty score and an organ-system flag at once.</p>
+<p><strong>Still open for clinicians:</strong> none of the 109 codes themselves are in question (they're a
+direct transcription of a published, peer-reviewed instrument) — the open items are the
+<em>implementation</em> questions already listed in Section 1 (does the corrected version match
+clinical expectation, is the age-75+ restriction worth keeping as-is for this surgical
+population).</p>
+<hr />
+<h2 id="3-comparative-study-asa-vs-possum-vs-nela-validation">3. Comparative study — ASA vs. POSSUM vs. NELA validation<a class="headerlink" href="#3-comparative-study-asa-vs-possum-vs-nela-validation" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> Of the three standard surgical-risk scores (ASA, POSSUM,
+NELA), which ones can we actually reproduce from INSPIRE's real fields, how do they
+compare to each other structurally, and is a head-to-head comparative study against our
+own model feasible?</p>
+<h3 id="how-the-three-differ-structurally">How the three differ structurally<a class="headerlink" href="#how-the-three-differ-structurally" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>ASA</th>
+<th>POSSUM</th>
+<th>NELA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inputs</td>
+<td>None — a holistic clinical impression</td>
+<td>18 variables → two sub-scores (PS, OSS)</td>
+<td>~20 variables, no sub-scores</td>
+</tr>
+<tr>
+<td>Computation</td>
+<td>None — direct 1–6 judgment call</td>
+<td>Sum into PS/OSS, then one small logistic equation</td>
+<td>Every variable enters one logistic regression directly, its own fitted weight</td>
+</tr>
+<tr>
+<td>Reproducible from data alone?</td>
+<td>❌ No — depends on who's looking</td>
+<td>✅ Yes, if inputs exist</td>
+<td>✅ Yes, if inputs exist</td>
+</tr>
+</tbody>
+</table>
+<h3 id="does-asa-behave-the-way-it-clinically-should-in-our-data-yes-a-clean-staircase">Does ASA behave the way it clinically should in our data? Yes — a clean staircase<a class="headerlink" href="#does-asa-behave-the-way-it-clinically-should-in-our-data-yes-a-clean-staircase" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ASA class</th>
+<th>Mortality rate</th>
+<th>Patients</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0.07%</td>
+<td>34,748</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0.17%</td>
+<td>54,107</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2.16%</td>
+<td>8,024</td>
+</tr>
+<tr>
+<td>4</td>
+<td>10.3%</td>
+<td>464</td>
+</tr>
+<tr>
+<td>5</td>
+<td>24.2%</td>
+<td>33</td>
+</tr>
+<tr>
+<td>6</td>
+<td>82.5%</td>
+<td>57</td>
+</tr>
+</tbody>
+</table>
+<p>Mortality roughly triples with each ASA step. ASA class 6 (brain-dead organ donors) shows
+82.5% mortality — expected, not alarming. This is a strong sanity check that the dataset
+is clinically coherent, and confirms ASA is a surprisingly powerful single predictor on
+its own (Koo et al. 2015's 77-study meta-analysis puts ASA alone at AUROC 0.736 across
+165,705 patients — a literature benchmark worth re-testing directly against our own
+99,886-patient cohort).</p>
+<h3 id="real-field-by-field-availability-audit-5000-patient-sample">Real field-by-field availability audit (5,000-patient sample)<a class="headerlink" href="#real-field-by-field-availability-audit-5000-patient-sample" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Status</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Age</td>
+<td>✅ Available</td>
+<td>Static field, ~100%</td>
+</tr>
+<tr>
+<td>Systolic BP</td>
+<td>✅ Available (renamed)</td>
+<td><code>nibp_sbp</code>, 98.2%/99.4%</td>
+</tr>
+<tr>
+<td>Pulse</td>
+<td>✅ Available (renamed)</td>
+<td><code>hr</code>, 98.4%/100%</td>
+</tr>
+<tr>
+<td>Hb, WBC, Sodium, Potassium, Albumin</td>
+<td>✅ Available</td>
+<td>93–95%</td>
+</tr>
+<tr>
+<td>Urea</td>
+<td>✅ Available (renamed)</td>
+<td><code>bun</code>, 93.2%</td>
+</tr>
+<tr>
+<td>Number of procedures</td>
+<td>✅ Available (different table)</td>
+<td><code>n_operations</code>, 100%</td>
+</tr>
+<tr>
+<td>Total blood loss</td>
+<td>✅ Available (renamed)</td>
+<td><code>ebl</code>, 59.3% intra-op</td>
+</tr>
+<tr>
+<td>GCS</td>
+<td>⚠️ Partial</td>
+<td>Only 8.4% coverage, <strong>not random</strong> — see below</td>
+</tr>
+<tr>
+<td>Urgency banding (elective/2–6h/6–18h/&lt;2h)</td>
+<td>⚠️ Partial</td>
+<td>Only binary <code>emop</code> exists</td>
+</tr>
+<tr>
+<td>Malignancy</td>
+<td>✅ Derivable</td>
+<td>37.2% via ICD-10 C00-C97</td>
+</tr>
+<tr>
+<td>Sepsis / ischaemia / GI bleeding indication</td>
+<td>❌/🔧 Attempted, unreliable</td>
+<td>Narrow code ranges tried first — see Section 5 below</td>
+</tr>
+<tr>
+<td>Cardiac/respiratory exam grade, ECG, peritoneal soiling</td>
+<td>❌ Not available</td>
+<td>Genuinely absent from this dataset, not a naming issue</td>
+</tr>
+</tbody>
+</table>
+<p><strong>GCS missingness is systematic, not random</strong> — checked against department, ASA class, and
+emergency status:</p>
+<table>
+<thead>
+<tr>
+<th>Breakdown</th>
+<th>GCS coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CTS (cardiothoracic)</td>
+<td>37.5%</td>
+</tr>
+<tr>
+<td>NS (neurosurgery)</td>
+<td>25.2%</td>
+</tr>
+<tr>
+<td>Most other departments</td>
+<td>1.7%–7.5%</td>
+</tr>
+<tr>
+<td>Emergency (<code>emop</code>=1)</td>
+<td>20.7%</td>
+</tr>
+<tr>
+<td>Elective (<code>emop</code>=0)</td>
+<td>7.1%</td>
+</tr>
+<tr>
+<td>ASA 6</td>
+<td>60.0%</td>
+</tr>
+<tr>
+<td>ASA 1</td>
+<td>3.2%</td>
+</tr>
+</tbody>
+</table>
+<p>GCS gets recorded when a clinical team already suspects it matters — so its absence is
+itself informative (this patient likely wasn't neurologically concerning), not a random
+gap to impute away.</p>
+<h3 id="bottom-line-per-score">Bottom line, per score<a class="headerlink" href="#bottom-line-per-score" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>NELA — mostly buildable.</strong> 9 of ~14 term-groups (Age, ASA×Age, Albumin, Pulse,
+  SystolicBP, Urea, WBC, Malignancy) are fully available right now. Only GCS, respiratory
+  status, urgency banding, and the three indication categories remain genuine gaps.</li>
+<li><strong>POSSUM — not fully buildable.</strong> Several Operative Severity Score inputs (peritoneal
+  soiling grade, exam-based cardiac/respiratory signs, ECG) simply aren't captured in this
+  dataset — a real absence, not a mapping problem.</li>
+</ul>
+<h3 id="what-a-real-comparative-study-would-need-to-run">What a real comparative study would need to run<a class="headerlink" href="#what-a-real-comparative-study-would-need-to-run" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>ASA-alone baseline</strong> — one logistic regression on ASA class only, benchmarked
+   against Koo et al.'s pooled AUROC 0.736.</li>
+<li><strong>NELA (real, per-patient)</strong> — build the actual NELA score for all 99,886 patients
+   using the fields above (already coded in <code>nela.py</code>, but never yet run on real per-patient
+   data — see caveat below).</li>
+<li><strong>POSSUM / P-POSSUM</strong> — not currently buildable in full; would need a partial version
+   with the missing OSS terms defaulted, explicitly labeled as partial.</li>
+<li><strong>Our model vs. all three</strong> — AUROC/AUPRC/calibration comparison, ideally with the same
+   train/test split used for the GBM/DNN models.</li>
+</ol>
+<p><strong>Important existing caveat, carried over from <code>Base_Comparitive_Study_Models.md</code>:</strong> NELA,
+POSSUM, and NEWS2 have so far only been run as <strong>demo calls with made-up illustrative
+values</strong>, to confirm the equations themselves work — <strong>no real per-patient NELA/POSSUM
+score exists yet for any actual INSPIRE patient.</strong> Building that mapping for all 99,886
+patients is a real, not-yet-done piece of work, not a completed baseline.</p>
+<h3 id="the-circularity-question-this-comparative-study-should-carry-alongside-it">The circularity question this comparative study should carry alongside it<a class="headerlink" href="#the-circularity-question-this-comparative-study-should-carry-alongside-it" title="Permanent link">&para;</a></h3>
+<p>ASA is assigned by a clinician's judgment <em>before</em> surgery. If a clinician already
+suspects a poor outcome and assigns a higher ASA, and that ASA then triggers more
+conservative management, the resulting death partly reflects the <em>management decision</em>,
+not pure physiology (Merton 1948's self-fulfilling-prophecy concept, formalized for
+clinical models in van Amsterdam et al. 2025, <em>Patterns</em>). <strong>What can be tested from our
+data:</strong> an ablation (GBM with vs. without ASA) to see how much independent signal ASA adds
+beyond the labs already in the model. <strong>What cannot be tested from this dataset alone:</strong>
+true causal circularity — that needs treatment/intervention data, not just an
+observational AUROC comparison.</p>
+<p><strong>Still open for clinicians:</strong>
+- Does the team want POSSUM/NELA fused in as <em>model inputs</em>, or kept purely as
+  <em>comparison baselines</em>?
+- Should ASA be excluded from model inputs specifically because of the circularity
+  concern, even though it's the single strongest univariate predictor found so far?
+- Is an admittedly-incomplete "NELA-partial" score (missing GCS/malignancy/indication)
+  still useful as an input, or does it need to be complete to mean anything?</p>
+<hr />
+<h2 id="4-featureparameter-table-validation-mapping-from-clinicians">4. Feature/parameter table validation — mapping from clinicians<a class="headerlink" href="#4-featureparameter-table-validation-mapping-from-clinicians" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> Of the 126 total parameters in the dataset's own schema
+(<code>parameters.csv</code>), which ones has the team actually validated for coverage and
+usability, and which groupings (into organ systems, into pre-op-usable vs. not) still
+need a clinician to confirm they make clinical sense?</p>
+<h3 id="the-real-schema-audited-not-assumed">The real schema, audited (not assumed)<a class="headerlink" href="#the-real-schema-audited-not-assumed" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Count</th>
+<th>Usable for pre-op prediction?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>labs</code></td>
+<td>38</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td><code>ward_vitals</code></td>
+<td>16</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td><code>vitals</code> (intra-op)</td>
+<td>72</td>
+<td>❌ No — only exists during surgery</td>
+</tr>
+</tbody>
+</table>
+<p><strong>54 feature types (38 + 16) are usable for a pre-op-only prediction.</strong></p>
+<h3 id="per-patient-completeness-coverage-tiers-30-patient-audit-replicated-at-5000-patient-scale-in-other-sections">Per-patient completeness — coverage tiers (30-patient audit, replicated at 5,000-patient scale in other sections)<a class="headerlink" href="#per-patient-completeness-coverage-tiers-30-patient-audit-replicated-at-5000-patient-scale-in-other-sections" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Coverage</th>
+<th>Features</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Near-universal</td>
+<td>90–93%</td>
+<td><code>hr</code>, <code>bt</code>, <code>nibp_dbp</code>, <code>nibp_sbp</code>, <code>rr</code></td>
+</tr>
+<tr>
+<td>Solid core</td>
+<td>50–70%</td>
+<td><code>chloride, hb, hct, potassium, sodium, wbc, platelet, lymphocyte, seg, creatinine, bun, calcium, phosphorus, albumin, alp, alt, ast, glucose, total_bilirubin, total_protein, ptinr</code></td>
+</tr>
+<tr>
+<td>Patchy</td>
+<td>20–50%</td>
+<td><code>aptt, fibrinogen, crp, spo2, hco3, sao2, be, ck, ckmb, paco2, pao2, ph, nibp_mbp</code></td>
+</tr>
+<tr>
+<td>Basically absent</td>
+<td>&lt;20%</td>
+<td><code>ica, troponin_i, fio2, gcs_e, gcs_m, lacate, vent, hba1c, crrt, ecmo, gcs_v, iabp</code></td>
+</tr>
+<tr>
+<td>Never present pre-op</td>
+<td>0%</td>
+<td><code>d_dimer, troponin_t, uo</code></td>
+</tr>
+</tbody>
+</table>
+<p>Two coverage findings worth a clinician's read specifically: <code>uo</code> (urine output) appears
+in 63% of patients <em>somewhere</em> in their record but <strong>0% pre-op</strong> — it seems to only get
+recorded once a patient is already admitted/in ICU. <code>spo2</code> similarly drops from 93%
+"anywhere" to 40% pre-op, for the same reason (monitors go on at admission, not before).</p>
+<h3 id="the-open-validation-ask-for-clinicians">The open validation ask for clinicians<a class="headerlink" href="#the-open-validation-ask-for-clinicians" title="Permanent link">&para;</a></h3>
+<p>This is the direct feature-table sign-off request: <strong>is the near-universal + solid-core
+tier (~26 features, all ≥50% coverage) a clinically defensible starting feature set</strong>, or
+are there patchy/rare features (e.g. <code>crp</code>, <code>lacate</code>, <code>gcs</code>) the team considers essential
+enough to keep despite low coverage, because their <em>absence</em> is itself clinically
+meaningful (as shown for GCS in Section 3)?</p>
+<hr />
+<h2 id="5-labs-organ-systems-many-to-one-many-to-many-mapping-check">5. Labs → organ systems: many-to-one / many-to-many mapping check<a class="headerlink" href="#5-labs-organ-systems-many-to-one-many-to-many-mapping-check" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> the current architecture assigns every lab/vital to
+<strong>exactly one</strong> organ system (a strict many-to-one mapping: many parameters, one system
+each). Is that assignment actually correct, or do some parameters genuinely belong to
+<strong>multiple</strong> systems (many-to-many) and are being forced into a single bucket?</p>
+<h3 id="how-the-check-was-actually-run">How the check was actually run<a class="headerlink" href="#how-the-check-was-actually-run" title="Permanent link">&para;</a></h3>
+<p>Rather than trusting the hand-built system list, real hierarchical clustering was run on
+5,000 patients' lab/vital correlations, to see whether features that move together <em>in
+the real data</em> match the literature-assigned system groupings.</p>
+<p><img alt="Hierarchical clustering of real INSPIRE lab/vital values" src="../plots/organ_clustering_dendrogram.png" /></p>
+<h3 id="strongly-confirmed-clean-one-to-one-clusters-mapping-holds">Strongly confirmed — clean one-to-one clusters, mapping holds<a class="headerlink" href="#strongly-confirmed-clean-one-to-one-clusters-mapping-holds" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Pair</th>
+<th>System</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>creatinine + bun</td>
+<td>Renal</td>
+</tr>
+<tr>
+<td>sodium + chloride</td>
+<td>Renal</td>
+</tr>
+<tr>
+<td>alt + ast</td>
+<td>Hepatic</td>
+</tr>
+<tr>
+<td>ptinr + aptt</td>
+<td>Coagulation</td>
+</tr>
+<tr>
+<td>hco3 + ph + paco2</td>
+<td>Acid-base / respiratory</td>
+</tr>
+</tbody>
+</table>
+<h3 id="genuinely-many-to-many-the-mapping-checks-real-findings">Genuinely many-to-many — the mapping check's real findings<a class="headerlink" href="#genuinely-many-to-many-the-mapping-checks-real-findings" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Assigned system (current)</th>
+<th>What the real data shows</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CRP</strong></td>
+<td>Haematology/coag</td>
+<td>Strongest real correlate is <strong>albumin</strong> (r = −0.487 — the classic acute-phase response: CRP rises as albumin falls), <em>not</em> other haematology markers</td>
+<td>Genuinely cross-system: haematology <strong>and</strong> an infection-context flag, kept in haematology by convention (SOFA/Sepsis-3 don't give infection its own organ system either — see below)</td>
+</tr>
+<tr>
+<td><strong>WBC</strong></td>
+<td>Haematology/coag</td>
+<td>Correlates more with <strong>platelet</strong> (haematology) than with CRP</td>
+<td>Belongs in haematology, but <em>also</em> serves double duty as an infection-context flag alongside CRP</td>
+</tr>
+<tr>
+<td><strong>Lactate</strong></td>
+<td>Cardiovascular (literature default)</td>
+<td>Weak correlations across the board (max |r| = 0.21): hco3 (−0.207, respiratory/acid-base), glucose (+0.204, metabolic), ph (−0.161, respiratory), ptinr (+0.123, coagulation), hr (+0.120, cardiovascular)</td>
+<td><strong>Genuinely unresolved.</strong> Literature frames it as a perfusion/shock (cardiovascular) marker; the correlation data leans slightly toward acid-base chemistry instead. Two caveats limit how much to trust this: only ~10% of patients have a pre-op lactate at all (likely a biased, sicker subsample), and lactate's real clinical value is in its <em>trend</em>, which one pre-op value can't capture</td>
+</tr>
+<tr>
+<td><strong>Temperature (<code>bt</code>)</strong></td>
+<td>Currently under Metabolic/hepatic (ward vitals)</td>
+<td>Not yet clustered/tested directly</td>
+<td>Flagged here because fever is a classic infection signal — same cross-cutting question as CRP/WBC, not yet run through the same clustering check</td>
+</tr>
+<tr>
+<td><strong>ICD-10 Chapter M (musculoskeletal)</strong></td>
+<td>"Frailty-adjacent," not a core system</td>
+<td>Overlaps HFRS's fracture/osteoporosis codes</td>
+<td>A genuine many-to-many case at the <em>diagnosis-code</em> level, not just the lab level — the same code can inform both an organ-system flag and the separate frailty score</td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-this-matters-and-the-resolution-path-taken">Why this matters, and the resolution path taken<a class="headerlink" href="#why-this-matters-and-the-resolution-path-taken" title="Permanent link">&para;</a></h3>
+<p><strong>Two independent sources agree infection shouldn't be a competing 7th organ system:</strong>
+- <strong>SOFA</strong> (Vincent et al. 1996, the clinical gold standard for organ dysfunction scoring)
+  uses exactly six systems and deliberately has no 7th "infection" system.
+- <strong>Sepsis-3</strong> (Singer et al. 2016, <em>JAMA</em>) defines sepsis as an infection <em>triggering</em> a
+  SOFA change — infection is a cross-cutting flag layered on the six systems, not a
+  system of its own.
+- <strong>ICD-10's own WHO chapter structure independently agrees</strong> — Chapter I (infectious
+  disease, A00-B99) is its own dedicated chapter, separate from every organ chapter. A
+  third, structurally independent source reaching the same conclusion.</p>
+<p><strong>Decision, pending final clinical sign-off:</strong> treat CRP, WBC (and candidate: temperature)
+as <strong>belonging to one home system (haematology) while also carrying an infection-context
+flag</strong> — a genuine many-to-many representation — rather than forcing a false choice between
+one system or a 7th competing one. Lactate stays under cardiovascular as the
+literature-backed default, explicitly flagged as unresolved rather than settled, since the
+data doesn't clearly back either home.</p>
+<p><strong>Still open for clinicians:</strong>
+- Does the CRP/WBC "haematology home + infection flag" resolution match clinical
+  intuition, or should infection get its own explicit system after all?
+- Where should lactate actually sit, given the ambiguous correlation evidence?
+- Are there other parameters the team would independently flag as belonging to more than
+  one system, beyond the ones the clustering check surfaced?</p>
+<hr />
+<h2 id="6-multi-surgery-patients-should-all-of-them-be-used">6. Multi-surgery patients — should all of them be used?<a class="headerlink" href="#6-multi-surgery-patients-should-all-of-them-be-used" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> Should the analysis restrict itself to patients with a
+single surgery (or surgeries within a narrow window), or should every patient — including
+those with many surgeries spread across months or years — be included as-is?</p>
+<h3 id="the-scale-of-the-issue">The scale of the issue<a class="headerlink" href="#the-scale-of-the-issue" title="Permanent link">&para;</a></h3>
+<p><strong>21,565 of 99,886 patients (~22%) had more than one operation.</strong> This isn't a small edge
+case to shrug off.</p>
+<p><img alt="Mortality rate by number of operations" src="../plots/mortality_by_n_ops.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Operations</th>
+<th>Mortality</th>
+<th>Patients</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0.4%</td>
+<td>78,321</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0.6%</td>
+<td>15,869</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1.2%</td>
+<td>3,689</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1.3%</td>
+<td>1,189</td>
+</tr>
+<tr>
+<td>5+</td>
+<td>1.0%</td>
+<td>818 (likely a small-sample dip, not a real reversal)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Mortality rises steadily with operation count — multi-op patients are a real, higher-risk
+subgroup</strong>, not statistical noise to filter out.</p>
+<h3 id="the-full-dataset-unbinned-view-every-operation-count-from-1-to-30">The full-dataset, unbinned view — every operation count from 1 to 30<a class="headerlink" href="#the-full-dataset-unbinned-view-every-operation-count-from-1-to-30" title="Permanent link">&para;</a></h3>
+<p>The table above bins everything above 4 into "5+." The real per-count breakdown is far
+more granular, and shows a real spike worth flagging directly:</p>
+<p><img alt="Mortality rate by operation count — full dataset, every count 1–30" src="eda_images/19_multi_op_mortality_full_granular.png" /></p>
+<p>Mortality climbs through counts 1–5 (0.4% → ~1.4%), dips at 6 (n=182, ~0.5%), stays low
+through 7–8 (n=76, n=49), then <strong>spikes sharply at 9 operations (n=32, ~3.1% mortality)</strong>
+— more than double the rate at any lower count — before the remaining counts (10 through
+30) become too sparse (n=1 to n=17 each) to read reliably.</p>
+<p><strong>Question for the clinician:</strong> is the mortality spike at exactly 9 operations (n=32,
+~3.1%) a real clinical signal — e.g. a specific repeat-surgery pathway (recurrent
+complications, staged revisions) that tends to cluster around that many procedures — or is
+32 patients too small a group to trust, and should operation count be <strong>binned</strong> (e.g.
+1 / 2 / 3 / 4 / 5+) rather than used as a raw continuous feature once the tail gets this
+sparse?</p>
+<h3 id="which-operation-should-anchor-the-30-day-death-label-first-or-last">Which operation should anchor the 30-day death label — first or last?<a class="headerlink" href="#which-operation-should-anchor-the-30-day-death-label-first-or-last" title="Permanent link">&para;</a></h3>
+<p><img alt="Label agreement: last-op vs first-op anchor" src="../plots/label_agreement.png" /></p>
+<p>Of 21,565 multi-op patients, only <strong>111</strong> get a different death label depending on which
+operation is used as the anchor. The disagreement only ever runs one direction (last-op
+says "died," first-op says "survived") — mathematically guaranteed, since a patient's last
+operation always comes after their first.</p>
+<p><img alt="Gap between first and last operation" src="../plots/operation_gap.png" /></p>
+<p>For those 111 patients: <strong>median gap = 11 months</strong> between first and last operation (mean
+700 days, up to ~8 years). These are <strong>not staged/planned procedures</strong> — they're patients
+with an old, unrelated earlier surgery who came back much later for a separate operation,
+and died shortly after <em>that</em> one.</p>
+<p><strong>Conclusion: last-operation is the correct anchor. 469 is the settled death count.</strong>
+Using first-operation would wrongly exclude 111 real deaths just because an old, unrelated
+surgery fell outside the 30-day window.</p>
+<h3 id="should-multi-op-patients-be-excluded-to-simplify-the-cohort-no-this-was-tested-directly">Should multi-op patients be excluded to "simplify" the cohort? No — this was tested directly.<a class="headerlink" href="#should-multi-op-patients-be-excluded-to-simplify-the-cohort-no-this-was-tested-directly" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option (Path C)</th>
+<th>Argument for</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Label from last operation (current, adopted)</td>
+<td>Matches "did this specific operation kill the patient"</td>
+<td>Ignores earlier ops entirely as separate risk events</td>
+</tr>
+<tr>
+<td>Label from first operation</td>
+<td>Captures the full surgical journey</td>
+<td>Wrong reference point for a late, major, unrelated surgery</td>
+</tr>
+<tr>
+<td>Exclude multi-op patients entirely</td>
+<td>Cleanest label</td>
+<td><strong>Selection bias</strong> — multi-op patients are a systematically sicker subgroup (0.8% vs. 0.4% mortality); dropping them biases the model toward easier, healthier cases</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation on file: keep all multi-op patients, anchor on the last operation, and
+add operation count itself as a model feature</strong> — dropping them would both throw away real
+data and bias the cohort.</p>
+<h3 id="the-1-year-6-month-window-question-addressed-directly">The "1-year / 6-month window" question, addressed directly<a class="headerlink" href="#the-1-year-6-month-window-question-addressed-directly" title="Permanent link">&para;</a></h3>
+<p>There is a real, separate 6-month window already built into the dataset itself, described
+in the dataset's own documentation (<code>README.md</code>, sourced from the INSPIRE <em>Nature Scientific
+Data</em> paper): diagnoses, vitals, labs, and medications are captured from <strong>6 months before</strong>
+"time zero" to the discharge after the <strong>last</strong> operation (medications extend to 6 months
+after the last discharge). This 6-month window is a <strong>data-collection boundary set by the
+original dataset creators</strong>, not a modeling choice this project makes — worth being
+precise that "1-year surgery only" isn't a current filter in this pipeline; the closest
+real analog is this pre-existing 6-month lookback baked into how the raw tables were
+built.</p>
+<p><strong>Still open for clinicians:</strong>
+- Does this match clinical intuition — that a much-earlier, unrelated operation shouldn't
+  be the reference point for a death following a later, separate surgery?
+- Is there a subgroup (e.g. genuinely staged procedures with short gaps) where
+  first-operation would still be the clinically correct reference, even though it's rare
+  in this cohort?</p>
+<hr />
+<h2 id="7-does-clustering-of-surgeries-in-a-short-window-carry-its-own-risk-signal">7. Does clustering of surgeries in a short window carry its own risk signal?<a class="headerlink" href="#7-does-clustering-of-surgeries-in-a-short-window-carry-its-own-risk-signal" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> Separately from <em>which</em> operation to anchor the mortality
+label on, does having <strong>multiple surgeries within a short time span</strong> (e.g. within
+30/60/90 days of each other) itself function as a risk marker — a sign of a deteriorating
+patient — independent of the raw operation count?</p>
+<p><strong>Status: 🔧 OPEN / NOT YET TESTED — a genuine gap, flagged in three separate places in the existing docs, never actually run.</strong></p>
+<h3 id="whats-already-known-thats-adjacent-to-this-question">What's already known that's adjacent to this question<a class="headerlink" href="#whats-already-known-thats-adjacent-to-this-question" title="Permanent link">&para;</a></h3>
+<p>The gap-between-operations analysis above was built to explain <em>why</em> the first-op/last-op
+label disagreement only runs one direction — it found the 111 disagreeing patients have a
+<strong>median 11-month gap</strong>, meaning those specific cases are <em>not</em> short-window clustering.
+That analysis answered a different question (label-anchor choice) and, as a byproduct,
+showed those particular flip-patients aren't the short-window pattern this question is
+actually asking about.</p>
+<p><strong>What hasn't been built yet:</strong> a direct test of whether patients with, say, 2+ operations
+within a 30/60/90-day window have a <em>different</em> (likely higher) mortality rate than
+patients with the same operation count spread out over months or years. The existing
+operation-count-vs-mortality chart (Section 6) treats every multi-op patient the same
+regardless of spacing — it cannot currently distinguish "3 operations in 10 days"
+(a plausibly very sick, rapidly deteriorating patient) from "3 operations over 6 years"
+(likely three unrelated, low-risk events).</p>
+<h3 id="what-this-analysis-would-need-to-compute">What this analysis would need to compute<a class="headerlink" href="#what-this-analysis-would-need-to-compute" title="Permanent link">&para;</a></h3>
+<ol>
+<li>For every multi-op patient, the <strong>time gap between each consecutive pair of
+   operations</strong> (already computable — the operation_gap analysis proves the underlying
+   timestamps exist and are usable).</li>
+<li>A <strong>windowed clustering flag</strong> — e.g. "had 2+ operations within 30 days,"
+   "within 90 days" — as a new binary or count feature, separate from total operation
+   count.</li>
+<li>A mortality comparison: windowed-cluster patients vs. same-operation-count patients
+   without short-window clustering, to see if the clustering itself adds signal beyond
+   what raw operation count already captures.</li>
+</ol>
+<p><strong>This is explicitly called out as an open follow-up in <code>Clinician_Questions.md</code>
+(Section 2, questions 4–6) and in the roadmap task list — it has not been run.</strong></p>
+<p><strong>Still open for clinicians:</strong>
+- Does clustering of surgeries in a short window clinically signal a deteriorating
+  patient, separate from the raw operation count?
+- What window(s) would the clinical team consider clinically meaningful to test — 30
+  days, 60, 90, something condition-specific?</p>
+<hr />
+<h2 id="8-pre-op-peri-op-and-post-op-which-windows-to-build-for">8. Pre-op, peri-op, and post-op — which window(s) to build for<a class="headerlink" href="#8-pre-op-peri-op-and-post-op-which-windows-to-build-for" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> Should the model be built as a pre-operative-only tool, one
+that also uses intra-operative vitals, one that also watches early post-operative data, or
+should all three be built and compared as genuinely different products?</p>
+<h3 id="the-three-windows-mapped-onto-real-fields-that-already-exist-in-every-patient-record">The three windows, mapped onto real fields that already exist in every patient record<a class="headerlink" href="#the-three-windows-mapped-onto-real-fields-that-already-exist-in-every-patient-record" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>[admission_time=0] ... [orin_time] —— surgery —— [orout_time] ... [discharge_time]
+        ↑ pre-op window                              ↑ post-op window
+                        ↑ intra-op window (orin_time to orout_time)
+</code></pre></div>
+<ul>
+<li><strong>Pre-operative</strong> (the only window the current pipeline reads — 5 days before
+  <code>orin_time</code>): captures the patient's <em>baseline</em> state — chronic disease, nutritional
+  status, kidney/liver function, how sick they already were walking in. This is what ASA,
+  POSSUM, and NELA are all fundamentally trying to summarize in one number.</li>
+<li><strong>Intra-operative</strong> (72-parameter <code>vitals</code> table, currently entirely unused): captures
+  the <em>acute physiological stress response</em> to surgery and anaesthesia itself — blood
+  loss, blood-pressure instability, anaesthesia duration, whether oxygenation held up. Two
+  patients with identical pre-op labs can have very different intra-operative courses.</li>
+<li><strong>Post-operative</strong>: captures whether the patient is <em>recovering or deteriorating</em> — ICU
+  length of stay, whether CRRT/ECMO/IABP got started, trending labs after surgery.</li>
+</ul>
+<h3 id="why-vitals-really-are-more-reliable-intra-operatively-not-just-an-assumption">Why vitals really are more reliable intra-operatively (not just an assumption)<a class="headerlink" href="#why-vitals-really-are-more-reliable-intra-operatively-not-just-an-assumption" title="Permanent link">&para;</a></h3>
+<p>Two concrete findings from the feature audit explain this directly: <code>spo2</code> coverage drops
+from 93% "anywhere in the record" to 40% "in the pre-op window" specifically, and <code>uo</code>
+(urine output) drops from 63% "anywhere" to <strong>0% pre-op</strong> — both because monitors and
+catheters typically go on once a patient is already in the OR or ICU, not beforehand. This
+is a real, data-grounded reason intra-op data is denser and more reliable than pre-op data
+for these specific parameters, not a general assumption.</p>
+<h3 id="three-genuinely-different-products-not-three-versions-of-one-model">Three genuinely different products, not three versions of one model<a class="headerlink" href="#three-genuinely-different-products-not-three-versions-of-one-model" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Option (Path B)</th>
+<th>What it produces</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pre-op only (current)</td>
+<td>Decision-support tool</td>
+<td>"Should we operate? Should ICU be booked in advance?"</td>
+</tr>
+<tr>
+<td>+ intra-operative vitals</td>
+<td>Real-time monitoring tool</td>
+<td>"Should the surgical team escalate mid-case?"</td>
+</tr>
+<tr>
+<td>+ early post-operative</td>
+<td>Early-warning / rescue tool</td>
+<td>"Flag this patient before a formal deterioration event"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation on file:</strong> because this dataset unusually has all three windows
+available for the same patients, the plan is to train and report all three rather than
+picking one and treating it as final — a pre-op-only model, a pre-op+intra-op model, and a
+pre-op+intra-op+early-post-op model — and see where the AUROC gain plateaus, framing the
+result as three distinct clinical products rather than "more data = better."</p>
+<p><strong>Still open for clinicians:</strong>
+- Which of the three is the most clinically useful starting point, given how the tool
+  would actually be used day to day?
+- If intra-operative vitals are eventually added: are there specific intra-op events
+  (a hypotensive episode, a specific arrhythmia, blood-loss volume) the clinical team
+  already treats as strong informal predictors of poor outcome, that should be explicitly
+  represented rather than left for the model to discover on its own?</p>
+<hr />
+<h2 id="9-concept-bottleneck-naming-intermediate-clinical-concepts">9. Concept Bottleneck — naming intermediate clinical concepts<a class="headerlink" href="#9-concept-bottleneck-naming-intermediate-clinical-concepts" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> instead of predicting mortality directly from raw
+labs/vitals, should the model first predict <strong>named, clinically-recognized intermediate
+concepts</strong> (e.g. AKI stage, haemodynamic instability, respiratory failure stage), and
+predict mortality <em>from those</em> — trading a black-box jump straight to a risk number for a
+chain of interpretable clinical judgments the model has to justify along the way?</p>
+<p><strong>Status: 🔧 OPEN — a design plan exists (Section 4.4 of the architecture roadmap), no
+concept-staging definitions have been agreed yet, and nothing has been built.</strong></p>
+<h3 id="why-this-is-being-proposed-at-all">Why this is being proposed at all<a class="headerlink" href="#why-this-is-being-proposed-at-all" title="Permanent link">&para;</a></h3>
+<p>This is listed as the project's <strong>stated main interpretability aim</strong>, not a side feature —
+the goal is a model that can say "this patient's renal trajectory looks like stage 2 AKI,
+which is driving the risk score up," rather than only a single opaque probability. It's the
+natural next layer on top of the system-separated encoders in Section 11 below: once a
+<code>renal_embedding</code> exists, a small classifier head on top of it can be trained to predict
+"AKI stage" specifically, using a recognized clinical staging system as ground truth,
+<em>before</em> that embedding also contributes to the final mortality prediction.</p>
+<h3 id="whats-blocking-it-clinical-staging-definitions-not-data-or-code">What's blocking it — clinical staging definitions, not data or code<a class="headerlink" href="#whats-blocking-it-clinical-staging-definitions-not-data-or-code" title="Permanent link">&para;</a></h3>
+<p>This is a rare case where the blocker is genuinely a <strong>clinical judgment call</strong>, not a
+data-availability question (unlike most of Sections 1–8, which had real numbers to check
+against). Three example concepts were proposed as a starting set:</p>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Candidate staging standard</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AKI (acute kidney injury) stage</td>
+<td>KDIGO criteria</td>
+<td>Not yet confirmed as the right standard for this population</td>
+</tr>
+<tr>
+<td>Haemodynamic instability</td>
+<td>No standard proposed yet</td>
+<td>Fully open</td>
+</tr>
+<tr>
+<td>Respiratory failure stage</td>
+<td>No standard proposed yet</td>
+<td>Fully open</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Still open for clinicians (original Questions 19–20):</strong>
+- For each of the three example concepts above, what would the clinical team consider the
+  correct <strong>staging definition and thresholds</strong> to use as ground truth — e.g. is KDIGO the
+  right standard for AKI stage in <em>this</em> surgical population specifically?
+- Are there other named clinical concepts, beyond these three, that the team would
+  consider essential intermediate steps in reasoning about a surgical patient's
+  trajectory toward death, that a concept head should be built for?</p>
+<hr />
+<h2 id="10-departments-and-case-mix">10. Departments and case mix<a class="headerlink" href="#10-departments-and-case-mix" title="Permanent link">&para;</a></h2>
+<p><strong>Question, clearly framed:</strong> should the model be trained as <strong>one model across every
+department</strong>, or does it make more clinical sense to build <strong>department-specific models</strong>
+(e.g. cardiothoracic surgery vs. general surgery), given how different the baseline risk
+and relevant physiology are across departments?</p>
+<h3 id="whats-already-known">What's already known<a class="headerlink" href="#whats-already-known" title="Permanent link">&para;</a></h3>
+<p>Mortality varies substantially by department — this shows up repeatedly elsewhere in this
+page as a confound to control for (it's exactly why the 15-feature significance screen in
+<code>Base_Comparitive_Study_Models.md</code> re-checked every feature <em>after</em> adjusting for
+department, not just on raw correlation). Reassuringly, several features (albumin,
+platelets) stayed predictive even after that department adjustment — real physiological
+signal, not just "which department is this patient in." But department itself still
+carries a large share of the raw signal on its own, and department-level sample sizes were
+too small in the early 30-patient audit to say anything definitive (1–6 patients per
+department at that scale — see <code>feature_audit_findings.md</code> §4). This needs to be
+revisited now that the full 99,886-patient cohort is available.</p>
+<h3 id="the-real-tension-this-question-is-pointing-at">The real tension this question is pointing at<a class="headerlink" href="#the-real-tension-this-question-is-pointing-at" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>One model, all departments:</strong> more training data per parameter, simpler to maintain
+  and deploy, but risks blurring genuinely different physiology (a cardiothoracic
+  patient's "normal" heart rate range and risk profile isn't a general-surgery patient's).</li>
+<li><strong>Department-specific models:</strong> matches clinical intuition that different surgical
+  specialties carry different baseline risk and different relevant physiology, but splits
+  the 469 total deaths across departments — some departments may not have enough deaths to
+  train or validate a model reliably at all.</li>
+</ul>
+<p><strong>Still open for clinicians (original Question 21):</strong> does the clinical team think
+department-specific models would be more clinically meaningful given how different the
+baseline risk and relevant physiology are across departments, or does one unified model
+(with department as an input feature, capturing the effect without fragmenting the
+training data) better match how the tool would actually be used?</p>
+<hr />
+<h2 id="11-system-level-breakdown-every-parameter-per-organ-system-as-a-flowchart">11. System-level breakdown — every parameter, per organ system, as a flowchart<a class="headerlink" href="#11-system-level-breakdown-every-parameter-per-organ-system-as-a-flowchart" title="Permanent link">&para;</a></h2>
+<p>This section answers the "mapping of everything" ask directly: every one of the 126
+parameters, broken out <strong>per subsystem</strong>, shown as its own flowchart of what feeds each
+system's encoder. Parameters flagged in Section 5 (labs → organ systems mapping check) as
+many-to-many are marked with <code>⇄</code> and called out explicitly rather than silently assigned
+to one box.</p>
+<h3 id="111-renal-system">11.1 Renal system<a class="headerlink" href="#111-renal-system" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Labs["Labs"]
+        bun[bun]
+        calcium[calcium]
+        chloride[chloride]
+        creatinine[creatinine]
+        ica[ica]
+        phosphorus[phosphorus]
+        potassium[potassium]
+        sodium[sodium]
+    end
+    subgraph WardVitals["Ward vitals"]
+        crrt[crrt]
+        uo1[uo]
+    end
+    subgraph IntraOp["Intra-op vitals — if peri-op scope"]
+        uo2[uo]
+    end
+    Labs --&gt; ENC[Renal Encoder]
+    WardVitals --&gt; ENC
+    IntraOp --&gt; ENC
+    ENC --&gt; EMB[renal_embedding]
+    style ENC fill:#e6f2f0,stroke:#0a7d6e</code></pre>
+<h3 id="112-cardiovascular-system">11.2 Cardiovascular system<a class="headerlink" href="#112-cardiovascular-system" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Labs["Labs"]
+        ck[ck]
+        ckmb[ckmb]
+        troponin_i[troponin_i]
+        troponin_t[troponin_t]
+        lactate["lactate ⇄ unresolved — see Section 5"]
+    end
+    subgraph WardVitals["Ward vitals"]
+        hr1[hr]
+        sbp1[nibp_sbp]
+        dbp1[nibp_dbp]
+        mbp1[nibp_mbp]
+        iabp[iabp]
+    end
+    subgraph IntraOp["Intra-op vitals — if peri-op scope"]
+        hr2[hr]
+        art[art_sbp / art_dbp / art_mbp]
+        ci[ci]
+        cvp[cvp]
+        svi[svi]
+    end
+    Labs --&gt; ENC[Cardiovascular Encoder]
+    WardVitals --&gt; ENC
+    IntraOp --&gt; ENC
+    ENC --&gt; EMB[cardio_embedding]
+    style ENC fill:#e6f2f0,stroke:#0a7d6e
+    style lactate fill:#fff3cd,stroke:#b8860b</code></pre>
+<h3 id="113-respiratory-system">11.3 Respiratory system<a class="headerlink" href="#113-respiratory-system" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Labs["Labs"]
+        be[be]
+        hco3[hco3]
+        paco2[paco2]
+        pao2[pao2]
+        ph[ph]
+        sao2[sao2]
+    end
+    subgraph WardVitals["Ward vitals"]
+        fio2_1[fio2]
+        rr[rr]
+        spo2_1[spo2]
+        vent[vent]
+        ecmo[ecmo]
+    end
+    subgraph IntraOp["Intra-op vitals — if peri-op scope"]
+        etco2[etco2]
+        fio2_2[fio2]
+        spo2_2[spo2]
+        peep[peep]
+        pip[pip]
+        pplat[pplat]
+    end
+    Labs --&gt; ENC[Respiratory Encoder]
+    WardVitals --&gt; ENC
+    IntraOp --&gt; ENC
+    ENC --&gt; EMB[resp_embedding]
+    style ENC fill:#e6f2f0,stroke:#0a7d6e</code></pre>
+<h3 id="114-metabolic-hepatic-system">11.4 Metabolic / hepatic system<a class="headerlink" href="#114-metabolic-hepatic-system" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Labs["Labs"]
+        albumin["albumin ⇄ CRP's strongest correlate"]
+        alp[alp]
+        alt[alt]
+        ast[ast]
+        glucose[glucose]
+        hba1c[hba1c]
+        total_bilirubin[total_bilirubin]
+        total_protein[total_protein]
+    end
+    subgraph WardVitals["Ward vitals"]
+        bt["bt (temperature) ⇄ possible infection flag — not yet tested"]
+    end
+    subgraph IntraOp["Intra-op vitals — if peri-op scope"]
+        bt2[bt]
+        glucose_infusion[glucose-related infusions]
+    end
+    Labs --&gt; ENC[Metabolic/Hepatic Encoder]
+    WardVitals --&gt; ENC
+    IntraOp --&gt; ENC
+    ENC --&gt; EMB[metabolic_embedding]
+    style ENC fill:#e6f2f0,stroke:#0a7d6e
+    style albumin fill:#fff3cd,stroke:#b8860b
+    style bt fill:#fff3cd,stroke:#b8860b</code></pre>
+<h3 id="115-haematology-coagulation-system">11.5 Haematology / coagulation system<a class="headerlink" href="#115-haematology-coagulation-system" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Labs["Labs"]
+        aptt[aptt]
+        crp["crp ⇄ dual-role: infection-context flag"]
+        d_dimer[d_dimer]
+        fibrinogen[fibrinogen]
+        hb[hb]
+        hct[hct]
+        lymphocyte[lymphocyte]
+        platelet[platelet]
+        ptinr[ptinr]
+        seg[seg]
+        wbc["wbc ⇄ dual-role: infection-context flag"]
+    end
+    subgraph IntraOp["Intra-op vitals — if peri-op scope"]
+        ebl[ebl]
+        rbc[rbc]
+        ffp[ffp]
+        cryo[cryo]
+    end
+    Labs --&gt; ENC[Haematology Encoder]
+    IntraOp --&gt; ENC
+    ENC --&gt; EMB[haem_embedding]
+    ENC -.-&gt;|also flags| INFECTION["Infection-context flag\n(cross-cutting, not a 7th system —\nfollows SOFA/Sepsis-3/ICD-10 chapter I)"]
+    style ENC fill:#e6f2f0,stroke:#0a7d6e
+    style crp fill:#fff3cd,stroke:#b8860b
+    style wbc fill:#fff3cd,stroke:#b8860b
+    style INFECTION fill:#fdeaea,stroke:#b83232</code></pre>
+<h3 id="116-neurological-system">11.6 Neurological system<a class="headerlink" href="#116-neurological-system" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph WardVitals["Ward vitals"]
+        gcs_e[gcs_e]
+        gcs_m["gcs_m — only 8.4% coverage, not missing at random"]
+        gcs_v[gcs_v]
+    end
+    subgraph IntraOp["Intra-op vitals — if peri-op scope"]
+        bis[bis]
+    end
+    WardVitals --&gt; ENC[Neurological Encoder]
+    IntraOp --&gt; ENC
+    ENC --&gt; EMB[neuro_embedding]
+    style ENC fill:#e6f2f0,stroke:#0a7d6e</code></pre>
+<h3 id="117-non-time-series-inputs-diagnoses-medications-static-facts">11.7 Non-time-series inputs — diagnoses, medications, static facts<a class="headerlink" href="#117-non-time-series-inputs-diagnoses-medications-static-facts" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    DX["Diagnoses (ICD-10)\n126-parameter schema doesn't include this —\nseparate categorical stream"]
+    MED["Medications (ATC codes)"]
+    STAT["Static: age, sex, ASA, emop, department"]
+    HFRS["HFRS 109-code frailty weight table\n(Section 2) — a SEPARATE ICD-10 mapping\nfrom the organ-system chapter mapping below"]
+
+    DX --&gt; DX_EMB["ICD-10 chapter embedding\n(organ-system routing, Section 5/11.1-11.6)"]
+    DX --&gt; HFRS
+    DX -.-&gt;|"⇄ overlap: Chapter M\n(musculoskeletal) feeds both"| HFRS
+    MED --&gt; MED_EMB["ATC-level embedding"]
+    STAT --&gt; STAT_MLP["Small MLP"]
+
+    style HFRS fill:#fdeaea,stroke:#b83232</code></pre>
+<h3 id="118-full-picture-all-systems-feeding-the-fusion-layer">11.8 Full picture — all systems feeding the fusion layer<a class="headerlink" href="#118-full-picture-all-systems-feeding-the-fusion-layer" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Systems["Six organ-system encoders (11.1–11.6)"]
+        R[Renal]
+        C[Cardiovascular]
+        P[Respiratory]
+        M[Metabolic/Hepatic]
+        H[Haematology/Coag]
+        N[Neurological]
+    end
+    subgraph NonTS["Non-time-series (11.7)"]
+        DXE[DX_EMB]
+        MEDE[MED_EMB]
+        STATM[STAT_MLP]
+    end
+
+    R --&gt; FUSE
+    C --&gt; FUSE
+    P --&gt; FUSE
+    M --&gt; FUSE
+    H --&gt; FUSE
+    N --&gt; FUSE
+    DXE --&gt; FUSE
+    MEDE --&gt; FUSE
+    STATM --&gt; FUSE
+    H -.-&gt;|"infection-context flag\n(CRP/WBC, cross-cutting)"| FUSE
+
+    FUSE["Neural Additive Model\n(one shape function per system —\neach contribution stays individually plottable)"]
+    FUSE --&gt; OUT["Mortality risk +\nper-system breakdown:\nRenal: CRITICAL | Resp: CONCERN | Cardio: OK"]
+
+    style FUSE fill:#e6f2f0,stroke:#0a7d6e
+    style OUT fill:#0a7d6e,color:#fff</code></pre>
+<p><strong>Reading the <code>⇄</code> markers across all the diagrams above:</strong> every parameter marked this way
+is a place where the <em>current</em> one-system-per-parameter architecture is a simplification —
+Section 5's clustering check found real evidence these specific parameters carry signal
+relevant to more than one system. They're kept in their primary system for now (with
+CRP/WBC's infection role handled as an explicit cross-cutting flag rather than a
+duplicate assignment), but each one is an open item for clinical sign-off, not a settled
+design choice.</p>
+<hr />
+<h2 id="12-appendix-all-21-original-clinician-questions-cross-referenced">12. Appendix — all 21 original clinician questions, cross-referenced<a class="headerlink" href="#12-appendix-all-21-original-clinician-questions-cross-referenced" title="Permanent link">&para;</a></h2>
+<p>Every numbered question from <code>Clinician_Questions.md</code>, verbatim in substance, with where
+it's addressed on this page and its status. Nothing from the original list is dropped —
+this is the completeness check for the clinical team, so they can work straight down one
+list rather than hunting across files.</p>
+<h3 id="mortality-label-clinician_questionsmd-1-resolved-optional-context-only">Mortality label (Clinician_Questions.md §1) — ✅ resolved, optional context only<a class="headerlink" href="#mortality-label-clinician_questionsmd-1-resolved-optional-context-only" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Question</th>
+<th>Addressed in</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Is 30-day all-cause mortality the right target, or should it be narrowed to surgery-related deaths specifically?</td>
+<td>Not directly re-litigated on this page — carried over as still-open framing from the source doc</td>
+<td>🔧 Open, optional</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Should the 473 "died after 30 days" patients be their own labeled cohort instead of folded into "survived"?</td>
+<td>Section 6 (label settled at 469; this specific relabeling question not re-tested here)</td>
+<td>🔧 Open, optional</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>[MUST ASK]</strong> Is 30 days the right window at all, vs. 90-day or in-hospital-only?</td>
+<td>Section 6</td>
+<td>🔧 Open, flagged as a must-ask in the source doc</td>
+</tr>
+</tbody>
+</table>
+<h3 id="multiple-operations-clinician_questionsmd-2-resolved-optional-context-two-genuinely-open-follow-ups">Multiple operations (Clinician_Questions.md §2) — ✅ resolved, optional context + two genuinely open follow-ups<a class="headerlink" href="#multiple-operations-clinician_questionsmd-2-resolved-optional-context-two-genuinely-open-follow-ups" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Question</th>
+<th>Addressed in</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4</td>
+<td>Does last-operation anchoring match clinical intuition — that an old, unrelated earlier operation shouldn't be the reference point for a death following a later, separate surgery?</td>
+<td>Section 6</td>
+<td>🔧 Open, optional</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Is there a subgroup (e.g. genuinely staged procedures with short gaps) where first-operation would still be the clinically correct reference?</td>
+<td>Section 6</td>
+<td>🔧 Open, optional</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Should patients with multiple operations within a short window (30/60/90 days) be flagged as a distinct risk marker, separate from raw operation count?</td>
+<td>Section 7</td>
+<td>🔧 Open, not yet tested</td>
+</tr>
+</tbody>
+</table>
+<h3 id="asa-possum-nela-clinician_questionsmd-3">ASA / POSSUM / NELA (Clinician_Questions.md §3)<a class="headerlink" href="#asa-possum-nela-clinician_questionsmd-3" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Question</th>
+<th>Addressed in</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7</td>
+<td>Given ASA already captures so much signal alone, does the team see value in POSSUM/NELA as additional model <em>inputs</em>, or only as <em>comparison baselines</em>?</td>
+<td>Section 3</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Is there a circularity concern with ASA — should it be excluded from model inputs even though it's a strong predictor?</td>
+<td>Section 3</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+<tr>
+<td>9</td>
+<td>GCS is missing for over 90% of patients — is that expected (most patients are lucid), or a data-capture gap worth investigating?</td>
+<td>Section 3</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+<tr>
+<td>10</td>
+<td>For NELA terms we can't compute directly (malignancy stage, indication for surgery) — are ICD-10 codes a clinically acceptable way to derive these, and can the team confirm the correct code ranges?</td>
+<td>Section 3</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Is an admittedly-incomplete "NELA-partial" score (missing GCS/malignancy/indication) still clinically useful as a model input, or does it need to be complete to mean anything?</td>
+<td>Section 3</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="frailty-hfrs-clinician_questionsmd-4">Frailty / HFRS (Clinician_Questions.md §4)<a class="headerlink" href="#frailty-hfrs-clinician_questionsmd-4" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Question</th>
+<th>Addressed in</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>12</td>
+<td>Does the corrected split (4.08% high vs. ~1% low/intermediate) match clinical expectation better than the original buggy numbers (1.96% vs. 1.80%)?</td>
+<td>Section 1</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Is chronological age at time of surgery, on its own, expected to be a stronger or weaker predictor than HFRS in this population?</td>
+<td>Section 1</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>[NEW]</strong> Given HFRS only ever applies to ~15% of this surgical cohort (age 75+), is it worth the model complexity, or would a simpler age-based frailty proxy cover most of the same ground?</td>
+<td>Section 1</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="organ-system-feature-grouping-clinician_questionsmd-5">Organ-system feature grouping (Clinician_Questions.md §5)<a class="headerlink" href="#organ-system-feature-grouping-clinician_questionsmd-5" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Question</th>
+<th>Addressed in</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15</td>
+<td>Should infection/inflammation be its own 7th organ-system category, and if so, which labs/vitals should count as core markers?</td>
+<td>Section 5</td>
+<td>🔶 Sign-off needed — proposed answer on file: no, follow SOFA/Sepsis-3</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Are there parameters the clinical team would place in a different system than currently assigned (e.g. lactate under metabolic vs. cardiovascular)?</td>
+<td>Section 5</td>
+<td>🔶 Sign-off needed — proposed answer on file: lactate moved to cardiovascular, but genuinely unresolved by the data</td>
+</tr>
+</tbody>
+</table>
+<h3 id="scope-pre-op-peri-op-or-post-op-clinician_questionsmd-6">Scope: pre-op, peri-op, or post-op (Clinician_Questions.md §6)<a class="headerlink" href="#scope-pre-op-peri-op-or-post-op-clinician_questionsmd-6" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Question</th>
+<th>Addressed in</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>17</td>
+<td>Which of the three scope options (pre-op-only / +intra-op / +early post-op) is the most clinically useful starting point, given how the tool would actually be used day to day?</td>
+<td>Section 8</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+<tr>
+<td>18</td>
+<td>If intra-operative vitals are eventually added — are there specific intra-op events (hypotensive episode, arrhythmia, blood-loss volume) the team already treats as strong informal predictors of poor outcome, that should be explicitly represented?</td>
+<td>Section 8</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="concept-bottleneck-clinician_questionsmd-7">Concept Bottleneck (Clinician_Questions.md §7)<a class="headerlink" href="#concept-bottleneck-clinician_questionsmd-7" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Question</th>
+<th>Addressed in</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>19</td>
+<td>For each of AKI stage / haemodynamic instability / respiratory failure stage — what staging definition and thresholds should be used as ground truth (e.g. is KDIGO right for AKI in this population)?</td>
+<td>Section 9</td>
+<td>🔧 Open</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Are there other named clinical concepts, beyond these three, essential to reasoning about a surgical patient's trajectory toward death, that a concept head should be built for?</td>
+<td>Section 9</td>
+<td>🔧 Open</td>
+</tr>
+</tbody>
+</table>
+<h3 id="departments-and-case-mix-clinician_questionsmd-8">Departments and case mix (Clinician_Questions.md §8)<a class="headerlink" href="#departments-and-case-mix-clinician_questionsmd-8" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Question</th>
+<th>Addressed in</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>21</td>
+<td>Should the model be one model across all departments, or would department-specific models be more clinically meaningful given differing baseline risk and physiology?</td>
+<td>Section 10</td>
+<td>🔶 Sign-off needed</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="source-documents-this-page-consolidates">Source documents this page consolidates<a class="headerlink" href="#source-documents-this-page-consolidates" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Original file</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full clinician-facing question list</td>
+<td><code>Clinician_Questions.md</code></td>
+</tr>
+<tr>
+<td>ASA/POSSUM/NELA math, references, field audit</td>
+<td><code>ASA_POSSUM_NELA_Theory_and_Validation.md</code></td>
+</tr>
+<tr>
+<td>ICD-10 chapter mapping, embedding-methods literature</td>
+<td><code>ICD10_Architecture_Research.md</code></td>
+</tr>
+<tr>
+<td>Full-cohort findings (label, multi-op, ASA, HFRS, organ-system clustering)</td>
+<td><code>INSPIRE_Complete_Findings_Summary.md</code></td>
+</tr>
+<tr>
+<td>Feature/parameter coverage audit</td>
+<td><code>feature_audit_findings.md</code></td>
+</tr>
+<tr>
+<td>Pre-op/peri-op/post-op windows, product framing</td>
+<td><code>Research_Aim.md</code> §2.6</td>
+</tr>
+<tr>
+<td>System-separated architecture, base mermaid pipeline</td>
+<td><code>roadmap_and_architecture.md</code> §4</td>
+</tr>
+<tr>
+<td>Plain-language full-run results (ASA staircase, HFRS, multi-op)</td>
+<td><code>Base_Comparitive_Study_Models.md</code></td>
+</tr>
+<tr>
+<td>HFRS 109-code weight table and eligibility logic</td>
+<td><code>src/frailty_hfrs.py</code>, <code>src/subject.py</code> (<code>compute_hfrs</code>)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.collapse", "content.code.copy", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

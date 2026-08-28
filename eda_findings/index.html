@@ -1,0 +1,2108 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+        <link rel="prev" href="../feature_audit_findings/">
+      
+      
+        <link rel="next" href="../INSPIRE_Complete_Findings_Summary/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>EDA Findings (Full Dataset) - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#eda-findings-full-dataset-99886-patients" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              EDA Findings (Full Dataset)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../INSPIRE_Project_Notes/" class="md-tabs__link">
+          
+  
+  
+  Data & Pipeline
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Surgeon_Facing_Summary/" class="md-tabs__link">
+          
+  
+  
+  Clinician Inputs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-tabs__link">
+          
+  
+  
+  MULTIMODEL MODEL
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../Research_Aim/" class="md-tabs__link">
+          
+  
+  
+  Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../PACO_Net_Architecture/" class="md-tabs__link">
+          
+  
+  
+  Next-Gen Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data & Pipeline
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data & Pipeline
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Project_Notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-how-many-patients-died" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. How many patients died?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1b-comparing-the-two-death-definitions-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1b. Comparing the two death definitions directly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-who-tends-to-die-age-asa-class-and-sex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Who tends to die: age, ASA class, and sex
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-which-surgical-departments-have-the-highest-death-rates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Which surgical departments have the highest death rates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-which-diagnoses-icd-10-codes-predict-death" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Which diagnoses (ICD-10 codes) predict death
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-which-types-of-operations-are-riskiest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Which types of operations are riskiest
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-do-we-actually-have-the-data-we-need" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Do we actually have the data we need?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-where-are-the-gaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Where are the gaps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-do-the-7-currently-used-features-actually-separate-survivors-from-deaths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Do the 7 currently-used features actually separate survivors from deaths?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-are-any-of-the-features-redundant-with-each-other" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Are any of the features redundant with each other?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-the-frailty-score-hfrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. The frailty score (HFRS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-does-frailty-matter-more-for-emergency-surgery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Does frailty matter more for emergency surgery?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-does-having-multiple-operations-increase-risk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Does having multiple operations increase risk?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-what-the-raw-data-actually-looks-like-over-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. What the raw data actually looks like over time
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-and-highest-priority-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary and highest-priority next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Complete_Findings_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete Findings Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinician Inputs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Clinician Inputs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Surgeon_Facing_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Surgeon Summanry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Novelty_Research_Ledger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Novelty & Clinical Relevance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MULTIMODEL MODEL
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    MULTIMODEL MODEL
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Baseline_Pipeline_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSPIRE_Meeting_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Full-Scale Run — Meeting Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Base_Comparitive_Study_Models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Comparitive Study
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Research_Aim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Aims & Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap_and_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap & Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Notes & Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Clinician_Validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meeting Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ICD10_Architecture_Research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ICD-10 Architecture Research
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next-Gen Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Next-Gen Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PACO_Net_Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PACO-Net Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-how-many-patients-died" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. How many patients died?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1b-comparing-the-two-death-definitions-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1b. Comparing the two death definitions directly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-who-tends-to-die-age-asa-class-and-sex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Who tends to die: age, ASA class, and sex
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-which-surgical-departments-have-the-highest-death-rates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Which surgical departments have the highest death rates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-which-diagnoses-icd-10-codes-predict-death" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Which diagnoses (ICD-10 codes) predict death
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-which-types-of-operations-are-riskiest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Which types of operations are riskiest
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-do-we-actually-have-the-data-we-need" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Do we actually have the data we need?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-where-are-the-gaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Where are the gaps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-do-the-7-currently-used-features-actually-separate-survivors-from-deaths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Do the 7 currently-used features actually separate survivors from deaths?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-are-any-of-the-features-redundant-with-each-other" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Are any of the features redundant with each other?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-the-frailty-score-hfrs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. The frailty score (HFRS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-does-frailty-matter-more-for-emergency-surgery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Does frailty matter more for emergency surgery?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-does-having-multiple-operations-increase-risk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Does having multiple operations increase risk?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-what-the-raw-data-actually-looks-like-over-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. What the raw data actually looks like over time
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-and-highest-priority-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary and highest-priority next steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="eda-findings-full-dataset-99886-patients">EDA Findings — Full Dataset (99,886 patients)<a class="headerlink" href="#eda-findings-full-dataset-99886-patients" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>Companion page to <code>inspire_eda.ipynb</code>. Every figure below is from the full-cohort run
+— <strong>99,886 patients, all 942 recorded deaths, loaded in 505 seconds</strong>. Each section
+explains what the graph shows, how to read it, what we actually found, and why it
+matters — written so it's useful even if you haven't opened the notebook. Technical
+detail behind each section lives in <code>notes.md</code>.</p>
+<p><strong>One idea comes up constantly below, so it's worth stating once, clearly:</strong> every
+chart that involves "died" now shows it <strong>two ways</strong> — died within 30 days of surgery
+(<strong>469 patients</strong>, the strict definition in <code>notes.md</code> §4) and died at any point ever
+recorded in the dataset (<strong>942 patients</strong>, all-cause). These are not two different
+groups — the 469 are a subset of the 942. They're shown together everywhere so you can
+see whether a pattern holds under both definitions, or only shows up under one.</p>
+</blockquote>
+<hr />
+<h2 id="1-how-many-patients-died">1. How many patients died?<a class="headerlink" href="#1-how-many-patients-died" title="Permanent link">&para;</a></h2>
+<p><img alt="Cohort overview" src="../eda_images/01_cohort_overview.png" /></p>
+<p><strong>What you're looking at:</strong> three bars — everyone who survived, everyone who died at any
+point (all-cause), and everyone who died specifically within 30 days of surgery.</p>
+<p><strong>What we found:</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Count</th>
+<th>Rate</th>
+<th>pos_weight</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Survived</td>
+<td>98,944</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Died (all-cause)</td>
+<td>942</td>
+<td>0.94%</td>
+<td>105.04</td>
+</tr>
+<tr>
+<td>Died (≤30 days)</td>
+<td>469</td>
+<td>0.47%</td>
+<td>210.97</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> this is the single most important number in the whole project. A
+model that guesses "survived" for every single patient would already be 99.5% "accurate"
+under the 30-day definition — and still be completely useless. Every downstream choice
+(the <code>pos_weight</code> in the loss function, using AUPRC instead of AUROC, how you split
+train/test) exists specifically because of this number.</p>
+<p><strong>Next step:</strong> decide which definition (469 or 942) the model should actually target —
+see the flag at the very end of this document, it's the single open decision blocking
+several other next steps.</p>
+<hr />
+<h2 id="1b-comparing-the-two-death-definitions-directly">1b. Comparing the two death definitions directly<a class="headerlink" href="#1b-comparing-the-two-death-definitions-directly" title="Permanent link">&para;</a></h2>
+<p><img alt="Mortality definition comparison" src="../eda_images/01b_mortality_definition_comparison.png" /></p>
+<p><strong>What you're looking at:</strong> just the two death counts, side by side, with Survived
+removed — this chart exists purely to compare 469 against 942, not to show the whole
+cohort.</p>
+<p><strong>What we found:</strong> <code>docs/notes.md</code> has documented "942 deaths" throughout the project so
+far. That number is real, but it's <strong>all-cause</strong>, not 30-day. Digging into <em>why</em> they
+differ turned up something important: <strong>473 patients are labeled "died" in the dataset's
+own folder structure, but did not die within 30 days of their last operation</strong> — some
+died months later, of causes that may have nothing to do with the surgery.</p>
+<p><strong>Why it matters:</strong> if the training pipeline currently trusts the folder name as the
+ground-truth label (it does, per <code>notes.md</code> §7), then <strong>half of the "died" class the
+model is being trained on is arguably mislabeled</strong> relative to the 30-day definition the
+project has always said it's predicting.</p>
+<p><strong>Next step:</strong> this is the highest-priority fix in the whole project right now — see
+the note at the bottom of this document.</p>
+<hr />
+<h2 id="2-who-tends-to-die-age-asa-class-and-sex">2. Who tends to die: age, ASA class, and sex<a class="headerlink" href="#2-who-tends-to-die-age-asa-class-and-sex" title="Permanent link">&para;</a></h2>
+<p><img alt="Age boxplot" src="../eda_images/02a_age_boxplot.png" />
+<img alt="Age distribution, three ways" src="../eda_images/02b_age_distribution_3way.png" />
+<img alt="ASA class and sex by outcome" src="../eda_images/03_asa_sex_by_outcome.png" /></p>
+<p><strong>What you're looking at:</strong>
+- The boxplot compares the age <em>range</em> for survivors vs. everyone who died.
+- The 4-panel chart shows the full age <em>shape</em> for three groups separately (Survived,
+  Died all-cause, Died ≤30 days), plus all three overlaid as normalized curves so their
+  shapes are directly comparable regardless of how many patients are in each group.
+- The ASA/sex chart shows mortality <em>rate</em> (not raw counts) by ASA class and by sex,
+  computed both ways (all-cause and 30-day) — four small charts in total.</p>
+<p><strong>What we found:</strong>
+- <strong>Median age: 55 for survivors, 65 for both death groups.</strong> A clear, consistent
+  10-year gap — and notably, the 30-day and all-cause death groups have the <em>same</em>
+  median age, so age alone doesn't distinguish an acute peri-operative death from a
+  death that happens months later for unrelated reasons.
+- <strong>ASA class climbs the way it should clinically</strong> — mortality rate increases steadily
+  from ASA 1 (healthiest) through ASA 6 (near-certain death), under both definitions.
+- <strong>Sex shows a real, moderate difference</strong>: male patients have a noticeably higher
+  mortality rate than female patients, under both definitions. (This chart used to be
+  broken — see the callout below.)</p>
+<p><strong>Why it matters:</strong> age and ASA class behaving exactly as clinical intuition predicts is
+a strong sanity check that the labels and data are trustworthy. If they <em>didn't</em> show
+this pattern, that would be a red flag about the data itself, not a discovery.</p>
+<blockquote>
+<p><strong>A fix worth knowing about:</strong> the sex chart previously plotted Survived% and Died%
+stacked on the same 0–100 scale. Since the death rate is under 1%, the "Died" bar was
+visually zero height — not because there was no signal, just because the chart made it
+invisible. It's now plotted as a direct mortality-rate bar per sex, which is why the
+difference is visible at all.</p>
+</blockquote>
+<p><strong>Next step:</strong> none needed — this section is a validation check, not an open question.</p>
+<hr />
+<h2 id="3-which-surgical-departments-have-the-highest-death-rates">3. Which surgical departments have the highest death rates<a class="headerlink" href="#3-which-surgical-departments-have-the-highest-death-rates" title="Permanent link">&para;</a></h2>
+<p><img alt="Department mortality" src="../eda_images/04_department_mortality.png" />
+<img alt="Department mortality by scheduled/emergency" src="../eda_images/05_department_mortality_by_emop.png" /></p>
+<p><strong>What you're looking at:</strong> every department's mortality rate, sorted highest to lowest,
+shown both ways (all-cause / 30-day) side by side. The second chart breaks each
+department further into scheduled vs. emergency surgery.</p>
+<p><strong>What we found (30-day definition):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Department</th>
+<th>Mortality rate</th>
+<th>Patients</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AN (Anaesthesia)</td>
+<td>5.17%</td>
+<td>58</td>
+</tr>
+<tr>
+<td>IM (Internal Medicine)</td>
+<td>1.67%</td>
+<td>60</td>
+</tr>
+<tr>
+<td>CTS (Cardiothoracic Surgery)</td>
+<td>1.44%</td>
+<td>6,741</td>
+</tr>
+<tr>
+<td>NS (Neurosurgery)</td>
+<td>0.85%</td>
+<td>7,871</td>
+</tr>
+<tr>
+<td>GS (General Surgery)</td>
+<td>0.61%</td>
+<td>29,073</td>
+</tr>
+<tr>
+<td>OL</td>
+<td>0.49%</td>
+<td>9,551</td>
+</tr>
+<tr>
+<td>OS</td>
+<td>0.37%</td>
+<td>12,084</td>
+</tr>
+<tr>
+<td>UR (Urology)</td>
+<td>0.20%</td>
+<td>8,708</td>
+</tr>
+<tr>
+<td>OG, PS, OT, DM, EM, PED, RO</td>
+<td>0.00–0.06%</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why it matters:</strong> department carries real signal, but it's probably a <em>stand-in</em> for
+something else — which departments handle the sickest, highest-risk operations — rather
+than a direct cause. The scheduled/emergency breakdown is how you test that: if a
+department only looks risky because it does more emergency work, that's a different
+finding than the department itself being inherently dangerous.</p>
+<p><strong>Next step:</strong> this is exactly the analysis your current research focus (ICD-10 +
+department interpretability) needs — cross-reference this table against the ICD-10
+findings below to see how much department risk is actually diagnosis/procedure risk in
+disguise.</p>
+<hr />
+<h2 id="4-which-diagnoses-icd-10-codes-predict-death">4. Which diagnoses (ICD-10 codes) predict death<a class="headerlink" href="#4-which-diagnoses-icd-10-codes-predict-death" title="Permanent link">&para;</a></h2>
+<p><img alt="Top ICD-10 diagnoses" src="../eda_images/06_top_icd10_diagnoses.png" />
+<img alt="ICD-10 diagnoses mortality risk" src="../eda_images/07_icd10_diagnoses_mortality_risk.png" />
+<img alt="Multi-diagnosis distribution" src="../eda_images/08_multi_diagnosis_distribution_3way.png" /></p>
+<p><strong>What you're looking at:</strong> the first chart shows the <em>most common</em> diagnoses in the
+cohort (says nothing about risk by itself). The second shows which diagnoses have the
+<em>highest death rate</em> among patients who have them (filtered to codes with at least 49
+patients, so a single unlucky patient can't fake a "100% mortality" code). The third
+shows how many distinct diagnosis codes each patient has, compared across the three
+outcome groups.</p>
+<p><strong>What we found:</strong> the diagnoses most strongly linked to death are all <strong>acute
+deterioration events</strong>, not long-standing chronic conditions:</p>
+<table>
+<thead>
+<tr>
+<th>ICD-10</th>
+<th>Meaning</th>
+<th>Mortality rate</th>
+<th>Patients</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D65</td>
+<td>Disseminated intravascular coagulation</td>
+<td>28.3%</td>
+<td>53</td>
+</tr>
+<tr>
+<td>I46</td>
+<td>Cardiac arrest</td>
+<td>26.7%</td>
+<td>131</td>
+</tr>
+<tr>
+<td>R57</td>
+<td>Shock</td>
+<td>22.6%</td>
+<td>234</td>
+</tr>
+<tr>
+<td>J80</td>
+<td>Acute respiratory distress syndrome</td>
+<td>21.5%</td>
+<td>79</td>
+</tr>
+<tr>
+<td>K72</td>
+<td>Hepatic failure</td>
+<td>12.3%</td>
+<td>106</td>
+</tr>
+<tr>
+<td>A41</td>
+<td>Other sepsis</td>
+<td>9.5%</td>
+<td>262</td>
+</tr>
+</tbody>
+</table>
+<p>Patients who died had noticeably more diagnosis codes on average than survivors:
+<strong>survivors averaged 4.0 codes; all-cause deaths averaged 7.2; 30-day deaths averaged
+6.0.</strong> Interestingly, the all-cause death group has <em>more</em> codes on average than the
+30-day group — plausible explanation: patients who survive longer before eventually
+dying have more time to accumulate additional diagnoses in the record.</p>
+<p><strong>Why it matters:</strong> this makes strong clinical sense — it's acute crises, not
+pre-existing background conditions, that drive peri-operative death. It also means a
+simple <em>count</em> of how many diagnoses a patient has already carries real signal, before
+you even look at which specific codes they are.</p>
+<p><strong>Next step:</strong> directly feeds your current research priority. These 6 codes (plus the
+9 more visible in the chart) are strong starting candidates for either explicit
+"high-risk diagnosis" features, or for validating the organ-system groupings once that
+work starts.</p>
+<hr />
+<h2 id="5-which-types-of-operations-are-riskiest">5. Which types of operations are riskiest<a class="headerlink" href="#5-which-types-of-operations-are-riskiest" title="Permanent link">&para;</a></h2>
+<p><img alt="ICD-10 procedures mortality" src="../eda_images/09_icd10_procedures_mortality.png" /></p>
+<p><strong>What you're looking at:</strong> the most common procedure codes (<code>icd10_pcs</code> — what was
+<em>done</em>, distinct from diagnosis codes which describe what was <em>wrong</em>), each with its
+patient count and death rate.</p>
+<p><strong>What we found:</strong> procedure risk varies a lot even among common procedures. Code <code>0HB</code>
+(7,119 patients) sits at a low 0.15% mortality, while code <code>0TT</code> (2,049 patients) sits
+at <strong>1.95%</strong> — roughly 13x higher, despite being performed on a comparably large number
+of patients (so it's not just small-sample noise).</p>
+<p><strong>Why it matters:</strong> diagnosis codes describe how sick the patient already was;
+procedure codes describe how risky the intervention itself is. These are genuinely
+different signals. Keeping them as separate features (rather than merging into one
+"severity" number) means a future model can learn both independently.</p>
+<p><strong>Next step:</strong> worth pulling the actual procedure descriptions for the highest-risk
+codes (0TT, 0FT, 0DT) to sanity-check them clinically, the way we did for the diagnosis
+codes above — currently these are just codes, not readable descriptions.</p>
+<hr />
+<h2 id="6-do-we-actually-have-the-data-we-need">6. Do we actually have the data we need?<a class="headerlink" href="#6-do-we-actually-have-the-data-we-need" title="Permanent link">&para;</a></h2>
+<p><img alt="Feature coverage audit" src="../eda_images/10_feature_coverage_audit.png" /></p>
+<p><strong>What you're looking at:</strong> for every lab, ward vital, and intra-operative vital in the
+dataset, what percentage of the 99,886 patients have at least one measurement of it.</p>
+<p><strong>What we found:</strong> coverage is excellent across the board. The top labs are measured in
+<strong>92–99% of all patients</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>creatinine</td>
+<td>99.3%</td>
+</tr>
+<tr>
+<td>hb, hct</td>
+<td>~94.6%</td>
+</tr>
+<tr>
+<td>wbc, platelet</td>
+<td>~94.3%</td>
+</tr>
+<tr>
+<td>calcium, potassium, sodium</td>
+<td>~94.1%</td>
+</tr>
+<tr>
+<td>albumin</td>
+<td>93.9%</td>
+</tr>
+</tbody>
+</table>
+<p>All 38 documented labs and all 16 documented ward vitals were found. The intra-operative
+<code>vitals</code> table came back with <strong>74 distinct types</strong> — 2 more than the 72 documented in
+<code>notes.md</code> §11. Worth a quick reconciliation (likely just two rarely-used codes that
+weren't in the earlier smaller sample), but not a major discrepancy.</p>
+<p><strong>Why it matters:</strong> this directly answers "do we have enough real data to expand past
+the current 7 features?" — yes, comfortably. Coverage was the main open question blocking
+<code>notes.md</code> §15 item 5, and it's now resolved in the positive.</p>
+<p><strong>Next step:</strong> this unblocks the organ-system feature expansion work. With this
+confirmed, the next step is deciding the pre-op-vs-peri-op scope question (<code>notes.md</code>
+§4), since that determines whether the 74 intra-op vitals are in scope too.</p>
+<hr />
+<h2 id="7-where-are-the-gaps">7. Where are the gaps<a class="headerlink" href="#7-where-are-the-gaps" title="Permanent link">&para;</a></h2>
+<p><img alt="Missingness heatmap" src="../eda_images/11_missingness_heatmap.png" /></p>
+<p><strong>What you're looking at:</strong> a sampled grid (300 patients, evenly split between outcomes
+so both are visible) — each row is a patient, each column a feature, blue means "this
+patient has at least one measurement of this feature," grey means "completely missing
+for this patient."</p>
+<p><strong>What we found:</strong> mostly blue, as expected given the coverage numbers above, but with
+visible patchiness — some patients (rows) are much sparser than others, and a couple of
+features show more grey than the rest.</p>
+<p><strong>Why it matters:</strong> the pipeline currently fills every gap with linear interpolation.
+This chart shows roughly how often it's doing that, and for which specific
+features/patients it's doing the <em>most</em> guessing rather than working with real
+measurements — a vertical grey stripe flags a feature worth reconsidering; a horizontal
+grey stripe flags a patient who's a candidate for the <code>min_observations</code> filter already
+in the pipeline.</p>
+<p><strong>Next step:</strong> this is the audit step for <code>notes.md</code> §15 item 7 (missing data handling)
+— the next task there is deciding whether the current approach (plain linear
+interpolation) is good enough, or whether model-based imputation is worth building for
+the sparsest features/patients this chart highlights.</p>
+<hr />
+<h2 id="8-do-the-7-currently-used-features-actually-separate-survivors-from-deaths">8. Do the 7 currently-used features actually separate survivors from deaths?<a class="headerlink" href="#8-do-the-7-currently-used-features-actually-separate-survivors-from-deaths" title="Permanent link">&para;</a></h2>
+<p><img alt="Current features by outcome" src="../eda_images/12_current_features_by_outcome.png" /></p>
+<p><strong>What you're looking at:</strong> box plots for each of the 7 features the model currently
+uses (glucose, potassium, sodium, creatinine, heart rate, oxygen saturation, blood
+pressure), comparing the most recent pre-op value between patients who died and patients
+who survived.</p>
+<p><strong>What we found:</strong> visible separation between the two boxes for most of the 7 features
+— exactly what you'd want to see if these are genuinely useful model inputs, not noise.</p>
+<p><strong>Why it matters:</strong> this is a direct check on the model's actual current inputs, not
+just "interesting data exploration" — it answers "is the model's existing feature set
+actually earning its place?"</p>
+<p><strong>Next step:</strong> any feature here with little to no visible separation between the two
+boxes is a candidate to reconsider or replace once the organ-system expansion happens.</p>
+<hr />
+<h2 id="9-are-any-of-the-features-redundant-with-each-other">9. Are any of the features redundant with each other?<a class="headerlink" href="#9-are-any-of-the-features-redundant-with-each-other" title="Permanent link">&para;</a></h2>
+<p><img alt="Correlation heatmap" src="../eda_images/13_correlation_heatmap.png" /></p>
+<p><strong>What you're looking at:</strong> a correlation matrix across the 7 current features plus the
+HFRS frailty score — darker/more saturated cells mean two features move together more
+strongly.</p>
+<p><strong>What we found:</strong> most pairs show fairly low correlation (as expected for physiological
+measurements from different organ systems), with the HFRS row/column showing how
+strongly frailty tracks each individual lab value.</p>
+<p><strong>Why it matters:</strong> any pair with |r| &gt; 0.7 is a redundancy candidate — feeding a model
+the same information twice under two different names doesn't help it and can actually
+hurt training. This also directly tests whether HFRS is carrying genuinely new
+information or whether it's just a repackaging of something already in the lab values
+(e.g. the sodium/albumin correlations already noted in <code>INSPIRE_Project_Notes.md</code> §11).</p>
+<p><strong>Next step:</strong> if any pair here shows |r| &gt; 0.7, decide whether to drop one, or combine
+them, before adding more features to the pipeline — better to catch redundancy now than
+after expanding to the full feature set.</p>
+<hr />
+<h2 id="10-the-frailty-score-hfrs">10. The frailty score (HFRS)<a class="headerlink" href="#10-the-frailty-score-hfrs" title="Permanent link">&para;</a></h2>
+<p><img alt="HFRS distribution, three ways" src="../eda_images/14a_hfrs_distribution_3way.png" />
+<img alt="HFRS vs mortality by category" src="../eda_images/14b_hfrs_vs_mortality.png" /></p>
+<p><strong>What you're looking at:</strong> the first chart shows the HFRS score distribution split
+across Survived / Died (all-cause) / Died (≤30 days). The second shows mortality rate
+for each of HFRS's three official risk tiers (low / intermediate / high), computed both
+ways.</p>
+<p><strong>What we found:</strong> the died groups skew toward higher HFRS scores than survivors, and
+mortality rate increases across the low → intermediate → high categories, in the
+direction you'd expect.</p>
+<p><strong>Why it matters:</strong> this tests whether a single frailty number, built purely from a
+patient's diagnosis history, predicts death on its own — a much cheaper signal than the
+full lab/vitals time series if it holds up.</p>
+<blockquote>
+<p><strong>Caveat worth repeating:</strong> the current HFRS implementation counts a patient's entire
+diagnosis history with no time limit, rather than the published 2-year window from
+Gilbert et al. 2018 (see <code>notes.md</code> §15 item 9). Treat these specific numbers as
+preliminary until that's fixed — an unbounded lookback will inflate scores for
+patients with long INSPIRE histories.</p>
+</blockquote>
+<p><strong>Next step:</strong> implement the 2-year window fix, then re-run this exact cell to see how
+much the numbers shift — that's the direct test of how much the current caveat matters.</p>
+<hr />
+<h2 id="11-does-frailty-matter-more-for-emergency-surgery">11. Does frailty matter more for emergency surgery?<a class="headerlink" href="#11-does-frailty-matter-more-for-emergency-surgery" title="Permanent link">&para;</a></h2>
+<p><img alt="Frailty by surgery type" src="../eda_images/15_frailty_x_surgery_type.png" /></p>
+<p><strong>What you're looking at:</strong> mortality rate by HFRS category, with scheduled and
+emergency surgery plotted as two separate lines.</p>
+<p><strong>What we found:</strong> worth reading directly off the chart — the hypothesis specifically
+predicts the emergency line should rise more steeply across HFRS categories than the
+scheduled line.</p>
+<p><strong>Why it matters:</strong> the reasoning (<code>notes.md</code> §15 item 10) is that a surgeon who
+schedules an operation has already, informally, screened the patient for fitness — so
+frailty should carry less extra information for scheduled surgery. For emergency
+surgery, no such screening happens, so frailty should matter much more. This chart is
+the direct visual test of that idea.</p>
+<p><strong>Next step:</strong> if the pattern holds, this becomes a real, citable finding for the paper.
+If it doesn't clearly separate, that's still useful — it means the conditional-
+independence hypothesis needs a more careful statistical test (not just a visual one)
+before it goes in the paper.</p>
+<hr />
+<h2 id="12-does-having-multiple-operations-increase-risk">12. Does having multiple operations increase risk?<a class="headerlink" href="#12-does-having-multiple-operations-increase-risk" title="Permanent link">&para;</a></h2>
+<p><img alt="Multi-operation mortality" src="../eda_images/16_multi_operation_mortality.png" /></p>
+<p><strong>What you're looking at:</strong> mortality rate plotted against the number of operations a
+patient has recorded (1, 2, 3, etc.).</p>
+<p><strong>What we found:</strong> worth reading directly off the chart for the exact shape — watch
+specifically for whether it climbs steadily with operation count, or stays flat/noisy.</p>
+<p><strong>Why it matters:</strong> this is a patient-level question, not an operation-level one — it
+asks whether a patient who's had several operations is inherently higher-risk as a
+person, separate from the risk of any single operation the current pipeline predicts.</p>
+<p><strong>Next step:</strong> categories with very few patients (e.g. patients with 5+ operations) will
+be noisy — treat any pattern there cautiously until the numbers are larger.</p>
+<hr />
+<h2 id="13-what-the-raw-data-actually-looks-like-over-time">13. What the raw data actually looks like over time<a class="headerlink" href="#13-what-the-raw-data-actually-looks-like-over-time" title="Permanent link">&para;</a></h2>
+<p><img alt="Measurement density example" src="../eda_images/17_measurement_density_example.png" /></p>
+<p><strong>What you're looking at:</strong> three real patients — one survivor, one who died within 30
+days, one who died later — each shown as a timeline of every single measurement taken,
+with a dashed line marking the moment surgery started. Each panel now has <strong>two x-axes</strong>:
+minutes from admission (bottom, matches the raw data) and days from admission (top, much
+easier to read at a glance).</p>
+<p><strong>What we found:</strong> monitoring density and timing vary a lot between the three examples —
+some patients have long gaps in measurement, especially before or long after surgery.</p>
+<p><strong>Why it matters:</strong> this is the most literal, ground-truth view of what the model
+actually sees. Every gap in these timelines is a place where <code>align_time_series()</code>
+(<code>notes.md</code> §8) has to guess via linear interpolation rather than use a real
+measurement — and the gaps right before surgery matter most, since that's the exact
+window the model uses to make its prediction.</p>
+<p><strong>Next step:</strong> worth looking at a few more examples like this, specifically for patients
+flagged as sparse in Section 7's missingness heatmap, to see what "sparse" actually
+looks like on a real timeline.</p>
+<hr />
+<h2 id="summary-and-highest-priority-next-steps">Summary and highest-priority next steps<a class="headerlink" href="#summary-and-highest-priority-next-steps" title="Permanent link">&para;</a></h2>
+<p>The dataset behaves the way real clinical data should — older and sicker (higher ASA)
+patients die more often, specific diagnoses and departments carry strong, clinically
+coherent signal, and coverage is strong enough to support expanding well beyond the
+current 7 features.</p>
+<p><strong>Two things need a decision before going further:</strong></p>
+<ol>
+<li><strong>Which mortality definition is correct — 469 (30-day) or 942 (all-cause)?</strong> This
+   isn't just a labeling detail. It changes the class-imbalance ratio (<code>pos_weight</code> 105
+   vs. 211), and 473 patients are literally in the opposite class depending on which
+   definition is used. Recommend resolving this first, before any further model training.</li>
+<li><strong>Fix the label source in <code>load_real_subjects()</code></strong> once definition #1 is decided —
+   right now it trusts folder names, which encode the all-cause definition regardless of
+   which one the project intends to predict.</li>
+</ol>
+<p>Everything else in this document — the ICD-10/department interpretability work, the
+organ-system feature expansion, the HFRS 2-year-window fix — can proceed in parallel,
+but the two items above are the ones actually blocking a trustworthy full-scale model
+run. See <code>notes.md</code> §15 for the complete, prioritised research roadmap this feeds into.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.collapse", "content.code.copy", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
