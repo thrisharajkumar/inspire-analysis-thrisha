@@ -17,6 +17,9 @@ nav:
       - Feature Audit Findings: feature_audit_findings.md
       - EDA Findings (Full Dataset): eda_findings.md
       - Complete Findings Summary: INSPIRE_Complete_Findings_Summary.md
+  - Clinician Inputs:
+      - Surgeon Summanry: Surgeon_Facing_Summary.md
+      - Novelty & Clinical Relevance : Novelty_Research_Ledger.md
   - MULTIMODEL MODEL:
       - Model Baseline: INSPIRE_Baseline_Pipeline_Summary.md
       - First Full-Scale Run — Meeting Summary: INSPIRE_Meeting_Summary.md
