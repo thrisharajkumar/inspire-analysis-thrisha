@@ -30,7 +30,7 @@ short and clinician-facing.)*
 
 **Does operation count itself predict risk?**
 
-![Mortality rate by number of operations](plots/mortality_by_n_ops.png)
+![Mortality rate by number of operations](../../plots/mortality_by_n_ops.png)
 
 - Mortality rises steadily with operation count: 0.4% (1 op) → 0.6% (2) → 1.2% (3) → 1.3%
   (4), then dips slightly at 5+ (1.0%) — likely a smaller-sample effect, not a real
@@ -43,7 +43,7 @@ short and clinician-facing.)*
 
 **Which operation should anchor the 30-day death label — first or last?**
 
-![Label agreement: last-op vs first-op anchor](plots/label_agreement.png)
+![Label agreement: last-op vs first-op anchor](../../plots/label_agreement.png)
 
 - Of 21,565 multi-op patients, only **111** get a different Yes/No death answer depending
   on which operation you anchor to. The other 21,454 give the same answer either way.
@@ -54,7 +54,7 @@ short and clinician-facing.)*
 
 **Why does it run only one direction? — the gap between operations:**
 
-![Gap between first and last operation](plots/operation_gap.png)
+![Gap between first and last operation](../../plots/operation_gap.png)
 
 - For these 111 patients: **median gap = 11 months** between first and last operation
   (mean 700 days, up to ~8 years).
@@ -124,7 +124,7 @@ from 0.07% (ASA 1) to 82.5% (ASA 6), a clean and expected staircase.
     (sepsis 0.3%, bowel ischaemia 0.2%, **GI bleeding 0.0% — zero patients out of 5,000**),
     which suggests our code ranges don't match how these are actually coded here.
 
-    ![ICD-10 coverage: malignancy vs indication categories](plots/icd10_coverage.png)
+    ![ICD-10 coverage: malignancy vs indication categories](../../plots/icd10_coverage.png)
 
     **Further update:** likely explanation found — we'd used narrow, hand-picked code
     ranges (e.g. just `A40-A41` for sepsis) instead of the full official WHO ICD-10
@@ -155,13 +155,13 @@ ASA. Also, our current implementation does **not** yet use the published 2-year 
   3.74) — the current version is substantially over-estimating frailty from old, no-longer
   relevant diagnoses.
 
-![HFRS mortality by category, current vs corrected](plots/hfrs_mortality_comparison.png)
+![HFRS mortality by category, current vs corrected](../../plots/hfrs_mortality_comparison.png)
 
 - **16.2% of eligible patients change category** once corrected — over half of currently
   "high"-frailty patients (53 of 102) drop to intermediate/low once old diagnoses are
   excluded.
 
-![HFRS category shift, current to corrected](plots/hfrs_category_shift.png)
+![HFRS category shift, current to corrected](../../plots/hfrs_category_shift.png)
 
 - **The corrected version is a meaningfully better predictor:** current HFRS barely
   separates intermediate (1.80%) from high (1.96%) mortality; corrected HFRS shows a clean

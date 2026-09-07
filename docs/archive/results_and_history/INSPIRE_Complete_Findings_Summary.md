@@ -30,7 +30,7 @@ whether the 473 "died after 30 days" should be their own labeled cohort.
 
 **Does operation count itself predict risk? Yes.**
 
-![Mortality rate by number of operations](plots/mortality_by_n_ops.png)
+![Mortality rate by number of operations](../../plots/mortality_by_n_ops.png)
 
 | Operations | Mortality | Patients |
 |---|---|---|
@@ -42,7 +42,7 @@ whether the 473 "died after 30 days" should be their own labeled cohort.
 
 **Which operation should anchor the 30-day label — first or last?**
 
-![Label agreement: last-op vs first-op anchor](plots/label_agreement.png)
+![Label agreement: last-op vs first-op anchor](../../plots/label_agreement.png)
 
 | | Survived (first-op) | Died (first-op) |
 |---|---|---|
@@ -54,7 +54,7 @@ disagreement only ever runs one direction (mathematically guaranteed).
 
 **Why only one direction — the time gap between operations:**
 
-![Gap between first and last operation](plots/operation_gap.png)
+![Gap between first and last operation](../../plots/operation_gap.png)
 
 - Median gap for the 111 flip patients: **11 months** (mean 700 days, up to ~8 years)
 - **Conclusion: last-operation is the correct anchor.** These aren't staged procedures —
@@ -107,7 +107,7 @@ disagreement only ever runs one direction (mathematically guaranteed).
 
 **ICD-10 malignancy/indication coverage (first-pass, narrow code ranges):**
 
-![ICD-10 coverage: malignancy vs indication categories](plots/icd10_coverage.png)
+![ICD-10 coverage: malignancy vs indication categories](../../plots/icd10_coverage.png)
 
 | Category | Coverage |
 |---|---|
@@ -141,7 +141,7 @@ and the age≥75 eligibility check was written but commented out.
 | Mean score, corrected (2-yr window) | 3.74 |
 | Eligible patients who change category | 119 / 735 (16.2%) |
 
-![HFRS mortality by category, current vs corrected](plots/hfrs_mortality_comparison.png)
+![HFRS mortality by category, current vs corrected](../../plots/hfrs_mortality_comparison.png)
 
 | Category | Current mortality | Corrected mortality |
 |---|---|---|
@@ -149,7 +149,7 @@ and the age≥75 eligibility check was written but commented out.
 | Intermediate | 1.80% | 1.19% |
 | High | 1.96% | **4.08%** |
 
-![HFRS category shift, current to corrected](plots/hfrs_category_shift.png)
+![HFRS category shift, current to corrected](../../plots/hfrs_category_shift.png)
 
 | Current → | High | Intermediate | Low |
 |---|---|---|---|
@@ -209,7 +209,7 @@ hand-rolled letter mapping. Recommended foundation for the `DX_EMB` pipeline com
 
 ### Data-driven validation — real hierarchical clustering on 5,000 patients
 
-![Hierarchical clustering of real INSPIRE lab/vital values](plots/organ_clustering_dendrogram.png)
+![Hierarchical clustering of real INSPIRE lab/vital values](../../plots/organ_clustering_dendrogram.png)
 
 **Strongly confirmed** (tight, independent clusters matching assigned systems):
 creatinine+bun (renal), alt+ast (hepatic), ptinr+aptt (coagulation), sodium+chloride

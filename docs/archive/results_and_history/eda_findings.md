@@ -17,7 +17,7 @@
 
 ## 1. How many patients died?
 
-![Cohort overview](eda_images/01_cohort_overview.png)
+![Cohort overview](../../eda_images/01_cohort_overview.png)
 
 **What you're looking at:** three bars — everyone who survived, everyone who died at any
 point (all-cause), and everyone who died specifically within 30 days of surgery.
@@ -44,7 +44,7 @@ several other next steps.
 
 ## 1b. Comparing the two death definitions directly
 
-![Mortality definition comparison](eda_images/01b_mortality_definition_comparison.png)
+![Mortality definition comparison](../../eda_images/01b_mortality_definition_comparison.png)
 
 **What you're looking at:** just the two death counts, side by side, with Survived
 removed — this chart exists purely to compare 469 against 942, not to show the whole
@@ -68,9 +68,9 @@ the note at the bottom of this document.
 
 ## 2. Who tends to die: age, ASA class, and sex
 
-![Age boxplot](eda_images/02a_age_boxplot.png)
-![Age distribution, three ways](eda_images/02b_age_distribution_3way.png)
-![ASA class and sex by outcome](eda_images/03_asa_sex_by_outcome.png)
+![Age boxplot](../../eda_images/02a_age_boxplot.png)
+![Age distribution, three ways](../../eda_images/02b_age_distribution_3way.png)
+![ASA class and sex by outcome](../../eda_images/03_asa_sex_by_outcome.png)
 
 **What you're looking at:**
 - The boxplot compares the age *range* for survivors vs. everyone who died.
@@ -107,8 +107,8 @@ this pattern, that would be a red flag about the data itself, not a discovery.
 
 ## 3. Which surgical departments have the highest death rates
 
-![Department mortality](eda_images/04_department_mortality.png)
-![Department mortality by scheduled/emergency](eda_images/05_department_mortality_by_emop.png)
+![Department mortality](../../eda_images/04_department_mortality.png)
+![Department mortality by scheduled/emergency](../../eda_images/05_department_mortality_by_emop.png)
 
 **What you're looking at:** every department's mortality rate, sorted highest to lowest,
 shown both ways (all-cause / 30-day) side by side. The second chart breaks each
@@ -143,9 +143,9 @@ disguise.
 
 ## 4. Which diagnoses (ICD-10 codes) predict death
 
-![Top ICD-10 diagnoses](eda_images/06_top_icd10_diagnoses.png)
-![ICD-10 diagnoses mortality risk](eda_images/07_icd10_diagnoses_mortality_risk.png)
-![Multi-diagnosis distribution](eda_images/08_multi_diagnosis_distribution_3way.png)
+![Top ICD-10 diagnoses](../../eda_images/06_top_icd10_diagnoses.png)
+![ICD-10 diagnoses mortality risk](../../eda_images/07_icd10_diagnoses_mortality_risk.png)
+![Multi-diagnosis distribution](../../eda_images/08_multi_diagnosis_distribution_3way.png)
 
 **What you're looking at:** the first chart shows the *most common* diagnoses in the
 cohort (says nothing about risk by itself). The second shows which diagnoses have the
@@ -186,7 +186,7 @@ work starts.
 
 ## 5. Which types of operations are riskiest
 
-![ICD-10 procedures mortality](eda_images/09_icd10_procedures_mortality.png)
+![ICD-10 procedures mortality](../../eda_images/09_icd10_procedures_mortality.png)
 
 **What you're looking at:** the most common procedure codes (`icd10_pcs` — what was
 *done*, distinct from diagnosis codes which describe what was *wrong*), each with its
@@ -210,7 +210,7 @@ codes above — currently these are just codes, not readable descriptions.
 
 ## 6. Do we actually have the data we need?
 
-![Feature coverage audit](eda_images/10_feature_coverage_audit.png)
+![Feature coverage audit](../../eda_images/10_feature_coverage_audit.png)
 
 **What you're looking at:** for every lab, ward vital, and intra-operative vital in the
 dataset, what percentage of the 99,886 patients have at least one measurement of it.
@@ -243,7 +243,7 @@ confirmed, the next step is deciding the pre-op-vs-peri-op scope question (`note
 
 ## 7. Where are the gaps
 
-![Missingness heatmap](eda_images/11_missingness_heatmap.png)
+![Missingness heatmap](../../eda_images/11_missingness_heatmap.png)
 
 **What you're looking at:** a sampled grid (300 patients, evenly split between outcomes
 so both are visible) — each row is a patient, each column a feature, blue means "this
@@ -270,7 +270,7 @@ the sparsest features/patients this chart highlights.
 
 ## 8. Do the 7 currently-used features actually separate survivors from deaths?
 
-![Current features by outcome](eda_images/12_current_features_by_outcome.png)
+![Current features by outcome](../../eda_images/12_current_features_by_outcome.png)
 
 **What you're looking at:** box plots for each of the 7 features the model currently
 uses (glucose, potassium, sodium, creatinine, heart rate, oxygen saturation, blood
@@ -291,7 +291,7 @@ boxes is a candidate to reconsider or replace once the organ-system expansion ha
 
 ## 9. Are any of the features redundant with each other?
 
-![Correlation heatmap](eda_images/13_correlation_heatmap.png)
+![Correlation heatmap](../../eda_images/13_correlation_heatmap.png)
 
 **What you're looking at:** a correlation matrix across the 7 current features plus the
 HFRS frailty score — darker/more saturated cells mean two features move together more
@@ -315,8 +315,8 @@ after expanding to the full feature set.
 
 ## 10. The frailty score (HFRS)
 
-![HFRS distribution, three ways](eda_images/14a_hfrs_distribution_3way.png)
-![HFRS vs mortality by category](eda_images/14b_hfrs_vs_mortality.png)
+![HFRS distribution, three ways](../../eda_images/14a_hfrs_distribution_3way.png)
+![HFRS vs mortality by category](../../eda_images/14b_hfrs_vs_mortality.png)
 
 **What you're looking at:** the first chart shows the HFRS score distribution split
 across Survived / Died (all-cause) / Died (≤30 days). The second shows mortality rate
@@ -344,7 +344,7 @@ much the numbers shift — that's the direct test of how much the current caveat
 
 ## 11. Does frailty matter more for emergency surgery?
 
-![Frailty by surgery type](eda_images/15_frailty_x_surgery_type.png)
+![Frailty by surgery type](../../eda_images/15_frailty_x_surgery_type.png)
 
 **What you're looking at:** mortality rate by HFRS category, with scheduled and
 emergency surgery plotted as two separate lines.
@@ -368,7 +368,7 @@ before it goes in the paper.
 
 ## 12. Does having multiple operations increase risk?
 
-![Multi-operation mortality](eda_images/16_multi_operation_mortality.png)
+![Multi-operation mortality](../../eda_images/16_multi_operation_mortality.png)
 
 **What you're looking at:** mortality rate plotted against the number of operations a
 patient has recorded (1, 2, 3, etc.).
@@ -387,7 +387,7 @@ be noisy — treat any pattern there cautiously until the numbers are larger.
 
 ## 13. What the raw data actually looks like over time
 
-![Measurement density example](eda_images/17_measurement_density_example.png)
+![Measurement density example](../../eda_images/17_measurement_density_example.png)
 
 **What you're looking at:** three real patients — one survivor, one who died within 30
 days, one who died later — each shown as a timeline of every single measurement taken,

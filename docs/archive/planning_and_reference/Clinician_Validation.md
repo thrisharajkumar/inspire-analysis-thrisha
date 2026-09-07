@@ -43,7 +43,7 @@ correctly?
 | Mean score, corrected (2-yr window) | 3.74 — roughly **halved** |
 | Eligible patients who change frailty category | 119 / 735 (**16.2%**) |
 
-![HFRS mortality by category, current vs corrected](plots/hfrs_mortality_comparison.png)
+![HFRS mortality by category, current vs corrected](../../plots/hfrs_mortality_comparison.png)
 
 | Category | Current mortality | Corrected mortality |
 |---|---|---|
@@ -51,7 +51,7 @@ correctly?
 | Intermediate | 1.80% | 1.19% |
 | High | 1.96% | **4.08%** |
 
-![HFRS category shift, current to corrected](plots/hfrs_category_shift.png)
+![HFRS category shift, current to corrected](../../plots/hfrs_category_shift.png)
 
 | Current → Corrected | High | Intermediate | Low |
 |---|---|---|---|
@@ -84,7 +84,7 @@ standalone dominant predictor.
 
 ### Does frailty matter more for emergency surgery? — now answered on the full dataset
 
-![Frailty vs. mortality, split by scheduled/emergency — full dataset](eda_images/18_hfrs_emergency_vs_scheduled_full.png)
+![Frailty vs. mortality, split by scheduled/emergency — full dataset](../../eda_images/18_hfrs_emergency_vs_scheduled_full.png)
 
 The reasoning: a surgeon who schedules an elective operation has already, informally,
 screened the patient for fitness, so frailty should carry *less* extra information for
@@ -349,7 +349,7 @@ Rather than trusting the hand-built system list, real hierarchical clustering wa
 5,000 patients' lab/vital correlations, to see whether features that move together *in
 the real data* match the literature-assigned system groupings.
 
-![Hierarchical clustering of real INSPIRE lab/vital values](plots/organ_clustering_dendrogram.png)
+![Hierarchical clustering of real INSPIRE lab/vital values](../../plots/organ_clustering_dendrogram.png)
 
 ### Strongly confirmed — clean one-to-one clusters, mapping holds
 
@@ -410,7 +410,7 @@ those with many surgeries spread across months or years — be included as-is?
 **21,565 of 99,886 patients (~22%) had more than one operation.** This isn't a small edge
 case to shrug off.
 
-![Mortality rate by number of operations](plots/mortality_by_n_ops.png)
+![Mortality rate by number of operations](../../plots/mortality_by_n_ops.png)
 
 | Operations | Mortality | Patients |
 |---|---|---|
@@ -428,7 +428,7 @@ subgroup**, not statistical noise to filter out.
 The table above bins everything above 4 into "5+." The real per-count breakdown is far
 more granular, and shows a real spike worth flagging directly:
 
-![Mortality rate by operation count — full dataset, every count 1–30](eda_images/19_multi_op_mortality_full_granular.png)
+![Mortality rate by operation count — full dataset, every count 1–30](../../eda_images/19_multi_op_mortality_full_granular.png)
 
 Mortality climbs through counts 1–5 (0.4% → ~1.4%), dips at 6 (n=182, ~0.5%), stays low
 through 7–8 (n=76, n=49), then **spikes sharply at 9 operations (n=32, ~3.1% mortality)**
@@ -444,14 +444,14 @@ sparse?
 
 ### Which operation should anchor the 30-day death label — first or last?
 
-![Label agreement: last-op vs first-op anchor](plots/label_agreement.png)
+![Label agreement: last-op vs first-op anchor](../../plots/label_agreement.png)
 
 Of 21,565 multi-op patients, only **111** get a different death label depending on which
 operation is used as the anchor. The disagreement only ever runs one direction (last-op
 says "died," first-op says "survived") — mathematically guaranteed, since a patient's last
 operation always comes after their first.
 
-![Gap between first and last operation](plots/operation_gap.png)
+![Gap between first and last operation](../../plots/operation_gap.png)
 
 For those 111 patients: **median gap = 11 months** between first and last operation (mean
 700 days, up to ~8 years). These are **not staged/planned procedures** — they're patients

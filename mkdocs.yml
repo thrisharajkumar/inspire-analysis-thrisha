@@ -11,28 +11,29 @@ site_dir: site
 # top-level group becomes a tab in the header bar, with its pages in a dropdown —
 # rather than one long flat sidebar list.
 nav:
-  - Home: index.md
-  - Data & Pipeline:
-      - INSPIRE Project Notes: INSPIRE_Project_Notes.md
-      - Feature Audit Findings: feature_audit_findings.md
-      - EDA Findings (Full Dataset): eda_findings.md
-      - Complete Findings Summary: INSPIRE_Complete_Findings_Summary.md
-  - Clinician Inputs:
-      - Surgeon Summanry: Surgeon_Facing_Summary.md
-      - Novelty & Clinical Relevance : Novelty_Research_Ledger.md
-  - MULTIMODEL MODEL:
-      - Model Baseline: INSPIRE_Baseline_Pipeline_Summary.md
-      - First Full-Scale Run — Meeting Summary: INSPIRE_Meeting_Summary.md
-      - Baseline Comparitive Study: Base_Comparitive_Study_Models.md
-  - Research:
-      - Research Aims & Objectives: Research_Aim.md
-      - Roadmap & Architecture: roadmap_and_architecture.md
-      - Research Notes & Questions: research_notes.md
-      - Clinical Questions: Clinician_Questions.md
-      - Meeting Questions: Clinician_Validation.md
-      - ICD-10 Architecture Research: ICD10_Architecture_Research.md
-  - Next-Gen Architecture:
-      - PACO-Net Design: PACO_Net_Architecture.md
+  - Current:
+      - Latest Work & Results (start here): current/PACO_Net_Latest_Work_and_Results.md
+      - Surgeon-Facing Summary: current/Surgeon_Facing_Summary.md
+  - Archive - Planning & Reference:
+      - Original Project README: archive/planning_and_reference/index.md
+      - Research Aims & Objectives: archive/planning_and_reference/Research_Aim.md
+      - Roadmap & Architecture: archive/planning_and_reference/roadmap_and_architecture.md
+      - Research Notes & Questions: archive/planning_and_reference/research_notes.md
+      - Feature Audit Findings: archive/planning_and_reference/feature_audit_findings.md
+      - Data Imbalance & Imputation Reference: archive/planning_and_reference/Data_Imbalance_and_Imputation_Reference.md
+      - ICD-10 Architecture Research: archive/planning_and_reference/ICD10_Architecture_Research.md
+      - Clinical Questions: archive/planning_and_reference/Clinician_Questions.md
+      - Meeting Questions: archive/planning_and_reference/Clinician_Validation.md
+  - Archive - Results & History:
+      - INSPIRE Project Notes: archive/results_and_history/INSPIRE_Project_Notes.md
+      - EDA Findings (Full Dataset): archive/results_and_history/eda_findings.md
+      - Complete Findings Summary: archive/results_and_history/INSPIRE_Complete_Findings_Summary.md
+      - Model Baseline: archive/results_and_history/INSPIRE_Baseline_Pipeline_Summary.md
+      - First Full-Scale Run — Meeting Summary: archive/results_and_history/INSPIRE_Meeting_Summary.md
+      - Baseline Comparitive Study: archive/results_and_history/Base_Comparitive_Study_Models.md
+      - Multimodal Notebook Summary: archive/results_and_history/Multimodal_Notebook_Summary.md
+      - Novelty & Research Ledger (superseded): archive/results_and_history/Novelty_Research_Ledger.md
+      - PACO-Net Original Design (superseded): archive/results_and_history/PACO_Net_Architecture.md
 theme:
   name: material
   palette:

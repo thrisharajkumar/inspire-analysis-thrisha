@@ -35,7 +35,7 @@ flowchart TB
 | Runtime | **23.4 minutes**, zero errors |
 | Platform | Google Colab, checkpointed (survives a disconnect) |
 
-![Cohort overview](images/01_cohort_overview.png)
+![Cohort overview](../../images/01_cohort_overview.png)
 
 ---
 
@@ -50,7 +50,7 @@ flowchart TB
 
 **Test set size: 2,189 real patients, 94 real deaths** — the first run with genuine statistical weight behind these numbers.
 
-![ROC, PR, and calibration](images/03_roc_pr_calibration.png)
+![ROC, PR, and calibration](../../images/03_roc_pr_calibration.png)
 
 ---
 
@@ -60,17 +60,17 @@ flowchart TB
 - **Cardiac surgery (CTS) patients** show meaningfully higher mortality than general surgery — clinically expected, real sample size (873 patients) behind it.
 - **Blood disorders and circulatory diagnoses** carry the highest mortality by ICD-10 chapter — clinically sensible.
 
-![ASA vs mortality](images/02_asa_mortality.png)
+![ASA vs mortality](../../images/02_asa_mortality.png)
 
 ---
 
 ## 5. Interpretability — the actual point of this architecture
 
-![Per-system breakdown](images/04_per_system_breakdown.png)
+![Per-system breakdown](../../images/04_per_system_breakdown.png)
 
 This is not a black box. For any patient, you can see exactly which body system pushed the prediction up or down — a real, structural read-out of the model's own reasoning, not a guess added afterward.
 
-![Risk over time with real measurements](images/05_unified_overlay.png)
+![Risk over time with real measurements](../../images/05_unified_overlay.png)
 
 **How to read this one:** the black line is predicted risk over time; the colored lines are the *actual* measurements for whichever systems the model itself flagged as driving that risk. For this patient (who did die), risk stayed flat until real new data arrived near the end — then jumped, driven by their breathing (SpO2), blood count, and glucose readings. Same model, same question, just asked again as more real evidence arrived — not a forecast, not a different model each time.
 
