@@ -1,0 +1,11 @@
+# Additional requirements for src-dnn, on top of ../requirements.txt (which already
+# covers subject.py's dependencies: sortedcontainers, etc.)
+torch>=2.0
+pyyaml
+pandas
+numpy
+scikit-learn
+scipy
+imbalanced-learn
+synthcity          # TabDDPM wrapper — augmentation/diffusion.py
+pyarrow            # parquet read/write

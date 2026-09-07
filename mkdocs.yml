@@ -11,6 +11,7 @@ site_dir: site
 # top-level group becomes a tab in the header bar, with its pages in a dropdown —
 # rather than one long flat sidebar list.
 nav:
+  - Home: index.md
   - Current:
       - Latest Work & Results (start here): current/PACO_Net_Latest_Work_and_Results.md
       - Surgeon-Facing Summary: current/Surgeon_Facing_Summary.md

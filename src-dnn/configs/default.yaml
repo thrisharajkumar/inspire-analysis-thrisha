@@ -1,0 +1,50 @@
+# Central configuration for the PACO-Net v2 pipeline.
+# Every value referenced across src/inspire/* should come from here, not be hard-coded
+# in a module. Override via --config path/to/other.yaml on any script.
+
+data:
+  subjects_dir: "../inspire_subjects"      # matches src/subject.py's read_subjects() default
+  max_subjects_per_class: null             # int for smoke-testing on a subsample; null = full cohort
+  seed: 42
+
+phases:
+  post_op_window: "72h"                    # alternative: "discharge" — open decision, see docs
+  peri_op_bin_minutes: 5                   # peri-op resampling bin size — open decision
+
+imputation:
+  strategy: "forward_fill_then_median"     # options: median, interpolate, knn, mice, forward_fill_then_median
+  attach_missingness_mask: true
+
+sampling:
+  strategy: "diffusion"                    # options: smotenc, diffusion, none
+  stratify_by: ["department", "asa"]
+  target_ratio: 0.10                       # positive:negative, e.g. 1:10
+  tomek_cleanup: true                      # only applies when strategy == smotenc
+
+diffusion:
+  model: "tabddpm"
+  num_timesteps: 100                       # short chain — small-N stability (see docs/current)
+  n_iter: 200
+  dropout: 0.2
+  pretrain_pooled_then_finetune: true      # pretrain on all minority patients, fine-tune per stratum
+  skip_systems: ["neurological"]           # too little real signal (~1% observed-cell rate) to trust synthetic generation
+
+model:
+  embed_dim: 64
+  n_heads: 4
+  coupling_sparsity_topk: 3                # keep the learned coupling graph readable
+  hazard_time_bins: 10                     # SurvTRACE-style discrete-time output
+
+training:
+  batch_size: 64
+  n_epochs: 30
+  learning_rate: 1e-4
+  pos_weight: null                         # computed from data if null
+  mixed_precision: true
+  checkpoint_dir: "data/checkpoints"
+  save_every_minutes: 15
+  resume: false
+
+eval:
+  primary_metric: "auprc"
+  threshold_selection: "best_f1"
