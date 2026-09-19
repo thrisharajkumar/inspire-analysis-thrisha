@@ -1,91 +1,91 @@
-# src-dnn — PACO-Net v2, as scripts and modules instead of notebooks
+# smote_pipeline
 
-This folder restructures the PACO-Net v2 design (phase-aware timeline, learned
-inter-organ coupling, diffusion-based augmentation — see
-`../docs/current/PACO_Net_Latest_Work_and_Results.md`) into a proper package: staged,
-resumable scripts instead of one long notebook, so a free-tier Colab/Kaggle disconnect
-doesn't cost you re-running everything from scratch.
+`INSPIRE_Multimodal_Mortality_Benchmark.ipynb`, converted into scripts. Run in order:
+`config.py` -> `data_loading.py` -> `feature_engineering.py` -> `news2_integration.py`
+-> `imputation.py` -> `sampling.py` -> `model.py` -> `train.py` -> `evaluate.py`.
 
-**This does not replace `../src/`** — the original `subject.py`, `read_subjects()`, and
-the working baseline pipeline are reused, not duplicated. `src-dnn` wraps that existing,
-tested code and adds the new pieces on top: phase tagging, the full 117-parameter organ
-mapping, learned coupling, diffusion augmentation, and a resumable trainer.
+## How the conversion was done, and what that means for trust
 
-## Structure
+Each stage does `from <previous_stage> import *` at the top -- the same shared-global-
+state execution the notebook already relied on (dozens of cells reference `PATIENT_BUNDLE`,
+`CONFIG`, `COHORT_INDEXED`, etc. built by earlier cells), just split into files you can
+read, diff, and run individually rather than one 141-cell notebook. **Stages not listed
+below as changed are preserved as close to verbatim as possible** -- the goal was
+converting the format, not rewriting logic I can't test against your real data.
 
-```
-src-dnn/
-├── configs/default.yaml       # every tunable value, in one place
-├── data/
-│   ├── processed/             # cached parquet — stage 1/2 output, checked in .gitignore
-│   └── checkpoints/           # model checkpoints — same
-├── src/inspire/
-│   ├── data/                  # loader.py (wraps ../../../src/subject.py), preprocess.py
-│   ├── features/              # organ_systems.py — the single source of truth mapping
-│   ├── augmentation/          # smotenc.py (bug-fixed), diffusion.py, missingness_model.py
-│   ├── models/                # encoders.py, coupling.py, fusion.py, head.py
-│   ├── training/              # checkpoint.py, train.py (resumable Trainer)
-│   └── eval/                  # metrics.py, validate_synthetic.py
-├── scripts/                   # 01_preprocess -> 02_train_diffusion -> 03_train_model -> 04_evaluate
-└── notebooks/                 # thin Colab/Kaggle launchers — logic lives in scripts/, not here
-```
+Two notebook sections were deliberately NOT converted yet -- they're genuine appendices
+(ablation comparisons, sensitivity analyses, risk-trajectory plots, the experiment log),
+not core pipeline, and converting them risked introducing bugs in code I have no way to
+verify without your real data. They remain notebook-only for now; say if you want them
+next.
 
-## Status — what's real vs. what's a wiring TODO
+## What changed, and what was actually verified (not just written)
 
-**Fully implemented and internally verified** (real smoke tests run, not just syntax checks):
-- `features/organ_systems.py` — all 117 unique INSPIRE parameters mapped to organ
-  system + phase + role (physiology vs. SOFA-style support). Includes a self-check
-  (`python src/inspire/features/organ_systems.py`) that caught one real gap (`aft`,
-  alfentanil) during development, since fixed — run it again if you edit the mapping.
-- `data/loader.py` — phase-tagging logic, field names verified against the real
-  `subject.py` record format (`item_name`/`chart_time`/`value` as used in
-  `get_lab()`/`convert_vitals_to_dictionary()`).
-- `augmentation/smotenc.py` — the actual SMOTENC bug fix from the 10,942-patient run
-  (integer indices, not a boolean mask) is applied here. A SECOND, separate bug was
-  found and fixed during this session's testing: `TomekLinks` cannot handle string
-  categoricals directly (unlike SMOTENC) — categoricals are now ordinal-encoded only
-  for the Tomek step and decoded back immediately after. Verified end-to-end on
-  synthetic data.
-- `augmentation/missingness_model.py` — verified end-to-end on synthetic data.
-- `models/coupling.py`, `models/fusion.py`, `models/head.py`, `models/encoders.py` —
-  each passes a real forward-pass test with correct tensor shapes.
-- `training/checkpoint.py` — save/load verified end-to-end. One real bug found and
-  fixed here too: PyTorch 2.6+ changed `torch.load`'s default to `weights_only=True`,
-  which rejects the RNG-state dict this module saves — fixed with an explicit
-  `weights_only=False` (safe for our own checkpoints, not arbitrary files).
-- `eval/metrics.py` — verified against synthetic labeled data.
+### 1. The SMOTENC fix (`sampling.py`) -- confirmed live bug, not theoretical
 
-**Genuine open TODOs, marked inline with `# TODO`, not silently guessed at:**
-- `models/encoders.py` per-system `feature_dim` — depends on your final per-system
-  feature count once you decide the peri-op resampling bin size (config:
-  `phases.peri_op_bin_minutes`).
-- `training/train.py` `_forward_step()` and `scripts/03_train_model.py`'s
-  `PACONetV2.forward()` — need your real batch/DataLoader structure to wire the four
-  model pieces together end-to-end. The pieces themselves are ready; the glue isn't,
-  because it depends on decisions (post-op window, bin size) flagged as open in the
-  design doc.
-- `scripts/02_train_diffusion.py` — department/ASA join onto the static minority table,
-  the phase-completeness check before generating peri-op features, and target-ratio
-  computation are flagged as TODOs — same open items as the design doc §5.
-- `models/fusion.py`'s cardiac washout bias magnitude/sign — placeholder value, needs
-  your clinical confirmation of which direction it should move risk.
+Reproduced against your actual installed `imbalanced-learn` (0.14.2): `SMOTENC`'s
+`categorical_features` argument raises `ValueError: The truth value of an array with
+more than one element is ambiguous` when given a boolean mask directly -- which is
+exactly what `grouped_smotenc()` was doing. Because that error was caught by the same
+bare `except ValueError` used for legitimate "stratum too small" skips, **every stratum
+was silently failing this way, and grouped_smotenc generated zero synthetic patients,
+every run.** Fixed with integer indices (`np.where(mask)[0].tolist()`).
 
-None of these were skipped by oversight — each is genuinely gated on one of the four
-open decisions in the design doc (post-op window length, peri-op bin size, fluid
-placement, diffusion phase-completeness). Resolve those and the TODOs become
-mechanical.
+### 2. NEWS2 integration (`news2_integration.py`, new file) -- augmentation check, before and after
+
+- Computes NEWS2 (Royal College of Physicians, 2017) per patient from data already
+  collected (respiratory rate, SpO2, oxygen use, temperature, systolic BP, heart rate,
+  consciousness), using the exact same `get_window()`/`windowed_series()` helpers Part 6
+  already uses elsewhere -- no new data plumbing needed.
+- Merges 5 NEWS2 summary features (max/latest/mean/trend-slope/ever-high-risk) into
+  every patient's static vector, **before** sampling runs -- so SMOTENC treats NEWS2 as
+  an ordinary continuous feature and legitimately interpolates it for synthetic
+  patients, rather than NEWS2 being computed only after the fact.
+- `check_news2_before_after_augmentation()` -- wired into `sampling.py` right after
+  `tomek_cleanup()` -- compares the real ("before") vs. real+synthetic ("after") NEWS2
+  distribution, flags any synthetic patient with an implausible score (outside [0, 20]),
+  and runs a KS test. This is the concrete "check before and after" for the
+  augmentation step.
+- NEWS2's scoring bands were unit-tested separately against the official RCP table,
+  including exact boundary values (SBP 90 vs. 91, HR 130 vs. 131, temp 39.0 vs. 39.1) --
+  all pass. **One documented approximation** worth your surgeon's input: NEWS2 normally
+  uses AVPU for consciousness, substituted here with GCS=15 for "Alert."
+
+### 3. System correlation layer (`system_correlation_layer.py` + wired into `model.py`)
+
+Your existing architecture hand-codes exactly one cross-system link (cardiovascular
+summary stats fed into the renal branch, encoding cardiorenal syndrome). This adds a
+general learned-attention layer across ALL organ systems on top of that -- **it does
+not remove the existing hand-coded link**, it adds a mechanism that can discover other
+relationships too (e.g. respiratory<->cardiovascular), and reports exactly which
+systems it found move together (`model_output["correlation_report"]["top_correlations"]`),
+so it can be sanity-checked against known physiology.
+
+**Verified with a real forward pass** (`test_model_wiring.py` -- run it, no real data
+needed): correct output shapes, `correlation_report` populated with sensible-looking
+top pairs, and — critically — the NAM fusion's per-system interpretability output is
+still present and decomposable, so this addition doesn't quietly break the
+architecture's main interpretability claim. Also confirmed: setting
+`CONFIG["USE_SYSTEM_CORRELATION_LAYER"] = False` runs the original architecture
+unchanged, for a clean ablation between the two.
 
 ## Running it
 
-See `notebooks/colab_entry.ipynb` / `notebooks/kaggle_entry.ipynb` for the free-tier-safe
-launch sequence, or run the four scripts directly:
-
 ```bash
-python scripts/01_preprocess.py --config configs/default.yaml
-python scripts/02_train_diffusion.py --config configs/default.yaml
-python scripts/03_train_model.py --config configs/default.yaml --resume
-python scripts/04_evaluate.py --config configs/default.yaml --checkpoint data/checkpoints/latest.pt
+python config.py            # or just start importing from data_loading.py onward --
+python data_loading.py      # each stage's header comment says what it needs
+python feature_engineering.py
+python news2_integration.py
+python imputation.py
+python sampling.py
+python model.py
+python train.py
+python evaluate.py
+
+# Before a real run, a fast sanity check on the model changes specifically:
+python test_model_wiring.py
 ```
 
-Add `--max-subjects-per-class 500` to `01_preprocess.py` to smoke-test the full pipeline
-on a small sample before committing a long run to the real ~99,886-patient cohort.
+Since each file does `from <previous> import *`, running any single stage (e.g. just
+`python train.py`) transitively runs everything before it in order -- same as running
+notebook cells 2 through 111 top to bottom.

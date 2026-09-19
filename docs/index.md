@@ -6,10 +6,11 @@ decomposes into per-organ-system contributions rather than one opaque number.
 
 ## Start here
 
-- **[Latest Work & Results](current/PACO_Net_Latest_Work_and_Results.md)** — current
-  architecture (phase-aware timeline, learned inter-organ coupling, diffusion-based
-  augmentation), the full feature mapping, and results confirmed to date. This is the
-  one doc to read first.
+- **[Current Work & Results](current/Peri_Operative_Mortality_Risk_Current_Work.md)** — current
+  architecture (organ-system encoders, a fixed SMOTE bug, NEWS2 integration, and a
+  learned system-correlation layer), the feature mapping, and results confirmed to
+  date. This is the one doc to read first. (The phase-aware/diffusion PACO-Net redesign
+  is parked, not active work — kept in full within that doc for later.)
 - **[Surgeon-Facing Summary](current/Surgeon_Facing_Summary.md)** — plain-language
   summary for clinical review, no ML background assumed.
 

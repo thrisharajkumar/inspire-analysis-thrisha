@@ -23,6 +23,19 @@ Requires: pip install synthcity  (wraps TabDDPM with mixed continuous/categorica
 from inspire.features.organ_systems import ENCODER_SYSTEMS, features_for_system, LOW_SIGNAL_SYSTEMS
 
 
+def synthcity_available():
+    """Checked once, upfront, so a missing/incompatible synthcity install produces one
+    clear message and a graceful skip -- not a crash partway through generation."""
+    try:
+        from synthcity.plugins import Plugins  # noqa: F401
+        from synthcity.plugins.core.dataloader import GenericDataLoader  # noqa: F401
+        return True
+    except ImportError as e:
+        print(f"synthcity unavailable ({e}) -- diffusion augmentation will be skipped "
+              f"entirely for this run. Install with: pip install synthcity")
+        return False
+
+
 def _get_plugin(num_timesteps, n_iter, dropout):
     # Imported lazily so the rest of the package doesn't hard-require synthcity.
     from synthcity.plugins import Plugins
@@ -80,24 +93,36 @@ def generate_all_systems(minority_df, strata, categorical_cols, config, n_needed
     skip = set(config["diffusion"].get("skip_systems", []) or LOW_SIGNAL_SYSTEMS)
     results = {}
 
+    if not synthcity_available():
+        return results  # empty -- caller falls back to standard imputation for everything
+
     for system_name in ENCODER_SYSTEMS:
         if system_name in skip:
             print(f"Skipping diffusion for '{system_name}' (low real signal) — "
                   f"falls back to standard imputation instead.")
             continue
 
-        pooled_model = train_pooled_model(minority_df, system_name, categorical_cols, config)
+        try:
+            pooled_model = train_pooled_model(minority_df, system_name, categorical_cols, config)
+        except Exception as e:
+            print(f"WARNING: '{system_name}' diffusion pretraining failed ({e}) -- "
+                  f"skipping this system, falling back to standard imputation for it.")
+            continue
         if pooled_model is None:
             continue
 
         synthetic_frames = []
         for stratum_key, stratum_df in minority_df.groupby(strata, observed=True):
-            model = (finetune_per_stratum(pooled_model, stratum_df, system_name, categorical_cols, config)
-                     if config["diffusion"]["pretrain_pooled_then_finetune"] else pooled_model)
             n_needed = n_needed_per_stratum.get(stratum_key, 0)
             if n_needed <= 0:
                 continue
-            synthetic_frames.append(generate_synthetic_patients(model, n_needed))
+            try:
+                model = (finetune_per_stratum(pooled_model, stratum_df, system_name, categorical_cols, config)
+                         if config["diffusion"]["pretrain_pooled_then_finetune"] else pooled_model)
+                synthetic_frames.append(generate_synthetic_patients(model, n_needed))
+            except Exception as e:
+                print(f"  WARNING: '{system_name}' stratum {stratum_key}: generation failed ({e}) -- skipped.")
+                continue
 
         if synthetic_frames:
             import pandas as pd

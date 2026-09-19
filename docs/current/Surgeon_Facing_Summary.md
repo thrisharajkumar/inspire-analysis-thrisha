@@ -102,7 +102,7 @@ This is the literal, verified mapping from the working code — not an approxima
 
 ---
 
-## 4. Interpretability — what's actually built, and what's next
+## 4. Interpretability — what's actually built, and what's parked
 
 ### What's built now: the "adding up" explanation
 
@@ -111,37 +111,54 @@ down. This is not a guess bolted on afterward — it's a literal read-out of the
 own internal calculation. If the model says a patient is high-risk, you can see whether
 that's because of their kidneys, their infection markers, or several systems at once.
 
-### What's proposed next: risk that changes with time, and systems that "talk"
+### New since the last version: systems that "talk" to each other
 
-The next version of this model — internally called **PACO-Net** — adds two things this
-version doesn't have:
+The model previously had exactly one hand-picked link between body systems (heart data
+feeding into the kidney reading, reflecting a known clinical relationship). That link is
+still there — it's a real, well-established relationship and we're not removing it. What's
+new: the model can now also **discover other connections on its own**, across all body
+systems, rather than being limited to the one link we told it about.
 
 ```mermaid
 flowchart LR
-    subgraph Now["Current version"]
-        A1["One risk number\n(fixed, pre-op only)"]
-        A2["One hand-picked link\n(kidney <- heart)"]
+    subgraph Before["Previous version"]
+        A2["Exactly one hand-picked link\n(kidney <- heart)"]
     end
-    subgraph Next["Proposed (PACO-Net)"]
-        B1["A risk CURVE over time\n(before, during, and\nafter surgery)"]
-        B2["The model DISCOVERS which\nsystems are linked, rather\nthan being told just one"]
+    subgraph Now2["Now built"]
+        B2["The model also DISCOVERS other\nconnections on its own, and reports\nwhich systems it found move together"]
     end
-    A1 -.->|"upgrade"| B1
-    A2 -.->|"upgrade"| B2
-    style B1 fill:#0a7d6e,color:#fff
+    A2 -.->|"kept, unchanged"| A2
+    A2 -->|"added alongside"| B2
     style B2 fill:#8e44ad,color:#fff
 ```
 
-1. **A risk curve, not one number** — instead of a single pre-op risk score, the model
-   would show how risk evolves before, during, and after surgery, so a clinician could see
-   *when* things started changing, not just that they did.
-2. **Learned connections between body systems** — right now we manually told the model
-   "kidneys and heart are linked." The proposed version would let the model discover
-   these connections itself from the data — potentially finding real clinical patterns we
-   didn't think to specify, like abnormal blood results preceding a ventilation need.
+This has been tested end-to-end (correct outputs, and — importantly — checked that the
+"which system caused this prediction" breakdown described above still works with this
+addition). **It has not yet been run on real patient data** — that's the next step, and
+what it actually finds should be checked against known physiology (does the kidney-heart
+link still show up strongly? does anything else show up that's clinically surprising?)
+before being trusted.
 
-**This is designed and grounded in real research — not built yet.** Worth being precise
-about that distinction when discussing this with anyone.
+### Also new: an early-warning score, and a fixed data-generation bug
+
+Two more concrete additions since the last version:
+
+- **NEWS2** (the standard UK early-warning score used in hospitals) is now computed from
+  the vitals already listed in §3 and included as a feature, with a before/after check
+  whenever synthetic patient data is generated (see §6) to make sure the added data still
+  looks clinically plausible.
+- A real bug in how synthetic minority (died) patients were generated was found and
+  fixed — see §6 for what this means for the existing 0.658/0.967 numbers below.
+
+### Parked for now: a risk curve over time
+
+An earlier proposal (internally called PACO-Net) looked at showing risk as a curve over
+time — before, during, and after surgery — rather than one pre-op number, using the
+richer during-surgery monitoring data. **This is not active work right now.** It's
+designed and grounded in real research, but the current priority is strengthening and
+validating the existing pre-op model (the correlation layer, NEWS2, and the SMOTE fix
+above) rather than expanding scope. Worth revisiting once the current work is validated
+on real data — flagging here so it isn't confused with what's actually being worked on.
 
 ---
 
@@ -173,6 +190,13 @@ of novelty.
   risk than general surgery — the underlying data behaves the way real clinical experience
   says it should
 
+**Important caveat on the numbers above:** a real bug was found in how synthetic
+minority (died) patient data was being generated — it was silently generating none at
+all, meaning the 0.658/0.967 numbers above were achieved without that mechanism
+actually contributing anything. The bug is now fixed. This means the numbers above could
+plausibly improve once re-run with the fix — but that hasn't been confirmed yet, so treat
+0.658/0.967 as the current honest baseline, not a floor guaranteed to be beaten.
+
 ---
 
 ## 7. Limitations — stated plainly, not buried
@@ -187,6 +211,10 @@ of novelty.
 - **The consciousness component of NEWS2 is approximated**, not a true bedside assessment —
   it's estimated from Glasgow Coma Scale readings already in the data, not the real ACVPU
   check a nurse would perform
-- **PACO-Net (§4) is a designed proposal, not a working system** — the risk-curve and
-  learned-connections ideas are researched and grounded in real papers, but not yet built
-  or tested
+- **The system-correlation addition (§4) has been built and tested mechanically, but not
+  yet run on real patient data** — what it actually finds needs a clinical sanity check
+  once it is
+- **The synthetic-data bug fix (§6) has not yet been re-run against real data** — the fix
+  is in place, but whether it actually changes the 0.658/0.967 numbers hasn't been confirmed
+- **The risk-curve idea (§4, "parked") is a designed proposal, not active work** — grounded
+  in real research, but not the current priority and not built

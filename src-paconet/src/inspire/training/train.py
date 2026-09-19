@@ -6,7 +6,7 @@ and a full-cohort epoch could easily outlast a save interval.
 
 import time
 import torch
-from torch.cuda.amp import autocast, GradScaler
+from torch.amp import autocast, GradScaler
 
 from inspire.training.checkpoint import save_checkpoint, load_checkpoint, latest_checkpoint_path
 
@@ -21,7 +21,7 @@ class Trainer:
         self.checkpoint_dir = checkpoint_dir
         self.save_every_seconds = save_every_minutes * 60
         self.mixed_precision = mixed_precision and torch.cuda.is_available()
-        self.scaler = GradScaler(enabled=self.mixed_precision)
+        self.scaler = GradScaler("cuda", enabled=self.mixed_precision)
 
     def maybe_resume(self):
         ckpt_path = latest_checkpoint_path(self.checkpoint_dir)
@@ -41,7 +41,7 @@ class Trainer:
                     continue  # skip already-completed steps in a resumed epoch
 
                 self.optimizer.zero_grad()
-                with autocast(enabled=self.mixed_precision):
+                with autocast("cuda", enabled=self.mixed_precision):
                     loss = self._forward_step(batch)
                 self.scaler.scale(loss).backward()
                 self.scaler.step(self.optimizer)
@@ -60,14 +60,16 @@ class Trainer:
 
     def _forward_step(self, batch):
         """
-        Wires a batch through model -> loss. Left as a hook to fill in against your
-        specific batch structure (organ-system tensors + phase_ids + timestamps +
-        static features + labels) once the dataset/collate function is finalized —
-        the encoder/coupling/fusion/head modules define the forward pass shape, but
-        the exact batch dict keys depend on your DataLoader implementation.
+        NOTE (dry-run simplification): the hazard head outputs n_time_bins logits per
+        patient (proper discrete-time survival shape), but this dry run collapses them
+        to a single mean logit against a binary died/survived label — a real run needs
+        the proper discrete-time survival loss (event-in-bin-k targets), not this
+        collapse. Verifies the training loop mechanics (backward pass, optimizer step,
+        checkpointing) actually work; does not validate the survival-modelling math.
         """
-        raise NotImplementedError(
-            "Wire this to your batch structure: unpack organ-system tensors, phase_ids, "
-            "timestamps, static features, and labels from `batch`, run them through "
-            "encoders -> coupling -> fusion -> head, and return self.loss_fn(pred, label)."
-        )
+        batch = {k: (v.to(self.device) if torch.is_tensor(v) else
+                     {sk: tuple(t.to(self.device) for t in sv) for sk, sv in v.items()})
+                 for k, v in batch.items()}
+        hazard_logits, _attn_weights, _contributions = self.model(batch)
+        risk_logit = hazard_logits.mean(dim=1)
+        return self.loss_fn(risk_logit, batch["label"])

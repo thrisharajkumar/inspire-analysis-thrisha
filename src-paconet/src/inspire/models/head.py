@@ -11,10 +11,16 @@ import torch.nn as nn
 class DiscreteTimeHazardHead(nn.Module):
     def __init__(self, input_dim, n_time_bins):
         super().__init__()
+        # THE FIX: input_dim // 2 degenerates to 0 when input_dim == 1 (the scalar NAM
+        # fusion output) -- a Linear(1, 0) layer silently produces a constant output
+        # regardless of input, which is exactly why an earlier dry run's AUROC sat at
+        # exactly 0.500 (chance) no matter how training progressed. A fixed minimum
+        # hidden width fixes this while keeping the head small for a scalar input.
+        hidden_dim = max(4, input_dim // 2)
         self.net = nn.Sequential(
-            nn.Linear(input_dim, input_dim // 2),
+            nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(input_dim // 2, n_time_bins),
+            nn.Linear(hidden_dim, n_time_bins),
         )
 
     def forward(self, fused_representation):

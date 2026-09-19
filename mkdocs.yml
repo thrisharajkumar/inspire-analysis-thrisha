@@ -13,7 +13,7 @@ site_dir: site
 nav:
   - Home: index.md
   - Current:
-      - Latest Work & Results (start here): current/PACO_Net_Latest_Work_and_Results.md
+      - Current Work & Results (start here): current/Peri_Operative_Mortality_Risk_Current_Work.md
       - Surgeon-Facing Summary: current/Surgeon_Facing_Summary.md
   - Archive - Planning & Reference:
       - Original Project README: archive/planning_and_reference/index.md
