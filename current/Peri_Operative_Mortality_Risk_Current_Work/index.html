@@ -1,0 +1,2549 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.">
+      
+      
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../Surgeon_Facing_Summary/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Current Work & Results (start here) - INSPIRE DNN Mortality Pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#peri-operative-mortality-risk-current-architecture-and-work" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="INSPIRE DNN Mortality Pipeline" class="md-header__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            INSPIRE DNN Mortality Pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Current Work & Results (start here)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Current
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../archive/planning_and_reference/" class="md-tabs__link">
+          
+  
+  
+  Archive - Planning & Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../archive/results_and_history/INSPIRE_Project_Notes/" class="md-tabs__link">
+          
+  
+  
+  Archive - Results & History
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="INSPIRE DNN Mortality Pipeline" class="md-nav__button md-logo" aria-label="INSPIRE DNN Mortality Pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    INSPIRE DNN Mortality Pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/thrisharajkumar/inspire-analysis-thrisha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    thrisharajkumar/inspire-analysis-thrisha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Current
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Current
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Current Work & Results (start here)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Current Work & Results (start here)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-whats-actually-being-worked-on-right-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What's actually being worked on right now
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. What&#39;s actually being worked on right now">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-the-smote-bug-found-and-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 The SMOTE bug — found and fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-news2-integrated-as-a-feature-with-a-beforeafter-augmentation-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 NEWS2 — integrated as a feature, with a before/after augmentation check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-system-correlation-layer-general-learned-alongside-the-existing-link" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 System correlation layer — general, learned, alongside the existing link
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-current-baseline-architecture-built-and-tested-unchanged-by-this-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Current baseline architecture (built and tested, unchanged by this update)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-feature-mapping-current-scope-pre-op-labs-and-ward-vitals-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Feature mapping (current scope: pre-op labs and ward vitals only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-open-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Open decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-novelty-ledger-current-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Novelty ledger — current work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-parked-paco-net-phase-aware-diffusion-redesign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Parked: PACO-Net phase-aware / diffusion redesign
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Parked: PACO-Net phase-aware / diffusion redesign">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-why-this-revision-was-proposed-in-one-paragraph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Why this revision was proposed, in one paragraph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-complete-feature-mapping-by-organ-system-and-phase-parked-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Complete feature mapping, by organ system and phase (parked design)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.2 Complete feature mapping, by organ system and phase (parked design)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#renal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Renal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cardiovascular" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cardiovascular
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#respiratory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Respiratory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metabolic-hepatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metabolic / Hepatic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haematology-coagulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Haematology / Coagulation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neurological" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Neurological
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnosis-derived-and-fluid-parked-design-same-as-current-see-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnosis-derived and fluid (parked design, same as current — see §3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-full-list-of-parked-architecture-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Full list of parked architecture changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-parked-architecture-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Parked architecture diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-open-decisions-ifwhen-this-resumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Open decisions, if/when this resumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-previous-work-and-confirmed-results-unchanged-still-the-reference-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Previous work and confirmed results (unchanged, still the reference baseline)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Previous work and confirmed results (unchanged, still the reference baseline)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-cohort-and-label-facts-confirmed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Cohort and label facts (confirmed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-confirmed-run-results-10942-patient-downsampled-cohort-pre-smote-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Confirmed run results (10,942-patient downsampled cohort, pre-SMOTE-fix)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Surgeon_Facing_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Surgeon-Facing Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive - Planning & Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Archive - Planning & Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/planning_and_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Original Project README
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/planning_and_reference/Research_Aim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Aims & Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/planning_and_reference/roadmap_and_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap & Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/planning_and_reference/research_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Notes & Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/planning_and_reference/feature_audit_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature Audit Findings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/planning_and_reference/Data_Imbalance_and_Imputation_Reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Imbalance & Imputation Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/planning_and_reference/ICD10_Architecture_Research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ICD-10 Architecture Research
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/planning_and_reference/Clinician_Questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/planning_and_reference/Clinician_Validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meeting Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive - Results & History
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Archive - Results & History
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/results_and_history/INSPIRE_Project_Notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    INSPIRE Project Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/results_and_history/eda_findings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EDA Findings (Full Dataset)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/results_and_history/INSPIRE_Complete_Findings_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete Findings Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/results_and_history/INSPIRE_Baseline_Pipeline_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/results_and_history/INSPIRE_Meeting_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Full-Scale Run — Meeting Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/results_and_history/Base_Comparitive_Study_Models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline Comparitive Study
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/results_and_history/Multimodal_Notebook_Summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multimodal Notebook Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/results_and_history/Novelty_Research_Ledger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Novelty & Research Ledger (superseded)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../archive/results_and_history/PACO_Net_Architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PACO-Net Original Design (superseded)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-whats-actually-being-worked-on-right-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What's actually being worked on right now
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. What&#39;s actually being worked on right now">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-the-smote-bug-found-and-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 The SMOTE bug — found and fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-news2-integrated-as-a-feature-with-a-beforeafter-augmentation-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 NEWS2 — integrated as a feature, with a before/after augmentation check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-system-correlation-layer-general-learned-alongside-the-existing-link" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 System correlation layer — general, learned, alongside the existing link
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-current-baseline-architecture-built-and-tested-unchanged-by-this-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Current baseline architecture (built and tested, unchanged by this update)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-feature-mapping-current-scope-pre-op-labs-and-ward-vitals-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Feature mapping (current scope: pre-op labs and ward vitals only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-open-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Open decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-novelty-ledger-current-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Novelty ledger — current work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-parked-paco-net-phase-aware-diffusion-redesign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Parked: PACO-Net phase-aware / diffusion redesign
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Parked: PACO-Net phase-aware / diffusion redesign">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-why-this-revision-was-proposed-in-one-paragraph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Why this revision was proposed, in one paragraph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-complete-feature-mapping-by-organ-system-and-phase-parked-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Complete feature mapping, by organ system and phase (parked design)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6.2 Complete feature mapping, by organ system and phase (parked design)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#renal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Renal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cardiovascular" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cardiovascular
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#respiratory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Respiratory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metabolic-hepatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metabolic / Hepatic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haematology-coagulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Haematology / Coagulation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neurological" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Neurological
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnosis-derived-and-fluid-parked-design-same-as-current-see-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnosis-derived and fluid (parked design, same as current — see §3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-full-list-of-parked-architecture-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Full list of parked architecture changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-parked-architecture-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Parked architecture diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-open-decisions-ifwhen-this-resumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Open decisions, if/when this resumes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-previous-work-and-confirmed-results-unchanged-still-the-reference-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Previous work and confirmed results (unchanged, still the reference baseline)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Previous work and confirmed results (unchanged, still the reference baseline)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-cohort-and-label-facts-confirmed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Cohort and label facts (confirmed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-confirmed-run-results-10942-patient-downsampled-cohort-pre-smote-fix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Confirmed run results (10,942-patient downsampled cohort, pre-SMOTE-fix)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="peri-operative-mortality-risk-current-architecture-and-work">Peri-operative Mortality Risk: Current Architecture and Work<a class="headerlink" href="#peri-operative-mortality-risk-current-architecture-and-work" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>This is the one doc to read for current thinking.</strong> Renamed and restructured from
+<code>PACO_Net_Latest_Work_and_Results.md</code> — <strong>the phase-aware/diffusion PACO-Net redesign
+covered in that doc is parked, not active work right now.</strong> Current priority is
+strengthening and validating the existing architecture: a real SMOTE bug found and
+fixed, NEWS2 integrated as a feature with a before/after augmentation check, and a
+general learned system-correlation layer added alongside the existing hand-coded
+cardiovascular-renal link. The parked PACO-Net design is kept, in full, in §6 below —
+nothing there is lost, it's just clearly separated from what's actually in flight.</p>
+</blockquote>
+<hr />
+<h2 id="1-whats-actually-being-worked-on-right-now">1. What's actually being worked on right now<a class="headerlink" href="#1-whats-actually-being-worked-on-right-now" title="Permanent link">&para;</a></h2>
+<p>Three concrete additions to the existing baseline architecture (§2), all built and
+tested this round:</p>
+<h3 id="11-the-smote-bug-found-and-fixed">1.1 The SMOTE bug — found and fixed<a class="headerlink" href="#11-the-smote-bug-found-and-fixed" title="Permanent link">&para;</a></h3>
+<p>Reproduced against the actual installed <code>imbalanced-learn</code> (0.14.2), not assumed:
+<code>SMOTENC</code>'s <code>categorical_features</code> argument raises <code>ValueError: The truth value of an
+array with more than one element is ambiguous</code> when given a boolean mask directly —
+exactly what the existing <code>grouped_smotenc()</code> was doing. Because that error was caught
+by the same bare <code>except ValueError</code> used for legitimate "stratum too small" skips,
+<strong>every stratum was silently failing this way, and grouped_smotenc generated zero
+synthetic patients, on every run</strong> — including the confirmed 0.658 AUPRC run in §7
+below, which was achieved with only loss-weighting active, not SMOTE.</p>
+<p>Fixed with integer indices (<code>np.where(mask)[0].tolist()</code>) instead of the boolean mask.
+Verified end-to-end against test data: 33 real synthetic patients generated from a
+500-patient test cohort where the unfixed version generated zero.</p>
+<h3 id="12-news2-integrated-as-a-feature-with-a-beforeafter-augmentation-check">1.2 NEWS2 — integrated as a feature, with a before/after augmentation check<a class="headerlink" href="#12-news2-integrated-as-a-feature-with-a-beforeafter-augmentation-check" title="Permanent link">&para;</a></h3>
+<p>NEWS2 (Royal College of Physicians, 2017) is computed from data already collected
+(respiratory rate, SpO2, oxygen use, temperature, systolic BP, heart rate,
+consciousness) and merged into each patient's static feature vector <strong>before</strong> SMOTE
+runs — so synthetic patients get a legitimately interpolated NEWS2 value, not one
+computed only after the fact.</p>
+<p>A <code>check_news2_before_after_augmentation()</code> function compares the real ("before") vs.
+real+synthetic ("after") NEWS2 distribution, flags any synthetic patient with an
+implausible score (outside a clinically plausible [0, 20] range), and runs a KS test.
+Every NEWS2 scoring band was unit-tested against the official RCP table, including
+exact boundary values (systolic BP 90 vs. 91, heart rate 130 vs. 131, temperature 39.0
+vs. 39.1) — all pass.</p>
+<p><strong>One flagged approximation, for clinical review:</strong> NEWS2 normally scores consciousness
+via AVPU, not directly available here — substituted with GCS=15 mapping to "Alert" and
+anything below to the most severe AVPU band.</p>
+<h3 id="13-system-correlation-layer-general-learned-alongside-the-existing-link">1.3 System correlation layer — general, learned, alongside the existing link<a class="headerlink" href="#13-system-correlation-layer-general-learned-alongside-the-existing-link" title="Permanent link">&para;</a></h3>
+<p>The existing architecture hand-codes exactly one cross-system link: cardiovascular
+summary stats (mean heart rate, MAP deviation, IABP flag) fed into the renal branch,
+encoding the known cardiorenal relationship. <strong>This is kept, unchanged</strong> — it's a real,
+well-established clinical relationship, not something to discard.</p>
+<p>Added alongside it: a general multi-head attention layer across ALL organ systems'
+pooled embeddings, run after each system's own encoder and before fusion. It can
+discover OTHER cross-system relationships the architecture doesn't currently encode by
+hand (e.g. respiratory↔cardiovascular), and reports exactly which systems it found move
+together most strongly — the artifact to check against known physiology once run on
+real data.</p>
+<p>Verified with a real forward pass on synthetic tensors: correct output shapes, sensible
+top-correlation output, and — critically — confirmed the existing NAM fusion's
+per-system interpretability output is still fully present and decomposable, so this
+addition doesn't quietly undermine the architecture's main interpretability claim.
+Toggleable via <code>CONFIG["USE_SYSTEM_CORRELATION_LAYER"]</code> for a clean ablation against the
+original, correlation-layer-free architecture.</p>
+<p><strong>Honest status: none of the three additions above have been run against real patient
+data yet.</strong> All three are built, and tested against synthetic/test data standing in for
+the real schema. The next real step is running them on real data and checking the
+results — not treating "tested" as "validated."</p>
+<hr />
+<h2 id="2-current-baseline-architecture-built-and-tested-unchanged-by-this-update">2. Current baseline architecture (built and tested, unchanged by this update)<a class="headerlink" href="#2-current-baseline-architecture-built-and-tested-unchanged-by-this-update" title="Permanent link">&para;</a></h2>
+<ul>
+<li>6 organ-system transformer encoders (renal, cardiovascular, respiratory,
+  metabolic/hepatic, haematology, neurological) reading real pre-op time series</li>
+<li>2 diagnosis-code-derived systems (GI from ICD-10 chapter XI, MSK from chapter XIII)</li>
+<li>Fused via a Neural Additive Model (NAM) — one term per organ <em>system</em>, not per
+  feature, which is the architecture's most defensible novelty claim</li>
+<li>Two-phase training: unsupervised autoencoder pre-training (label-free), then
+  supervised fine-tuning on 30-day mortality</li>
+<li>Class imbalance handled via grouped SMOTENC (stratified by department × ASA) +
+  Tomek-link cleanup, target ratio 1:10, combined with <code>pos_weight</code> loss-weighting —
+  see §1.1 for the bug found in this mechanism</li>
+</ul>
+<hr />
+<h2 id="3-feature-mapping-current-scope-pre-op-labs-and-ward-vitals-only">3. Feature mapping (current scope: pre-op labs and ward vitals only)<a class="headerlink" href="#3-feature-mapping-current-scope-pre-op-labs-and-ward-vitals-only" title="Permanent link">&para;</a></h2>
+<p>This is the mapping actually in use right now — six organ systems, sourced from
+pre-op labs and ward vitals. (The full 123-parameter mapping including intra-op
+vitals, phase tags, and SOFA-style organ-support roles for drug/device data — built for
+the parked PACO-Net design — is kept in §6.2 for when that work resumes, but is <strong>not</strong>
+part of the current active feature set.)</p>
+<table>
+<thead>
+<tr>
+<th>Body system</th>
+<th>Lab tests used</th>
+<th>Vital signs used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Renal</td>
+<td>BUN, calcium, chloride, creatinine, ionised calcium, phosphorus, potassium, sodium</td>
+<td>Urine output, dialysis (CRRT) use</td>
+</tr>
+<tr>
+<td>Cardiovascular</td>
+<td>CK, CK-MB, troponin I</td>
+<td>Heart rate, blood pressure (systolic/diastolic/mean), balloon pump (IABP) use</td>
+</tr>
+<tr>
+<td>Respiratory</td>
+<td>Base excess, bicarbonate, PaCO2, PaO2, pH, SaO2</td>
+<td>Inspired oxygen %, respiratory rate, SpO2, ventilator use, ECMO use</td>
+</tr>
+<tr>
+<td>Metabolic/Hepatic</td>
+<td>Albumin, ALP, ALT, AST, glucose, HbA1c, lactate, bilirubin, total protein</td>
+<td>Body temperature</td>
+</tr>
+<tr>
+<td>Haematology</td>
+<td>aPTT, CRP, fibrinogen, haemoglobin, haematocrit, lymphocytes, platelets, INR, band cells, WBC</td>
+<td><em>(none)</em></td>
+</tr>
+<tr>
+<td>Neurological</td>
+<td><em>(none)</em></td>
+<td>Glasgow Coma Scale (eye, motor, verbal)</td>
+</tr>
+<tr>
+<td>GI (diagnosis-derived)</td>
+<td>ICD-10 chapter XI + General Surgery department flag</td>
+<td>—</td>
+</tr>
+<tr>
+<td>MSK (diagnosis-derived)</td>
+<td>ICD-10 chapter XIII + Orthopaedics department flag</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Plus: NEWS2 (§1.2, new), HFRS frailty score (75+), an infection/fever composite flag,
+operation-count/history features, and the 6-month cardiac-recovery exception (a fixed
+rule, not learned).</p>
+<hr />
+<h2 id="4-open-decisions">4. Open decisions<a class="headerlink" href="#4-open-decisions" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Whether to re-run the confirmed §7 baseline with the SMOTE fix applied, before or
+   alongside adding NEWS2/the correlation layer, to isolate which change drove any
+   improvement — recommended: one change at a time, not all three at once.</li>
+<li>Whether the NEWS2 AVPU-vs-GCS substitution (§1.2) is acceptable, or whether a real
+   AVPU field should be sourced instead — needs clinical input.</li>
+<li>Everything in §6.5 (the PACO-Net-specific open decisions) is paused along with that
+   work, not currently needing a decision.</li>
+</ol>
+<hr />
+<h2 id="5-novelty-ledger-current-work">5. Novelty ledger — current work<a class="headerlink" href="#5-novelty-ledger-current-work" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Idea</th>
+<th>Grounding</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>General learned cross-system correlation, alongside the existing hand-coded cardiorenal link</td>
+<td>Closest precedent: IOC-MT (Kong et al. 2025) for general ICU organ dysfunction — not perioperative mortality specifically</td>
+<td>🟢 Built, unit-tested; not yet run on real data</td>
+</tr>
+<tr>
+<td>NEWS2 as a model feature, integrated pre-augmentation</td>
+<td>Royal College of Physicians NEWS2 (2017) — standard, well-established score, applied here as a feature rather than only a bedside tool</td>
+<td>🟢 Built, scoring bands verified exact against the official table</td>
+</tr>
+<tr>
+<td>NEWS2-based before/after augmentation validation</td>
+<td>Own design choice — a concrete plausibility check for synthetic minority patients, not previously present</td>
+<td>🟢 Built, tested</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-parked-paco-net-phase-aware-diffusion-redesign">6. Parked: PACO-Net phase-aware / diffusion redesign<a class="headerlink" href="#6-parked-paco-net-phase-aware-diffusion-redesign" title="Permanent link">&para;</a></h2>
+<p><strong>Not active work.</strong> Kept in full below so nothing designed is lost, and so it can be
+picked back up without re-deriving it, once the current work (§1) is validated on real
+data and there's a case for expanding scope again.</p>
+<h3 id="61-why-this-revision-was-proposed-in-one-paragraph">6.1 Why this revision was proposed, in one paragraph<a class="headerlink" href="#61-why-this-revision-was-proposed-in-one-paragraph" title="Permanent link">&para;</a></h3>
+<p>The original 6-organ-system architecture used ~30 features, all pre-op, because the
+pipeline only had a pre-op window. PACO-Net's phase-aware design (pre/peri/post) would
+remove that constraint — the 72 intra-op parameters that are currently unused would
+become the <strong>peri-op</strong> phase's data. The full revision would map <em>all 123 available
+parameters</em> to organ systems, tag each by which phase(s) it's observed in, and ground
+the intra-op drug/device features (vasopressor doses, ventilator settings, anesthetic
+depth) using the same organ-support logic as the SOFA score (Vincent et al. 1996).</p>
+<h3 id="62-complete-feature-mapping-by-organ-system-and-phase-parked-design">6.2 Complete feature mapping, by organ system and phase (parked design)<a class="headerlink" href="#62-complete-feature-mapping-by-organ-system-and-phase-parked-design" title="Permanent link">&para;</a></h3>
+<p><strong>Legend:</strong> Pre = pre-op (admission → surgery start) · Peri = peri-op (surgery start →
+surgery end) · Post = post-op (surgery end → discharge/30-day window)</p>
+<h4 id="renal">Renal<a class="headerlink" href="#renal" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Source table</th>
+<th>Phase</th>
+<th>SOFA-analogous role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>creatinine</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Core renal marker</td>
+</tr>
+<tr>
+<td>bun</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Core renal marker</td>
+</tr>
+<tr>
+<td>sodium, potassium, chloride</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Electrolyte/renal function</td>
+</tr>
+<tr>
+<td>calcium, phosphorus, ica</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Renal-mineral axis</td>
+</tr>
+<tr>
+<td>crrt</td>
+<td>ward_vitals</td>
+<td>Pre, Post</td>
+<td>Renal organ <em>support</em> (dialysis)</td>
+</tr>
+<tr>
+<td>uo (urine output)</td>
+<td>ward_vitals + vitals</td>
+<td>Pre (rare), Peri, Post</td>
+<td>Direct renal function signal</td>
+</tr>
+<tr>
+<td>hes (hydroxyethyl starch)</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Dual-tagged — volume expander with known renal toxicity</td>
+</tr>
+</tbody>
+</table>
+<h4 id="cardiovascular">Cardiovascular<a class="headerlink" href="#cardiovascular" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Source table</th>
+<th>Phase</th>
+<th>SOFA-analogous role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>troponin_i, troponin_t, ck, ckmb</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Cardiac injury markers</td>
+</tr>
+<tr>
+<td>hr, nibp_sbp/dbp/mbp</td>
+<td>ward_vitals</td>
+<td>Pre, Post</td>
+<td>Core hemodynamics</td>
+</tr>
+<tr>
+<td>art_sbp/dbp/mbp, nibp_sbp/dbp/mbp, hr</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Continuous intra-op hemodynamics</td>
+</tr>
+<tr>
+<td>ci, cvp, svi</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Cardiac performance/preload</td>
+</tr>
+<tr>
+<td>pap_sbp/dbp/mbp</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Right-heart/pulmonary pressure</td>
+</tr>
+<tr>
+<td>sti, stii, stiii, stv5</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Ischemia monitoring (ST-segment)</td>
+</tr>
+<tr>
+<td>dobui, dopai, mlni</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Inotrope dose — organ <em>support</em> signal</td>
+</tr>
+<tr>
+<td>eph, epi, epii, nepi, pepi, phe, vaso</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Vasopressor dose — organ support signal</td>
+</tr>
+<tr>
+<td>ntgi</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Vasodilator dose — organ support (opposite direction)</td>
+</tr>
+<tr>
+<td>iabp</td>
+<td>ward_vitals</td>
+<td>Pre, Post</td>
+<td>Mechanical cardiac support device flag</td>
+</tr>
+</tbody>
+</table>
+<h4 id="respiratory">Respiratory<a class="headerlink" href="#respiratory" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Source table</th>
+<th>Phase</th>
+<th>SOFA-analogous role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pao2, paco2, ph, hco3, be, sao2</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Blood gas / respiratory function</td>
+</tr>
+<tr>
+<td>spo2, rr, fio2</td>
+<td>ward_vitals</td>
+<td>Pre, Post</td>
+<td>Core respiratory monitoring</td>
+</tr>
+<tr>
+<td>spo2, rr, fio2</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Continuous intra-op respiratory monitoring</td>
+</tr>
+<tr>
+<td>air, o2, n2o, etco2</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Ventilation/gas exchange</td>
+</tr>
+<tr>
+<td>minvol, peep, pip, pmean, pplat, vt</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Ventilator settings — organ support signal</td>
+</tr>
+<tr>
+<td>etdes, etgas, etiso, etsevo</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Anesthetic gas concentration</td>
+</tr>
+<tr>
+<td>vent, ecmo</td>
+<td>ward_vitals</td>
+<td>Pre, Post</td>
+<td>Mechanical respiratory support device flag</td>
+</tr>
+</tbody>
+</table>
+<h4 id="metabolic-hepatic">Metabolic / Hepatic<a class="headerlink" href="#metabolic-hepatic" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Source table</th>
+<th>Phase</th>
+<th>SOFA-analogous role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>glucose, hba1c</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Metabolic control</td>
+</tr>
+<tr>
+<td>albumin, alp, alt, ast, total_bilirubin, total_protein</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Hepatic function</td>
+</tr>
+<tr>
+<td>lactate</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Perfusion/metabolic stress marker</td>
+</tr>
+<tr>
+<td>bt (body temperature)</td>
+<td>ward_vitals + vitals</td>
+<td>Pre, Peri, Post</td>
+<td>Thermoregulation</td>
+</tr>
+<tr>
+<td>d5w, d10w, d50w</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Dextrose infusion (metabolic support)</td>
+</tr>
+<tr>
+<td>alb5, alb20</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Albumin infusion</td>
+</tr>
+</tbody>
+</table>
+<h4 id="haematology-coagulation">Haematology / Coagulation<a class="headerlink" href="#haematology-coagulation" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Source table</th>
+<th>Phase</th>
+<th>SOFA-analogous role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hb, hct, wbc, platelet</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Core haematology</td>
+</tr>
+<tr>
+<td>aptt, ptinr, fibrinogen, d_dimer</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Coagulation</td>
+</tr>
+<tr>
+<td>crp, lymphocyte, seg</td>
+<td>labs</td>
+<td>Pre, Post</td>
+<td>Inflammatory/immune</td>
+</tr>
+<tr>
+<td>ebl (estimated blood loss)</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Direct haematologic stress event</td>
+</tr>
+<tr>
+<td>rbc, ffp, pc, cryo, pheresis</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Transfusion — organ support signal</td>
+</tr>
+</tbody>
+</table>
+<h4 id="neurological">Neurological<a class="headerlink" href="#neurological" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Source table</th>
+<th>Phase</th>
+<th>SOFA-analogous role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gcs_e, gcs_m, gcs_v</td>
+<td>ward_vitals</td>
+<td>Pre, Post</td>
+<td>Core neuro function</td>
+</tr>
+<tr>
+<td>bis (bispectral index)</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Anesthesia-depth proxy for consciousness</td>
+</tr>
+<tr>
+<td>cbro2</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Cerebral oxygenation</td>
+</tr>
+<tr>
+<td>ppf, ppfi, mdz, ftn, sft, rfti</td>
+<td>vitals</td>
+<td>Peri</td>
+<td>Sedative/opioid dose</td>
+</tr>
+</tbody>
+</table>
+<h4 id="diagnosis-derived-and-fluid-parked-design-same-as-current-see-3">Diagnosis-derived and fluid (parked design, same as current — see §3)<a class="headerlink" href="#diagnosis-derived-and-fluid-parked-design-same-as-current-see-3" title="Permanent link">&para;</a></h4>
+<p>GI (ICD-10 chapter XI) and MSK (ICD-10 chapter XIII) stay static/diagnosis-level. Fluid
+(ns, hns, hs, psa) stays a cross-cutting static aggregate, not an organ, in the parked
+design too.</p>
+<h3 id="63-full-list-of-parked-architecture-changes">6.3 Full list of parked architecture changes<a class="headerlink" href="#63-full-list-of-parked-architecture-changes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Change</th>
+<th>Replaces</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Phase-aware continuous timeline with segment embeddings (pre/peri/post)</td>
+<td>Pre-op-only fixed window</td>
+<td>Parked</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Peri-op resampling to fixed time bins</td>
+<td>N/A</td>
+<td>Parked, open decision: bin size</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Continuous time-delta encoding across phase boundaries</td>
+<td>Per-phase position reset</td>
+<td>Parked</td>
+</tr>
+<tr>
+<td>4</td>
+<td>72 intra-op vitals mapped via SOFA-style organ-support logic</td>
+<td>Intra-op vitals excluded</td>
+<td>Mapping complete, parked</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Fluid/resuscitation as cross-cutting static feature</td>
+<td>N/A</td>
+<td>Same treatment as current (§3)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Learned graph-attention inter-organ coupling</td>
+<td>Hand-picked renal↔cardiac link only</td>
+<td><strong>Superseded — see §1.3, this is now built, just without the phase-aware timeline</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Diffusion model (TabDDPM) for minority generation</td>
+<td>SMOTENC</td>
+<td>Parked — SMOTE kept and fixed instead, see §1.1</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Two-stage synthetic generation (missingness + values)</td>
+<td>SMOTENC's implicit generation</td>
+<td>Parked</td>
+</tr>
+<tr>
+<td>9</td>
+<td>6-month cardiac washout as a hard rule</td>
+<td>N/A</td>
+<td>Unchanged, still true in current architecture</td>
+</tr>
+<tr>
+<td>10</td>
+<td>SurvTRACE-style discrete-time hazard head</td>
+<td>Flat probability output</td>
+<td>Parked</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note on #6:</strong> the system correlation layer built in §1.3 is the same underlying idea
+as this parked item, decoupled from the phase-aware timeline it was originally designed
+alongside. It's live now, on the existing pre-op-only architecture — the phase-aware
+part specifically (items 1-3) is what's actually parked.</p>
+<h3 id="64-parked-architecture-diagram">6.4 Parked architecture diagram<a class="headerlink" href="#64-parked-architecture-diagram" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Input["One continuous timeline per organ system, phase-tagged"]
+        direction LR
+        PRE["Pre-op\n(labs + ward_vitals)"] -.-&gt;|"phase tag: 0"| TL["Continuous sequence\nadmission -&gt; discharge\ntime-delta encoded"]
+        PERI["Peri-op\n(72 intra-op vitals,\nresampled to fixed bins)"] -.-&gt;|"phase tag: 1"| TL
+        POST["Post-op\n(ward_vitals + repeat labs)"] -.-&gt;|"phase tag: 2"| TL
+    end
+
+    TL --&gt; R["Renal encoder"]
+    TL --&gt; C["Cardiovascular encoder"]
+    TL --&gt; P["Respiratory encoder"]
+    TL --&gt; M["Metabolic/Hepatic encoder"]
+    TL --&gt; H["Haematology encoder"]
+    TL --&gt; N["Neurological encoder"]
+
+    R --&gt; COUPLE
+    C --&gt; COUPLE
+    P --&gt; COUPLE
+    M --&gt; COUPLE
+    H --&gt; COUPLE
+    N --&gt; COUPLE
+
+    COUPLE["Learned inter-system coupling\n(already built, see 1.3 --\nphase-aware timeline still parked)"]
+    COUPLE --&gt; FUSE["NAM-style additive fusion"]
+    FUSE --&gt; HEAD["SurvTRACE-style discrete-time hazard head\n(parked)"]
+    HEAD --&gt; OUT["Risk curve over time\n(parked)"]
+
+    style COUPLE fill:#8e44ad,color:#fff
+    style HEAD fill:#c0392b,color:#fff</code></pre>
+<h3 id="65-open-decisions-ifwhen-this-resumes">6.5 Open decisions, if/when this resumes<a class="headerlink" href="#65-open-decisions-ifwhen-this-resumes" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Post-op window end — fixed duration (e.g. 72h) vs. discharge date.</li>
+<li>Peri-op resampling bin size — 5 minutes proposed.</li>
+<li>Diffusion generation and phase completeness, if diffusion is revisited instead of
+   the currently-fixed SMOTE.</li>
+</ol>
+<hr />
+<h2 id="7-previous-work-and-confirmed-results-unchanged-still-the-reference-baseline">7. Previous work and confirmed results (unchanged, still the reference baseline)<a class="headerlink" href="#7-previous-work-and-confirmed-results-unchanged-still-the-reference-baseline" title="Permanent link">&para;</a></h2>
+<h3 id="71-cohort-and-label-facts-confirmed">7.1 Cohort and label facts (confirmed)<a class="headerlink" href="#71-cohort-and-label-facts-confirmed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Full cohort: ~99,886 patients</li>
+<li>Recomputed label <code>died_30day_from_last_op</code>: <strong>469 real deaths</strong> — not the folder
+  label's 942 (expected/correct gap, not a bug)</li>
+<li>Deaths are ~0.5–0.9% of the full cohort depending on label definition</li>
+</ul>
+<h3 id="72-confirmed-run-results-10942-patient-downsampled-cohort-pre-smote-fix">7.2 Confirmed run results (10,942-patient downsampled cohort, pre-SMOTE-fix)<a class="headerlink" href="#72-confirmed-run-results-10942-patient-downsampled-cohort-pre-smote-fix" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Test set</td>
+<td>2,189 real patients, 94 real deaths</td>
+</tr>
+<tr>
+<td>AUPRC</td>
+<td><strong>0.658</strong> (primary metric at this rarity)</td>
+</tr>
+<tr>
+<td>AUROC</td>
+<td>0.967</td>
+</tr>
+<tr>
+<td>Brier score</td>
+<td>0.097</td>
+</tr>
+<tr>
+<td>At best-F1 threshold</td>
+<td>76% of real deaths caught (71/94), 60% precision</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>23.4 min total (141 cells, zero errors)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>These numbers were achieved with the SMOTE bug present (§1.1)</strong> — only loss-weighting
+was actually contributing, not SMOTE. A re-run with the fix applied, plus NEWS2 and the
+correlation layer, is the natural next step, one change at a time (§4.1) so any
+improvement can be attributed correctly.</p>
+<p><strong>Benchmark comparison:</strong> AUROC 0.967 (this model, 10,942 patients) vs. 0.89–0.92
+(Shickel et al. 2023, 56,242 patients) — not yet a fair comparison, since cohort sizes
+differ. A genuine full-cohort run is needed before this claim holds up.</p>
+<h3 id="73-status">7.3 Status<a class="headerlink" href="#73-status" title="Permanent link">&para;</a></h3>
+<p>Immediate next steps: (1) re-run with the SMOTE fix alone, isolated, (2) add NEWS2 and
+re-run, (3) add the correlation layer and re-run, (4) once validated at this scale, run
+the true full 99,886-patient cohort. The phase-aware/diffusion PACO-Net work (§6) stays
+parked until there's a case to expand scope again.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.collapse", "content.code.copy", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
