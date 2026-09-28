@@ -1,20 +1,50 @@
-"""
-Stage 0: setup, environment detection, and CONFIG.
+# %% [markdown]
+# # INSPIRE Perioperative Mortality — Organ-System DNN (v3)
+#
+# PROFILE_BANNER
+#
+# **What v3 is:** eight equal organ systems (kidneys, heart & circulation, lungs, metabolism
+# & liver, blood, brain & nerves, digestive, bones & joints) — each built from its own
+# measurements (where the dataset has any) and its own ICD-10 diagnosis chapter — read by
+# one shared organ-system network; a **whole-patient layer** that learns from every feature
+# and guides each system network; a **learned inter-system layer** pre-trained on every
+# patient by predicting a hidden organ system from the others; an **arbitration layer**
+# setting each system's say; and an additive output, so every prediction splits exactly
+# into per-system contributions. Anti-memorisation: label-free pre-training, gentle
+# fine-tuning, AdamW, organ-system dropout, capped SMOTENC, balanced batches, a seed
+# ensemble — plus diagnostics that show whether it is learning or memorising.
+# Every change is a `CONFIG` switch; the full list is in `src-dnn/CHANGES.md`.
+# Generated from `src-dnn/pipeline/` — edit there, then run `python build_notebook.py`.
+#
+# Predicts 30-day post-surgical mortality using per-organ-system encoders (renal,
+# cardiovascular, respiratory, metabolic/hepatic, haematology, neurological, GI, MSK),
+# fused through a Neural Additive Model so every prediction stays explainable
+# system-by-system. **For the full reasoning behind every design choice below, see the
+# project's docs site** (`Multimodal_Notebook_Summary.md`, `roadmap_and_architecture.md`) —
+# this notebook is deliberately code-first.
+#
+# **Tuned for a real, single Colab/Kaggle session:** default config runs on a
+# ~10,000-patient sample (all real deaths kept, survivors capped — see Part 3), targets
+# under 20 minutes total, checkpoints training every few epochs, and caches the parsed data
+# so a session that dies mid-run costs you minutes, not a restart from zero.
+#
+# **Quick start:** run every cell top to bottom. Part 2 auto-detects Colab vs. Kaggle and
+# mounts/finds your data. Part 12 prints exactly how long your run actually took, stage by
+# stage.
 
-Converted from INSPIRE_Multimodal_Mortality_Benchmark.ipynb (cells 2-6) into a script.
-Content is preserved as closely as possible to the working notebook -- the one fix
-applied here is removing a redundant, unguarded `drive.mount()` call (the notebook's
-own environment-detection block later in this same file already does this correctly,
-gated on IN_COLAB; the removed block would crash immediately on Kaggle or a local run).
+# %% [markdown]
+# # Part 2 — Setup
+#
+# Installs (Kaggle usually has most of these; the cell is safe to run either way), imports,
+# and the `CONFIG` dict that every flag from §1.7 lives in. **Change values here, then
+# Run All** — nothing below this cell should need editing to run an experiment.
 
-Every later stage in this pipeline does `from config import *` -- same effect as
-notebook cells sharing one namespace, just split into files you can read, run, and
-diff individually.
-"""
-
-# --- from notebook cell 2 ---
+# %%
 # Kaggle already ships torch, sklearn, pandas, numpy, matplotlib.
 # imbalanced-learn is usually NOT preinstalled -> install if missing.
+# Which notebook is this? build_notebook.py sets this line: 'subset' (your analysis runs on
+# the sample) or 'full' (the whole ~99,886-patient cohort, every analysis switched on).
+RUN_PROFILE = "subset"
 import importlib, subprocess, sys
 
 def _ensure(pkg, import_name=None):
@@ -28,7 +58,7 @@ _ensure("imbalanced-learn", "imblearn")
 _ensure("pyarrow")   # needed for Part 3's Parquet caching of parsed subject data
 print("Setup check complete.")
 
-# --- from notebook cell 3 ---
+# %%
 import os, glob, json, math, random, warnings, time
 from collections import defaultdict, Counter
 
@@ -58,23 +88,31 @@ print("Device:", DEVICE)
 if DEVICE.type == "cuda":
     print(f"GPU: {torch.cuda.get_device_name(0)}  "
           f"total VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
-    print("(This notebook's model is small -- tens of thousands of parameters, small batches -- "
-          "GPU memory is very unlikely to be the constraint. System RAM, from the raw data "
-          "tables in Part 3, is the one actually worth watching -- see that Part's memory printout.)")
+    print("(Even the 'large' encoder preset is under ~1M parameters -- GPU memory is very unlikely "
+          "to be the constraint. System RAM, from the raw data tables in Part 3, is the one "
+          "actually worth watching -- see that Part's memory printout.)")
 
-# NOTE: cell 4's original unconditional 'from google.colab import drive; drive.mount(...)'
-# was removed here -- it would raise ImportError immediately outside Colab (Kaggle/local).
-# The environment-detection block below already does this correctly, guarded by IN_COLAB.
+# %%
+# Mount Google Drive on Colab only. (The original cell mounted unconditionally, which
+# crashes immediately on Kaggle or a local run; the cell below needs Drive on Colab.)
+if "google.colab" in sys.modules:
+    from google.colab import drive
+    drive.mount("/content/drive")
 
-# --- from notebook cell 5 ---
+# %%
 import os, sys, zipfile, time
 
 IN_COLAB = "google.colab" in sys.modules
 COLAB_SUBJECTS_DIR = None
 
 if IN_COLAB:
-    DRIVE_ZIP_PATH = "/content/drive/MyDrive/subjects.zip"
-    COLAB_SUBJECTS_DIR = "/content/inspire_subjects_data"   # local disk -- much faster than Drive
+    # v2: first of these that exists on your Drive is used -- put your zip in MyDrive root,
+    # or set DRIVE_ZIP_PATH yourself.
+    _ZIP_CANDIDATES = (["/content/drive/MyDrive/subjects.zip"] if RUN_PROFILE == "full"
+                       else ["/content/drive/MyDrive/subjects_sample.zip", "/content/drive/MyDrive/subjects.zip"])
+    DRIVE_ZIP_PATH = next((p for p in _ZIP_CANDIDATES if os.path.isfile(p)), _ZIP_CANDIDATES[0])
+    print(f"Using data zip: {DRIVE_ZIP_PATH}")
+    COLAB_SUBJECTS_DIR = "/content/inspire_subjects_data_" + os.path.splitext(os.path.basename(DRIVE_ZIP_PATH))[0]   # local disk -- much faster than Drive
 
     assert os.path.isfile(DRIVE_ZIP_PATH), f"Can't find {DRIVE_ZIP_PATH} -- check the exact filename/path on your Drive."
 
@@ -104,7 +142,7 @@ else:
     print("Not running on Colab -- skipping the Drive-zip extraction step. On Kaggle, "
           "attach your dataset and Part 2's auto-detection will find it under /kaggle/input.")
 
-# --- from notebook cell 6 ---
+# %%
 # ---------------------------------------------------------------------------
 # CONFIG — every flag documented in Part 1 §1.7. Edit here, not below.
 # ---------------------------------------------------------------------------
@@ -132,7 +170,7 @@ CONFIG = {
     # exceed a Kaggle/Colab session's RAM at the full ~99,886-patient scale). Lower this
     # if you still see an out-of-memory restart during Part 3; raise it for speed if you
     # have RAM to spare.
-    "PARSE_CHUNK_SIZE": 5000,
+    "PARSE_CHUNK_SIZE": 2000,   # v2: 5000 held a whole 4k-patient sample in RAM at once
 
     # --- memory/compute lever, off by default -- see Part 3's "note on memory strategy" ---
     # If set, caps the number of REAL SURVIVED patients in the TRAINING split only (never
@@ -155,24 +193,87 @@ CONFIG = {
     # | 'random_oversample' | 'random_undersample' | 'none'
     "SMOTE_TARGET_RATIO": 0.10,     # positive:negative target, e.g. 0.10 = 1:10 (Part C's conservative pick)
     "SMOTE_MIN_STRATUM_MINORITY": 3,   # skip a department x ASA stratum with fewer real positives than this
+    # v3: cap synthetic deaths per stratum at this multiple of its REAL deaths. Uncapped, a
+    # 1:10 target made ~85 synthetic copies from 3 real deaths in low-risk strata at full scale.
+    "SMOTE_MAX_AMPLIFICATION": 5,      # None = uncapped (v2 behaviour)
+    # v3: balanced batches -- at ~1:200, ~29% of 256-patient batches contain no death at all.
+    "BALANCED_SAMPLER": True,
+    "SAMPLER_TARGET_POSITIVE_RATE": 0.10,
     "SMOTE_STRATA_COLS": ["department", "asa"],   # Part C §6's clinical-neighborhood grouping
     "USE_SEQUENCE_AUGMENTATION": True,      # Part C §7: jitter + time-mask for REAL minority training patients
     "SEQUENCE_AUGMENTATION_COPIES": 2,      # extra augmented copies per real positive training patient
     "JITTER_SIGMA": 0.05,                   # on the standardized (z-scored) scale, per Part C §7
+    # v2: never jitter discrete/ordinal/binary items -- GCS 4 -> 3.98 or a ventilator flag of
+    # 0.97 is not a real reading (caught by the NEWS2 before/after check, Part 9.1b).
+    "JITTER_EXCLUDE_ITEMS": ["gcs_e", "gcs_m", "gcs_v", "crrt", "iabp", "vent", "ecmo"],
     "USE_FOCAL_LOSS": False,
     "FOCAL_GAMMA": 2.0,
+    # v2: raise loudly if SMOTENC ERRORS on a stratum (vs. a legitimate "too few positives"
+    # skip). The original notebook caught both with one bare `except ValueError`, which is
+    # how SMOTENC silently produced zero synthetic patients on every run.
+    "STRICT_SAMPLING": True,
+    # v2: what time series a SMOTENC synthetic patient gets. SMOTENC only synthesises the
+    # STATIC vector. 'empty' (the original behaviour) gives every synthetic -- all labelled
+    # "died" -- a completely unobserved time series, which teaches the model the shortcut
+    # "no data at all => died". 'nearest_real_donor' borrows the jittered series of the
+    # nearest real died patient in the same training set instead.
+    "SYNTHETIC_TS_MODE": "nearest_real_donor",   # 'nearest_real_donor' | 'empty'
+
+    # --- v2: NEWS2 (Royal College of Physicians 2017), computed from pre-op ward vitals ---
+    # Added to the static vector ONLY if the scoring self-test passes (Part 6.16).
+    "INCLUDE_NEWS2": True,
+    "NEWS2_BUCKET_MINUTES": 60,          # vitals charted within the same hour = one observation set
+    "NEWS2_CARRY_FORWARD_MINUTES": 240,  # bounded LOCF for a parameter missing from a set
+    "NEWS2_MIN_CORE_VITALS": 3,          # of RR/SpO2/SBP/HR/temp -- fewer => no score (not a falsely low one)
+    "NEWS2_ASSUME_AIR_IF_MISSING": True, # no FiO2/vent charted => room air (flagged approximation)
+    "NEWS2_ASSUME_ALERT_IF_MISSING": True,
 
     # --- §1.5 architecture ---
     # (a flat-vs-system-split ablation flag was considered here and dropped rather than
     # shipped unwired -- see §1.1's note. The organ-system split is not optional in this
     # notebook's architecture.)
-    "FUSION_STRATEGY": "nam",              # 'nam' | 'concat' | 'gated'
-    "EMBED_DIM": 16,                       # per-system embedding size
-    "TRANSFORMER_HEADS": 2,
-    "TRANSFORMER_LAYERS": 1,
+    "FUSION_STRATEGY": "nam",              # 'nam' | 'concat'  ('gated' is superseded by the
+                                           # arbitration layer below, which keeps NAM additivity)
+    # v2: encoder capacity. The v1 model was 66k parameters in TOTAL, and only ~17k of that
+    # was the six system encoders (~3k each) -- most of it was the reconstruction heads
+    # and the static MLP. 'medium' is ~9x the encoder capacity; 'small' reproduces v1.
+    "ENCODER_SIZE": "medium",              # 'small' (v1) | 'medium' | 'large' -- sets the 4 keys below
+    "EMBED_DIM": None, "TRANSFORMER_HEADS": None, "TRANSFORMER_LAYERS": None, "FF_MULTIPLIER": None,
+    "DROPOUT": 0.1,
 
-    # --- §1.6.2 cardio-renal coupling ---
-    "SYMMETRIC_CARDIORENAL_COUPLING": False,
+    # --- v3: the eight organ systems (renal, cardiovascular, respiratory, metabolic/hepatic,
+    # haematology, neurological, GI, MSK) are all built the same way and run through ONE
+    # shared encoder body (per-system input adapters + a system tag). False = a separate
+    # body per system (the v2 behaviour, ~8x more encoder parameters) -- for ablation.
+    "SHARE_ENCODER": True,
+    "SYSTEM_DROPOUT": 0.1,            # fine-tuning: hide a whole system for 10% of patients per step
+
+    # --- v3: whole-patient layer -- reads ALL features, gently re-scales each system's
+    # summary (scale-only bottleneck, 0.5x-1.5x) and adds its own whole-patient term.
+    "USE_WHOLE_PATIENT_LAYER": True,
+
+    # --- inter-system coupling layer -- learned, nothing hand-defined ---
+    "COUPLING_MODE": "learned",       # 'learned' | 'none' (ablation baseline)
+    "COUPLING_HEADS": 2,
+    "COUPLING_PRIOR_LINKS": [],       # left empty by design: every link must be learned from data
+    "COUPLING_PRIOR_STRENGTH": 1.0,
+    "COUPLING_GATE_INIT": 0.1,
+    # v3: masked-system pre-training -- hide one system per patient and predict it from the
+    # other seven through the coupling layer. Label-free, so it learns from EVERY patient.
+    "MASKED_SYSTEM_WEIGHT": 1.0,      # 0 = v2 behaviour (coupling learns from deaths only)
+
+    # --- arbitration layer -- how much "say" each organ system's answer gets per patient ---
+    "USE_ARBITRATION_LAYER": True,
+    "ARBITRATION_REG": 1e-3,
+
+    # --- v3: learn, don't memorise ---
+    "WEIGHT_DECAY": 1e-2,             # AdamW
+    "FINETUNE_ENCODER_LR_MULT": 0.1,  # fine-tuning moves the pre-trained encoder 10x more gently
+    "N_ENSEMBLE": 3,                  # Part 11.4b: models trained from different seeds, averaged
+    "RUN_LEARNING_CURVE": True,       # Part 11.4c: retrain on 25% / 50% / 100% of training patients
+    "RUN_GBM_BASELINE": True,         # Part 11.1d: gradient boosting next to logistic regression
+    "N_BOOTSTRAP": 1000,              # confidence intervals for AUROC / AUPRC
+    "TRAIN_METRIC_SUBSAMPLE": 5000,   # real training patients scored each epoch (train vs val gap)
 
     # --- §1.2 ICD-10 ---
     "USE_ICD10_EMBEDDING": False,
@@ -194,6 +295,9 @@ CONFIG = {
                                      # full epoch cap when it's not helping) and quality (still lets
                                      # training run as long as it's genuinely improving)
     "LR": 1e-3,
+    # v2: select the best fine-tuning epoch on validation AUPRC (the primary metric at
+    # ~0.5-4% prevalence) rather than AUROC.
+    "MODEL_SELECTION_METRIC": "auprc",   # 'auprc' | 'auroc'
     "VAL_FRACTION": 0.2,
     "TEST_FRACTION": 0.2,
     "TARGET_SEQ_LEN": 24,      # number of time points each system's series is resampled/padded to
@@ -218,7 +322,48 @@ CONFIG = {
     # for measured per-section timing this decision is based on.
     "SKIP_IMPUTATION_ACCURACY_BENCHMARKS": True,   # Part 7.6/7.7 -- skips the held-out masking benchmarks (rule-based AND regression/MICE)
     "SKIP_FUSION_ABLATION": True,                  # Part 11.4 -- skips retraining a second (concat-fusion) model just for comparison
+    # v2 evaluation additions (cheap -- no retraining of the DNN)
+    "RECALIBRATE_ON_VAL": True,     # Platt-scale on the validation set (sampling + pos_weight inflate raw probabilities)
+    "RUN_SIMPLE_BASELINE": True,    # logistic regression on the same features, same split
 }
+
+# Run profile presets (see RUN_PROFILE at the top). 'full' switches every analysis on and
+# ignores run-time budgets -- intended for a machine with plenty of RAM and time.
+PROFILE_PRESETS = {
+    "subset": {},
+    "full": {
+        "MAX_SUBJECTS_PER_CLASS": None,          # the whole cohort
+        "PARSE_CHUNK_SIZE": 5000,
+        "SKIP_IMPUTATION_ACCURACY_BENCHMARKS": False,
+        "SKIP_FUSION_ABLATION": False,
+        "EPOCHS_PRETRAIN": 40, "EPOCHS_FINETUNE": 80, "EARLY_STOPPING_PATIENCE": 10,
+        "N_ENSEMBLE": 5,
+    },
+}
+CONFIG.update(PROFILE_PRESETS[RUN_PROFILE])
+
+# Optional overrides without editing this cell -- used by src-dnn/run_pipeline.py --config,
+# and handy on Kaggle for quick variants: set INSPIRE_CONFIG_OVERRIDES='{"ENCODER_SIZE": "small"}'.
+_overrides = json.loads(os.environ.get("INSPIRE_CONFIG_OVERRIDES", "{}") or "{}")
+_unknown = sorted(set(_overrides) - set(CONFIG))
+assert not _unknown, f"Unknown CONFIG keys in INSPIRE_CONFIG_OVERRIDES: {_unknown}"
+CONFIG.update(_overrides)
+if _overrides:
+    print(f"CONFIG overrides applied: {_overrides}")
+
+# Resolve the encoder-size preset (explicit values win over the preset).
+_ENCODER_PRESETS = {"small": (16, 2, 1, 2), "medium": (32, 4, 2, 4), "large": (64, 4, 2, 4)}
+for _key, _val in zip(["EMBED_DIM", "TRANSFORMER_HEADS", "TRANSFORMER_LAYERS", "FF_MULTIPLIER"],
+                      _ENCODER_PRESETS[CONFIG["ENCODER_SIZE"]]):
+    if CONFIG[_key] is None:
+        CONFIG[_key] = _val
+assert CONFIG["COUPLING_MODE"] in ("learned", "none")
+assert CONFIG["FUSION_STRATEGY"] in ("nam", "concat")
+print(f"Architecture: ENCODER_SIZE={CONFIG['ENCODER_SIZE']!r} (embed={CONFIG['EMBED_DIM']}, "
+      f"heads={CONFIG['TRANSFORMER_HEADS']}, layers={CONFIG['TRANSFORMER_LAYERS']}), "
+      f"COUPLING_MODE={CONFIG['COUPLING_MODE']!r}, ARBITRATION={CONFIG['USE_ARBITRATION_LAYER']}, "
+      f"WHOLE_PATIENT={CONFIG['USE_WHOLE_PATIENT_LAYER']}, SHARED_ENCODER={CONFIG['SHARE_ENCODER']}, "
+      f"NEWS2={CONFIG['INCLUDE_NEWS2']}, profile={RUN_PROFILE!r}, N_ENSEMBLE={CONFIG['N_ENSEMBLE']}")
 
 # ---------------------------------------------------------------------------
 # Environment detection: Kaggle vs. Colab vs. local. Matters for both data-path
@@ -348,3 +493,31 @@ assert CONFIG["SUBJECTS_DIR"] is not None, (
     "Could not auto-find a subjects folder (must contain died/ and survived/ subfolders of JSON). "
     "Set CONFIG['SUBJECTS_DIR'] manually -- e.g. on Colab, '/content/drive/MyDrive/<wherever you put it>'."
 )
+
+# %% [markdown]
+# ### Run-time tracking
+#
+# Every major Part below records how long it actually took, on *your* hardware and *your*
+# config -- not an estimate. Part 12 prints the full breakdown at the end, so every run
+# tells you directly whether it hit the 20-30 minute target, and exactly which Part to
+# adjust first if it didn't.
+
+# %%
+RUN_TIMER = {"checkpoints": [("notebook start", time.time())]}
+
+def record_checkpoint(label):
+    RUN_TIMER["checkpoints"].append((label, time.time()))
+
+def print_timing_summary():
+    cps = RUN_TIMER["checkpoints"]
+    print(f"{'Part':35s} {'elapsed':>10s}")
+    print("-" * 47)
+    for i in range(1, len(cps)):
+        label, t = cps[i]
+        prev_t = cps[i - 1][1]
+        print(f"{label:35s} {t - prev_t:8.1f}s")
+    total = cps[-1][1] - cps[0][1]
+    print("-" * 47)
+    print(f"{'TOTAL':35s} {total:8.1f}s  ({total/60:.1f} min)")
+
+print("Run-time tracking initialised.")

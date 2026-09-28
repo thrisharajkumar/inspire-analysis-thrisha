@@ -1,14 +1,30 @@
-"""
-Stage 2: organ-system feature engineering -- the routing map, pre-op/peri-op window
-extraction, per-system time-series extraction and resampling, the existing
-cardiovascular<->renal coupling (kept as-is, see system_correlation_layer.py for the
-new general-purpose addition), ICD-10/HFRS/GI/MSK features, operation-count features,
-static features, medication ATC aggregates, and the final per-patient PATIENT_BUNDLE.
-Converted from cells 28-58, preserved verbatim (no logic changes in this stage).
-"""
-from data_loading import *
+# %% [markdown]
+# # Part 6 — Organ-system feature engineering
+#
+# This is the section that turns the theory in §1.1–§1.6 into actual feature tables. Order
+# of build, each tied back to a Part 1 section:
+#
+# - §6.1 the organ-system → raw-signal grouping table (the routing map)
+# - §6.2 pre-op / peri-op time-window extraction per patient (§1.6.3)
+# - §6.3–§6.5 the four "genuine time series" systems: Renal, Respiratory, Metabolic/hepatic, Haematology
+# - §6.9 Cardiovascular, built *jointly* with Renal because of the coupling in §1.6.2
+# - §6.6 ICD-10 features: chapter flags/counts + HFRS (§1.2)
+# - §6.7–§6.8 GI and MSK (diagnosis/department-driven, §1.2.3)
+# - §6.10 operation-count-in-same-area features (§1.6.4)
+# - §6.11 the 6-month post-cardiac-surgery exception flag (§1.6.4, rule-based on purpose)
+# - §6.12 static features (age, sex, ASA, emop, department, weight, height) (§1.5.1, §1.2.2)
+# - §6.13 medications → ATC-level aggregate features (§1.5.3)
+# - §6.14 assembling everything into the final per-patient, per-system feature bundle
 
-# --- from notebook cell 30 ---
+# %% [markdown]
+# ## 6.1 The organ-system → raw-signal routing map
+#
+# This extends the six-system grouping already sketched in the source repo's own
+# `docs/roadmap_and_architecture.md` §4.1 with the two new systems from the meeting notes,
+# and is filtered to the item-names actually observed in §4.1's inventory (so nothing below
+# references a feature this dataset doesn't have).
+
+# %%
 # --- Time-series systems: item_name -> system, split by source table ---
 # Kept as an explicit, editable dict (not auto-derived) so the organ-system assignment is
 # a reviewable, documented decision -- exactly the kind of thing you said you want to be
@@ -53,7 +69,16 @@ for sysdict, inv_key in [(SYSTEM_LABS, "labs"), (SYSTEM_WARD_VITALS, "ward_vital
             print(f"WARNING: {inv_key}/{system} references unseen item_names: {unknown}")
 print("Routing map validated against §4.1 inventory (no warnings above = every referenced item_name exists).")
 
-# --- from notebook cell 32 ---
+# %% [markdown]
+# ## 6.2 Pre-op / peri-op window extraction
+#
+# Implements §1.6.3's `CONFIG['TIME_WINDOW']` toggle. `'pre_op'` keeps only records in
+# `[orin_time - PRE_OP_DAYS*24*60, orin_time]` for the **last** operation (matching the label
+# definition in §4.2 — Path C, "from last operation"; §11.7 revisits first-operation and
+# exclude-multi-op as a sensitivity check). `'peri_op'` extends the upper bound to
+# `orout_time` and additionally pulls in intra-op `vitals`.
+
+# %%
 def get_window(subject_id, cohort_row):
     orin = cohort_row["orin_time_last"]
     orout = cohort_row["orout_time_last"]
@@ -115,7 +140,18 @@ def windowed_series(df, subject_id, item_name, lo, hi, subj_col="subject_id"):
 
 print(f"TIME_WINDOW = {CONFIG['TIME_WINDOW']!r}  (see §1.6.3 for what each option represents)")
 
-# --- from notebook cell 34 ---
+# %% [markdown]
+# ### A note on why this matters more than it looks
+#
+# The grouped-lookup rewrite above is the single highest-impact change in this notebook for
+# runnability at full scale — more than any of the memory optimizations. A self-contained
+# timing comparison on synthetic data of a similar shape to the full cohort (run once,
+# below, to make this concrete rather than asserted) shows the real speedup, split into the
+# one-time index-build cost (paid once per table, however large the cohort) and the
+# marginal per-lookup cost (paid millions of times, so this is the number that actually
+# determines whether a full run finishes in minutes/hours or days).
+
+# %%
 import time
 
 def _make_synthetic_table(n_subjects, avg_rows_per_subject, n_item_names=40):
@@ -179,33 +215,43 @@ print(f"\nThe one-time build cost scales with table size (more rows/groups to or
 del _synthetic_df
 _GROUPED_ARRAYS_CACHE.clear()   # drop the benchmark's groups; the real tables get grouped fresh on first real use
 
-# --- from notebook cell 36 ---
+# %% [markdown]
+# ## 6.3 Per-system time-series extraction, resampling, and the missingness mask
+#
+# For each patient and each of the six time-series systems (§6.1), build a
+# `[TARGET_SEQ_LEN, n_features_in_system]` array plus a same-shaped **mask** array
+# (1 = observed/interpolated-from-real-data, 0 = no data at all for that patient/feature —
+# see §1.3's MNAR discussion for why the mask is kept as its own feature rather than
+# discarded once a value is filled in). The actual *value*-filling strategy is deliberately
+# left as a placeholder here (`_TODO_impute`) and implemented properly in §7, once all the
+# methods have been introduced together — this section only handles resampling onto a
+# common time grid, which is method-independent.
+
+# %%
 def resample_to_grid(chart_time2value, lo, hi, n_points):
-    # Evenly-spaced target grid of n_points between lo and hi; nearest-observation lookup
-    # per grid point, returned alongside a raw (unimputed) array with NaN for empty points.
-    # Actual interpolation/imputation happens in §7 -- this function only regularises timing.
+    # Evenly-spaced grid of n_points between lo and hi; each grid point takes the NEAREST
+    # observation, but only if it is within one grid step -- otherwise NaN, left for Part 7's
+    # imputation. v2: vectorised with numpy (identical output to the v1 per-point loop, which
+    # was one of the slowest steps at full-cohort scale). Ties go to the later observation,
+    # exactly as before.
     grid = np.linspace(lo, hi, n_points)
-    if len(chart_time2value) == 0:
-        return grid, np.full(n_points, np.nan)
-    times = np.array(sorted(chart_time2value.keys()), dtype=float)
-    values = np.array([chart_time2value[t] for t in sorted(chart_time2value.keys())], dtype=float)
     out = np.full(n_points, np.nan)
-    for i, g in enumerate(grid):
-        idx = np.searchsorted(times, g)
-        # nearest of the two neighbouring observed points, used later as the "observed value"
-        # a real imputation strategy (§7) then fills the true gaps.
-        candidates = []
-        if idx < len(times):
-            candidates.append((abs(times[idx] - g), values[idx]))
-        if idx > 0:
-            candidates.append((abs(times[idx - 1] - g), values[idx - 1]))
-        if candidates:
-            # only accept "nearest observed" as a real observation if it's within one grid step,
-            # otherwise leave it NaN so §7's imputation (not this raw resample) fills the gap
-            step = (hi - lo) / max(n_points - 1, 1)
-            best = min(candidates, key=lambda c: c[0])
-            if best[0] <= max(step, 1e-6):
-                out[i] = best[1]
+    if len(chart_time2value) == 0:
+        return grid, out
+    keys = sorted(chart_time2value.keys())
+    times = np.array(keys, dtype=float)
+    values = np.array([chart_time2value[t] for t in keys], dtype=float)
+    idx = np.searchsorted(times, grid)
+    right = np.clip(idx, 0, len(times) - 1)
+    left = np.clip(idx - 1, 0, len(times) - 1)
+    d_right = np.where(idx < len(times), np.abs(times[right] - grid), np.inf)
+    d_left = np.where(idx > 0, np.abs(times[left] - grid), np.inf)
+    use_right = d_right <= d_left
+    best_d = np.where(use_right, d_right, d_left)
+    best_v = np.where(use_right, values[right], values[left])
+    step = (hi - lo) / max(n_points - 1, 1)
+    ok = best_d <= max(step, 1e-6)
+    out[ok] = best_v[ok]
     return grid, out
 
 def extract_system_tensor(subject_id, system, lo, hi):
@@ -254,7 +300,25 @@ for system in TIME_SERIES_SYSTEMS:
         observed += m.sum()
     print(f"{system:18s}: {len(fnames):2d} features, {observed/total:5.1%} of (patient,timepoint,feature) cells observed in-window")
 
-# --- from notebook cell 38 ---
+# %% [markdown]
+# ## 6.9 Cardiovascular ↔ Renal coupling (§1.6.2)
+#
+# Two concrete implementations of the meeting note "renal directly proportionate to
+# cardiovascular," matching the two mechanisms described in §1.6.2:
+#
+# 1. **Architectural**: a compact cardiovascular summary (mean heart rate, mean arterial
+#    pressure deviation from normal, presence of an IABP flag) is computed here and appended
+#    to the *renal* branch's static side-input in §9 — so the renal encoder sees
+#    cardiovascular context directly, not just renal labs.
+# 2. **Hand-crafted interaction feature**: `renal_cardiac_interaction`, a creatinine ×
+#    blood-pressure-deviation product, added to the static feature table (§6.14) as a
+#    cheap, sample-efficient prior (§1.6.2 explains why this is added *alongside* the
+#    learned coupling, not instead of it).
+#
+# `CONFIG['SYMMETRIC_CARDIORENAL_COUPLING']` toggles whether the *cardiovascular* branch
+# symmetrically receives a renal summary back — off by default, per the §1.6.2 reasoning.
+
+# %%
 NORMAL_MAP_MMHG = 93.0   # a commonly used "normal" mean arterial pressure reference point
 
 def cardiac_summary_for_patient(sid, lo, hi):
@@ -284,7 +348,7 @@ print(f"Cardiovascular summary built for {len(cardiac_summary_df)} patients "
       f"(NaNs below reflect real missingness -- filled properly in §7, not here).")
 cardiac_summary_df.describe()
 
-# --- from notebook cell 39 ---
+# %%
 def renal_cardiac_interaction_for_patient(sid, lo, hi):
     # Hand-crafted §1.6.2 interaction feature: creatinine x |MAP deviation|.
     # NaN-safe -- returns NaN if either side is unavailable, filled like any other
@@ -302,7 +366,57 @@ RENAL_CARDIAC_INTERACTION = {
 }
 pd.Series(RENAL_CARDIAC_INTERACTION, name="renal_cardiac_interaction").describe()
 
-# --- from notebook cell 41 ---
+# %% [markdown]
+# ## 6.6 / 6.7 / 6.8 — ICD-10 chapter features, HFRS, GI and MSK systems, infection flag
+#
+# All built together because they share the same underlying computation (diagnosis chapter
+# membership within a lookback window) — GI and MSK (§1.2.3, §1.6.1) are simply the two
+# chapters the meeting notes called out by name, exposed as their own system entries rather
+# than folded into a generic "diagnosis count" feature.
+#
+# - **GI** = ICD-10 chapter **XI** (`K00-K93`) flag/count + `department == 'GS'` (general
+#   surgery, the closest department proxy for GI surgical burden in this dataset).
+# - **MSK** = ICD-10 chapter **XIII** (`M00-M99`) flag/count + `department == 'OS'`
+#   (orthopaedic surgery).
+# - **HFRS** (Hospital Frailty Risk Score, Gilbert et al. 2018) — a validated, externally
+#   weighted score over 109 specific ICD-10 codes, restricted here to the published lookback
+#   window (`CONFIG['HFRS_LOOKBACK_YEARS']`, default 2, and only meaningfully applied for
+#   patients 75+ per the original paper — see §1.2.1). **This revision uses the full 109-code
+#   weights table**, extracted directly from the source repo's `frailty_hfrs.py` (an earlier
+#   revision of this notebook shipped a ~30-code representative subset — that limitation,
+#   flagged in `Multimodal_Notebook_Summary.md` §7, is now closed).
+# - **Infection/inflammation flag** — the cross-cutting signal `roadmap_and_architecture.md`
+#   §4.1a designed but had not yet implemented (until this revision). Per SOFA (Vincent et
+#   al. 1996) and Sepsis-3 (Singer et al. 2016), infection is modelled as a **modifier
+#   layered across systems**, not a competing 7th/9th organ system — implemented here as a
+#   small set of static features (chapter-I diagnosis flag, the six specific high-mortality
+#   codes already flagged in the source repo's EDA, fever, abnormal WBC, and a data-driven
+#   "elevated CRP" flag — see the code cell for why CRP uses a relative, not absolute,
+#   threshold) plus a 0–5 composite count, fed into the static branch alongside GI/MSK/HFRS.
+
+# %%
+# v2 SPEED FIX: group diagnoses and medications by patient ONCE. The v1 code filtered the
+# whole table for every patient (df[df.subject_id == sid]), which is fine at 10k patients
+# but grows roughly with (patients x rows) -- hours at the full ~99,886-patient cohort.
+# Same rows, same order within a patient, so every feature below is unchanged.
+def _group_by_subject(df):
+    if len(df) == 0:
+        return {}
+    return {k: g for k, g in df.groupby("subject_id", observed=True, sort=False)}
+
+_DX_BY_SUBJECT = _group_by_subject(diagnoses_df)
+_MEDS_BY_SUBJECT = _group_by_subject(medications_df)
+_EMPTY_DX = diagnoses_df.iloc[0:0]
+_EMPTY_MEDS = medications_df.iloc[0:0]
+
+def dx_in_window(sid, lo, hi):
+    g = _DX_BY_SUBJECT.get(sid, _EMPTY_DX)
+    return g[(g["chart_time"] >= lo) & (g["chart_time"] <= hi)]
+
+def meds_in_window(sid, lo, hi):
+    g = _MEDS_BY_SUBJECT.get(sid, _EMPTY_MEDS)
+    return g[(g["chart_time"] >= lo) & (g["chart_time"] <= hi)]
+
 # Full Hospital Frailty Risk Score weights table (Gilbert et al. 2018, Table A2, 109
 # ICD-10-CM clusters), extracted directly from the source repo's frailty_hfrs.py so this
 # notebook stays self-contained/Kaggle-portable without importing that module.
@@ -337,9 +451,7 @@ def compute_hfrs(sid, lo, hi, age):
     if pd.isna(age) or age < 75:
         return 0.0
     lookback_minutes = CONFIG["HFRS_LOOKBACK_YEARS"] * 365 * 24 * 60
-    dx = diagnoses_df[(diagnoses_df["subject_id"] == sid) &
-                       (diagnoses_df["chart_time"] >= lo - lookback_minutes) &
-                       (diagnoses_df["chart_time"] <= hi)]
+    dx = dx_in_window(sid, lo - lookback_minutes, hi)
     score = 0.0
     for code in dx["icd10_cm"].dropna():
         code3 = str(code)[:3].upper()
@@ -347,41 +459,69 @@ def compute_hfrs(sid, lo, hi, age):
             score += HFRS_WEIGHTS[code3]
     return score
 
-def gi_msk_icd10_features(sid, lo, hi, department):
-    dx = diagnoses_df[(diagnoses_df["subject_id"] == sid) &
-                       (diagnoses_df["chart_time"] >= lo) & (diagnoses_df["chart_time"] <= hi)]
+# v3: every organ system gets diagnosis-code features from its own ICD-10 chapter, so all
+# eight systems are built the same way (GI and MSK are no longer a special case -- they are
+# simply the two systems with no time-series measurements in this dataset).
+ORGAN_SYSTEM_ICD10_CHAPTERS = {
+    "renal": ["XIV"],              # genitourinary
+    "cardiovascular": ["IX"],      # circulatory
+    "respiratory": ["X"],          # respiratory
+    "metabolic_hepatic": ["IV"],   # endocrine, nutritional, metabolic
+    "haematology": ["III"],        # blood and immune
+    "neurological": ["VI"],        # nervous system
+    "gi": ["XI"],                  # digestive
+    "msk": ["XIII"],               # musculoskeletal
+}
+ORGAN_SYSTEMS = list(ORGAN_SYSTEM_ICD10_CHAPTERS)   # the eight organ systems, one order everywhere
+
+def organ_system_dx_features(sid, lo, hi, department):
+    dx = dx_in_window(sid, lo, hi)
     chapters = dx["icd10_cm"].dropna().apply(icd10_chapter)
     n_chapters = chapters.value_counts()
-    return {
-        "gi_icd10_count":  int(n_chapters.get("XI", 0)),
-        "gi_icd10_flag":   float(n_chapters.get("XI", 0) > 0),
-        "gi_department_flag": float(department == "GS"),
-        "msk_icd10_count": int(n_chapters.get("XIII", 0)),
-        "msk_icd10_flag":  float(n_chapters.get("XIII", 0) > 0),
-        "msk_department_flag": float(department == "OS"),
-        "n_diagnoses_in_window": int(len(dx)),
-        "n_distinct_chapters_in_window": int(chapters.nunique()),
-    }
+    feats = {}
+    for system, chs in ORGAN_SYSTEM_ICD10_CHAPTERS.items():
+        n = int(sum(n_chapters.get(c, 0) for c in chs))
+        feats[f"sysdx_{system}_count"] = n
+        feats[f"sysdx_{system}_flag"] = float(n > 0)
+    # department flags kept from v1 (surgical specialty treating the system)
+    feats["gi_department_flag"] = float(department == "GS")
+    feats["msk_department_flag"] = float(department == "OS")
+    feats["n_diagnoses_in_window"] = int(len(dx))
+    feats["n_distinct_chapters_in_window"] = int(chapters.nunique())
+    return feats
 
 ICD10_FEATURES = {}
 for sid in cohort_df["subject_id"]:
     row = COHORT_INDEXED.loc[sid]
     lo, hi = get_window(sid, row)
-    feats = gi_msk_icd10_features(sid, lo, hi, row["department"])
+    feats = organ_system_dx_features(sid, lo, hi, row["department"])
     if CONFIG["INCLUDE_HFRS"]:
         feats["hfrs"] = compute_hfrs(sid, lo, hi, row["age"])
     ICD10_FEATURES[sid] = feats
 
 icd10_features_df = pd.DataFrame(ICD10_FEATURES).T
 icd10_features_df.index.name = "subject_id"
-print(f"GI flag positive: {int(icd10_features_df['gi_icd10_flag'].sum())} / {len(icd10_features_df)} patients")
-print(f"MSK flag positive: {int(icd10_features_df['msk_icd10_flag'].sum())} / {len(icd10_features_df)} patients")
+print("Patients with >=1 diagnosis in each organ system's ICD-10 chapter (pre-op window):")
+for _s in ORGAN_SYSTEMS:
+    print(f"  {_s:18s} {int(icd10_features_df[f'sysdx_{_s}_flag'].sum()):6d} / {len(icd10_features_df)}")
 if CONFIG["INCLUDE_HFRS"]:
     n_scored = int((icd10_features_df["hfrs"] > 0).sum())
     print(f"Patients with HFRS > 0 (i.e. aged 75+ with a matching code): {n_scored} / {len(icd10_features_df)}")
 icd10_features_df.describe()
 
-# --- from notebook cell 43 ---
+# %% [markdown]
+# ### Infection / inflammation cross-cutting flag (`roadmap_and_architecture.md` §4.1a)
+#
+# Six components, each a real, cheap-to-compute signal rather than a learned sub-model —
+# consistent with the design note that this is a *modifier*, not a competing organ system.
+# The CRP threshold is deliberately **data-driven (this cohort's own 75th percentile)**
+# rather than an absolute clinical cutoff (e.g. "CRP > 100 mg/L") -- this notebook never
+# loaded `parameters.csv`, so CRP's exact reporting unit for this INSPIRE export isn't
+# independently confirmed here, and a wrong absolute threshold is worse than an honestly
+# relative one. Fever and abnormal-WBC thresholds use standard, unit-unambiguous clinical
+# cutoffs (°C and count/volume respectively), so those stay absolute.
+
+# %%
 HIGH_RISK_INFECTION_CODES = {"D65", "I46", "R57", "J80", "K72", "A41"}   # from the source repo's own EDA (docs/eda_findings.md)
 FEVER_THRESHOLD_C = 38.0
 WBC_NORMAL_RANGE = (4.0, 11.0)   # x10^9/L, standard adult reference range
@@ -396,8 +536,7 @@ print(f"CRP 'elevated' threshold (75th percentile of all observed CRP in this co
       f"{CRP_ELEVATED_THRESHOLD}")
 
 def infection_inflammation_features(sid, lo, hi):
-    dx = diagnoses_df[(diagnoses_df["subject_id"] == sid) &
-                       (diagnoses_df["chart_time"] >= lo) & (diagnoses_df["chart_time"] <= hi)]
+    dx = dx_in_window(sid, lo, hi)
     codes = set(dx["icd10_cm"].dropna().astype(str))
     chapter_i_flag = float(any(icd10_chapter(c) == "I" for c in codes))
     high_risk_flag = float(len(codes & HIGH_RISK_INFECTION_CODES) > 0)
@@ -439,7 +578,17 @@ print(f"\nPatients with infection_composite_score > 0: "
       f"{(infection_features_df['infection_composite_score'] > 0).sum()} / {len(infection_features_df)}")
 infection_features_df.describe()
 
-# --- from notebook cell 45 ---
+# %% [markdown]
+# ## 6.10 Operation-count-in-same-area features (§1.6.4)
+#
+# For the **last** operation (the one the label is computed relative to, §4.2), count how
+# many *prior* operations that patient had in the **same department** and compute the time
+# gap in days since the most recent one. This is offered to the model as a feature, on
+# purpose — unlike the exception in §6.11 below, whether repeat-same-area surgery predicts
+# higher or lower risk is exactly the kind of question this notebook's own framing (§1.6.4)
+# says should be *learned*, not assumed.
+
+# %%
 def operation_count_features(sid):
     history = OPS_HISTORY[sid]   # sorted by orin_time, built in §4.3
     if len(history) <= 1:
@@ -469,7 +618,15 @@ print(f"Patients with >=1 prior operation in the same department as their last: 
       f"{(op_count_df['n_prior_ops_same_dept'] > 0).sum()} / {len(op_count_df)}")
 op_count_df.describe()
 
-# --- from notebook cell 47 ---
+# %% [markdown]
+# ## 6.11 The 6-month post-cardiovascular-surgery exception (§1.6.4)
+#
+# Implemented as a **rule**, deliberately not a learned feature, for the reasons argued in
+# §1.6.4 (sample size + actionability). `CTS` (cardiothoracic surgery) is used as this
+# dataset's department proxy for "cardiovascular surgery" — check this mapping against your
+# site's actual department coding before trusting the flag on a new cohort.
+
+# %%
 CARDIAC_DEPARTMENTS = {"CTS"}       # adjust if your site's department coding differs
 MIN_RECOVERY_DAYS_AFTER_CARDIAC_SURGERY = 180   # ~6 months, the clinical protocol window
 
@@ -496,7 +653,15 @@ print(f"Patients flagged (last op within 6 months of a prior CTS op): {int(n_fla
 print("(Low or zero counts are expected on this 30-patient dev subset -- re-run on the full "
       "cohort, where cardiothoracic re-intervention is far more likely to appear.)")
 
-# --- from notebook cell 49 ---
+# %% [markdown]
+# ## 6.12 Static features (§1.5.1, §1.2.2)
+#
+# Age, sex, ASA, `emop` (emergency-operation flag), department (one-hot), weight, height —
+# 100% coverage, cheap, and (per §1.2.2/§1.6.1) currently unused by the DNN in the source
+# repo despite ASA being one of the strongest established predictors in the literature.
+# Included here by default via `CONFIG['INCLUDE_STATIC_ASA']`.
+
+# %%
 def static_features_row(row):
     return {
         "age": row["age"],
@@ -513,15 +678,25 @@ dept_onehot = pd.get_dummies(cohort_df.set_index("subject_id")["department"], pr
 static_df = pd.concat([static_df, dept_onehot], axis=1)
 static_df.describe()
 
-# --- from notebook cell 51 ---
+# %% [markdown]
+# ## 6.13 Medications → ATC-level aggregate features (§1.5.3)
+#
+# Per §1.5.3's decision, this notebook aggregates at the **WHO ATC level-2** (e.g. the first
+# 3 characters of the ATC code, roughly the "therapeutic subgroup" level) rather than
+# per-drug — far fewer categories, each with enough examples in a small cohort to be a
+# usable count feature rather than a near-empty one-hot. A learned per-class embedding
+# (rather than a raw count) is a natural upgrade once the full cohort is available — flagged
+# as an extension, not built by default here, per §1.5.3's reasoning about label-starved
+# high-cardinality embeddings.
+
+# %%
 def atc_level2(code):
     if not isinstance(code, str) or len(code) < 3:
         return None
     return code[:3].upper()
 
 def medication_features(sid, lo, hi):
-    meds = medications_df[(medications_df["subject_id"] == sid) &
-                           (medications_df["chart_time"] >= lo) & (medications_df["chart_time"] <= hi)]
+    meds = meds_in_window(sid, lo, hi)
     atc2 = meds["atc_code"].dropna().apply(atc_level2)
     return {
         "n_medication_administrations": int(len(meds)),
@@ -539,7 +714,31 @@ med_features_df = pd.DataFrame(MED_FEATURES).T
 med_features_df.index.name = "subject_id"
 med_features_df.describe()
 
-# --- from notebook cell 53 ---
+# %% [markdown]
+# ## 6.15 Aggregated time-series-derived static features (Part C §4 of the imbalance/imputation reference)
+#
+# The second external review's most concretely useful suggestion: give the static branch
+# richer clinical summaries of the time series, rather than only demographics/ICD-10/
+# operation-history. Two benefits at once — it enriches what the DNN's static branch has to
+# work with, **and** it gives §8's grouped SMOTENC more informative features to interpolate
+# over. For each patient, within the same window as §6.2 (`get_window`):
+#
+# - **Mean / min / max / std** of six clinically load-bearing signals: `creatinine`,
+#   `potassium`, `glucose`, `wbc`, `lactate`, `hb` (labs) and `hr`, `nibp_mbp`, `spo2`
+#   (ward/intra-op vitals) — 9 signals × 4 statistics = 36 features.
+# - **Severe-hypotension reading count** — number of mean-arterial-pressure readings below
+#   65 mmHg in the window. Stated precisely as a **reading count, not a duration**: INSPIRE's
+#   vitals are irregularly sampled, so "minutes spent hypotensive" would need an assumption
+#   about how long each reading represents, which this notebook avoids asserting.
+# - **Vasopressor administration count** and **high-alert medication administration count**
+#   — INSPIRE's `medications` table has **no dose field** (checked directly against the
+#   schema in §3), so the reviewed suggestion's "cumulative mcg dose" isn't computable as
+#   asked. This substitutes an **administration count** for a fixed drug-name/ATC keyword
+#   list — a real, honestly-weaker proxy (it can't distinguish one large dose from several
+#   small ones, or detect a true *escalation* in dose over time), stated here rather than
+#   silently implied to be the same thing.
+
+# %%
 AGG_LABS = ["creatinine", "potassium", "glucose", "wbc", "lacate", "hb"]     # 'lacate' matches this dataset's item_name spelling (see §4.1)
 AGG_WARD_VITALS = ["hr", "nibp_mbp", "spo2"]
 SEVERE_HYPOTENSION_MAP_THRESHOLD = 65.0   # mmHg, a standard clinical cutoff for organ-perfusion risk
@@ -577,8 +776,7 @@ def aggregate_features_for_patient(sid, lo, hi):
     map_series = windowed_series(ward_vitals_df, sid, "nibp_mbp", lo, hi)
     feats["severe_hypotension_reading_count"] = int(sum(1 for v in map_series.values() if v < SEVERE_HYPOTENSION_MAP_THRESHOLD))
 
-    meds = medications_df[(medications_df["subject_id"] == sid) &
-                           (medications_df["chart_time"] >= lo) & (medications_df["chart_time"] <= hi)]
+    meds = meds_in_window(sid, lo, hi)
     if len(meds) == 0:
         feats["vasopressor_administration_count"] = 0
         feats["high_alert_med_administration_count"] = 0
@@ -608,64 +806,3 @@ print(f"Patients with >=1 severe-hypotension reading: "
 print(f"Patients with >=1 vasopressor administration in-window: "
       f"{(agg_features_df['vasopressor_administration_count'] > 0).sum()} / {len(agg_features_df)}")
 agg_features_df.describe().T[["mean", "std", "min", "max"]].head(10)
-
-# --- from notebook cell 55 ---
-def build_static_vector(sid):
-    parts = {}
-    parts.update(static_df.loc[sid].to_dict())
-    parts.update(icd10_features_df.loc[sid].to_dict())
-    parts.update(infection_features_df.loc[sid].to_dict())   # §6.6, roadmap §4.1a -- new this revision
-    parts.update(op_count_df.loc[sid].to_dict())
-    parts["cardiac_recovery_exception"] = CARDIAC_EXCEPTION_FLAG[sid]
-    parts.update(cardiac_summary_df.loc[sid].to_dict())
-    parts["renal_cardiac_interaction"] = RENAL_CARDIAC_INTERACTION[sid]
-    parts.update(med_features_df.loc[sid].to_dict())
-    parts.update(AGG_FEATURES[sid])   # §6.15, Part C §4 of the imbalance/imputation reference
-    return parts
-
-PATIENT_BUNDLE = {}
-for sid in cohort_df["subject_id"]:
-    ts = {system: RAW_SYSTEM_TENSORS[(sid, system)] for system in TIME_SERIES_SYSTEMS}
-    PATIENT_BUNDLE[sid] = {
-        "ts": ts,
-        "static": build_static_vector(sid),
-        "label": float(COHORT_INDEXED.loc[sid, "died_30day_from_last_op"]),
-    }
-
-STATIC_FEATURE_NAMES = sorted(next(iter(PATIENT_BUNDLE.values()))["static"].keys())
-print(f"Bundle built for {len(PATIENT_BUNDLE)} patients.")
-print(f"Static feature vector length: {len(STATIC_FEATURE_NAMES)}")
-print(f"Static features: {STATIC_FEATURE_NAMES}")
-for system in TIME_SERIES_SYSTEMS:
-    fnames = PATIENT_BUNDLE[cohort_df['subject_id'].iloc[0]]['ts'][system]['feature_names']
-    print(f"  {system:18s} time-series features ({len(fnames)}): {fnames}")
-
-# --- from notebook cell 56 ---
-# Free most raw long-format tables now that PATIENT_BUNDLE holds everything §7-§12 need --
-# medications_df and diagnoses_df specifically, since nothing downstream reads them again.
-# labs_df/vitals_df/ward_vitals_df are DELIBERATELY KEPT ALIVE (unlike an earlier revision
-# of this cell, which freed all five): §11.8's risk-trajectory analysis needs to re-query
-# these at custom time cutoffs after the model is trained, which isn't possible once
-# they're gone. This keeps a modest amount of memory alive at full scale in exchange for
-# that analysis working -- worth it now that Part 3's chunked parsing (not these already
-# fairly compact flattened tables) is the fix that solved the real memory bottleneck.
-import gc
-
-_freed_mb = sum(df.memory_usage(deep=True).sum() for df in [medications_df, diagnoses_df]) / 1e6
-del medications_df, diagnoses_df
-RAW_SYSTEM_TENSORS.clear()   # PATIENT_BUNDLE['ts'][system] already holds these dicts directly -- see §6.3's note
-gc.collect()
-print(f"Freed medications_df/diagnoses_df (~{_freed_mb:.1f} MB on this dev subset). "
-      f"labs_df/vitals_df/ward_vitals_df are kept alive -- needed by §11.8's risk-trajectory "
-      f"analysis, which re-queries them at custom time cutoffs after training.")
-
-# --- from notebook cell 57 ---
-# Quick label sanity check on the assembled bundle before moving to §7.
-labels = np.array([PATIENT_BUNDLE[sid]["label"] for sid in cohort_df["subject_id"]])
-print(f"Positive rate in bundle: {labels.mean():.1%}  ({int(labels.sum())} / {len(labels)})")
-print("This dev-subset rate (~23%) is NOT representative of the full-cohort deployment rate "
-      "(~0.5-0.9%, per §1.4) -- keep this in mind when reading any metric later in the "
-      "notebook as a sanity check, not a final result.")
-
-# --- from notebook cell 58 ---
-record_checkpoint("Parts 4-6 -- labelling + organ-system feature engineering")

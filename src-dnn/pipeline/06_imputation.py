@@ -1,19 +1,25 @@
-"""
-Stage 3: missing data -- the four imputation strategies (decision-tree default, median,
-interpolate, KNN), standardization (z-score, fit on train only), and the
-leakage-safe stats/split used for both. Converted from cells 59-80, preserved verbatim
-(no logic changes in this stage). Confirmed column-agnostic for static features
-(impute_static_vector fills NaN generically per-column), so the 5 new NEWS2 static
-features added in news2_integration.py flow through this stage with no changes needed.
+# %% [markdown]
+# # Part 7 — Missing data: implementing the §1.3 methods
+#
+# Every method from §1.3.1's table is implemented here as a function with the same
+# signature, switched on by `CONFIG['IMPUTATION_STRATEGY']`. §7.5 runs a **side-by-side
+# comparison** of all four on the same data so you can see concretely what each one does to
+# the same gaps — this is the "experiment on it yourself" piece you asked for, made runnable
+# rather than theoretical.
+#
+# Two things apply regardless of which strategy is chosen, per §1.3:
+#
+# 1. **The mask (§6.3) is never touched.** Whatever value-fill method runs, the mask feature
+#    stays exactly as observed — it's the model's only way to recover MNAR signal.
+# 2. **Statistics (medians, KNN neighbours, MICE models) are always fit on the training split
+#    only** (computed in §8, referenced here) — fitting on the full dataset before splitting
+#    would leak test-set information into imputed training values, a common and serious
+#    mistake in exactly this kind of pipeline.
 
-NOTE: this stage includes two genuinely expensive, OPTIONAL benchmark sections
-(7.6 held-out imputation-accuracy benchmark, 7.7 regression/MICE imputation) --
-CONFIG["SKIP_IMPUTATION_ACCURACY_BENCHMARKS"] (default True) skips both, same as the
-original notebook's own time-budget control.
-"""
-from news2_integration import *
+# %% [markdown]
+# ## 7.1 Whole-feature-missing fallback (applies before any of the strategies below)
 
-# --- from notebook cell 61 ---
+# %%
 def population_stats(train_ids):
     # Per (system, feature) mean/median across the TRAINING split only -- used whenever a
     # patient has zero observations of a feature anywhere in their window (§1.3.2's first
@@ -37,7 +43,10 @@ def population_stats(train_ids):
             }
     return stats
 
-# --- from notebook cell 63 ---
+# %% [markdown]
+# ## 7.2 The four imputation strategies
+
+# %%
 def impute_median(raw, feature_names, system, stats):
     # §1.3.1 row 1/2: fill every NaN with the training-set median for that feature.
     out = raw.copy()
@@ -107,7 +116,17 @@ def impute_knn(raw_matrix_all_patients, k):
     imputer = KNNImputer(n_neighbors=min(k, max(raw_matrix_all_patients.shape[0] - 1, 1)))
     return imputer.fit_transform(raw_matrix_all_patients)
 
-# --- from notebook cell 65 ---
+# %% [markdown]
+# ## 7.3 The default decision-tree strategy (§1.3.2), and static-feature imputation
+#
+# Fast-changing intra-op/ward vitals (`hr`, `nibp_*`, `spo2`, `rr`, `fio2`, `bt`, ...) use
+# interpolate-and-fade; slower-changing labs use forward-fill; anything with zero
+# observations for a patient falls back to the training median — exactly the tree in §1.3.2.
+# Which item names count as "fast-changing vitals" vs. "slow-changing labs" is defined
+# explicitly below (editable) rather than inferred, so the classification is a visible,
+# checkable decision.
+
+# %%
 FAST_CHANGING_ITEMS = {
     "hr", "nibp_sbp", "nibp_dbp", "nibp_mbp", "spo2", "rr", "fio2", "bt", "uo",
     "art_sbp", "art_dbp", "art_mbp", "etco2", "peep", "pip", "pplat", "gcs_e", "gcs_m", "gcs_v",
@@ -149,7 +168,16 @@ def impute_static_vector(sid, train_static_df):
     filled = vec.fillna(train_static_df.median(numeric_only=True))
     return filled
 
-# --- from notebook cell 67 ---
+# %% [markdown]
+# ## 7.4 Running the chosen strategy end-to-end (train-fit, applied to everyone)
+#
+# `CONFIG['IMPUTATION_STRATEGY']` decides which of the four runs here. Statistics are always
+# computed from the **training split** (§8.1, run once below to get train IDs before this
+# cell, then re-used identically in §8) to avoid leakage, as promised in the Part 7 header.
+# KNN is handled specially (§7.2) since it needs the whole training matrix, not one patient
+# at a time.
+
+# %%
 # A first, lightweight split done here (before §8's full split/sampling section) purely to
 # get TRAIN_IDS for leakage-safe statistics -- §8 re-derives and USES this same split for
 # training; nothing here duplicates or conflicts with it.
@@ -185,13 +213,20 @@ else:
 for sid in ALL_IDS:
     IMPUTED_BUNDLE[sid]["static"] = impute_static_vector(sid, train_static_df)
 
+# v2 guard: the stored static vector must be in exactly the order of STATIC_FEATURE_NAMES,
+# because later steps select static columns by position looked up from that list.
+assert list(IMPUTED_BUNDLE[ALL_IDS[0]]["static"].index) == STATIC_FEATURE_NAMES, \
+    "static feature values are not in STATIC_FEATURE_NAMES order -- column selection by name would be wrong"
 print(f"Imputation strategy used: {strategy!r}")
 remaining_nans = sum(np.isnan(IMPUTED_BUNDLE[sid][system]).sum()
                       for sid in ALL_IDS for system in TIME_SERIES_SYSTEMS
                       if IMPUTED_BUNDLE[sid][system].size)
 print(f"Remaining NaNs after imputation (should be 0): {remaining_nans}")
 
-# --- from notebook cell 69 ---
+# %% [markdown]
+# ## 7.5 Side-by-side comparison of all four strategies on one real gap
+
+# %%
 # Pick one patient/system/feature with a genuine, visible gap and show what each strategy
 # does to it -- exactly the kind of comparison you said you want to be able to run yourself.
 example_sid = ALL_IDS[0]
@@ -217,7 +252,24 @@ plt.tight_layout(); plt.show()
 print("This is exactly the comparison to re-run (swap example_sid/example_system/example_feature_idx) "
       "as you experiment with §1.3's strategies on your own features of interest.")
 
-# --- from notebook cell 71 ---
+# %% [markdown]
+# ## 7.6 Which imputation method is actually most accurate, per system? A held-out masking benchmark
+#
+# Section 7.5 showed what each strategy's fill *looks like* on one gap. This section
+# measures it: for each organ system, a fraction of genuinely **observed** values are
+# artificially hidden, each strategy fills them in blind, and the result is compared against
+# the real (held-out) value that was actually there. This gives an honest, per-system answer
+# to "which method is most accurate" — not a visual impression, an average error in the
+# same clinical units the feature is measured in (e.g. mg/dL, beats/min), so it's directly
+# interpretable rather than an abstract score.
+#
+# **A limitation worth stating plainly:** this only measures accuracy on values that
+# *happened to be observed close in time to other observations* -- masking a real point and
+# then trying to reconstruct it is inherently easier than the true task of filling a gap
+# where nothing nearby was ever measured. Treat this as a relative comparison between
+# methods, not an absolute accuracy guarantee for every gap in the dataset.
+
+# %%
 def imputation_accuracy_benchmark(systems, patient_ids, mask_fraction=0.2, seed=SEED, max_patients=300):
     rng = np.random.default_rng(seed)
     bench_ids = list(patient_ids)
@@ -286,7 +338,7 @@ else:
           f"held-out (masked) real data points across all systems.")
 IMPUTATION_BENCHMARK
 
-# --- from notebook cell 72 ---
+# %%
 # Small multiples -- one subplot per system, each on its own scale (a shared axis across
 # systems would make e.g. glucose's MAE look "worse" than creatinine's purely because of
 # unit scale, not because the method is worse -- see the note above this section).
@@ -324,7 +376,32 @@ else:
     else:
         print("No systems had enough observed data to benchmark on this sample -- re-run at larger scale.")
 
-# --- from notebook cell 74 ---
+# %% [markdown]
+# ## 7.7 Regression-based imputation (MICE / `IterativeImputer`) -- tested, not assumed
+#
+# Sections 7.1-7.6 use fixed *rules* (interpolate, carry-forward, population average). This
+# section asks a genuinely different question: can a small **regression model** fill a gap
+# better by using everything else known about that same patient at that moment (e.g.
+# "given this patient's sodium, potassium, and BUN right now, what's their creatinine
+# probably doing"), instead of only looking at that one feature's own history?
+#
+# **How this differs from every method in Section 7.6:** those methods only ever look
+# *within one feature's own timeline*. `IterativeImputer` looks *across features*, learning
+# relationships between them from the whole training population, then uses those
+# relationships to fill a gap in one feature using the other features observed at the same
+# time. This is the standard MICE (Multiple Imputation by Chained Equations) approach --
+# Van Buuren & Groothuis-Oudshoorn 2011 -- fit once per organ system, pooling every training
+# patient's timesteps together so it has enough data to learn real cross-feature structure
+# (fitting it per-patient, on ~24 timesteps alone, would be far too little data to learn
+# anything).
+#
+# **Why this wasn't the default from the start, restated plainly:** MICE is normally used on
+# data that's mostly present with occasional gaps. This dataset's pre-op coverage is closer
+# to 90% *missing* per feature -- a genuinely harder regime for a method that needs some
+# signal in the other columns to predict from. This section measures whether it still helps
+# here, rather than assuming either way.
+
+# %%
 def build_regression_imputer(system, train_ids, fnames):
     # Pools every (patient, timestep) row across the given patients into one big matrix
     # -- IterativeImputer needs real cross-patient volume to learn feature relationships,
@@ -351,7 +428,14 @@ def impute_regression(raw, imputer):
 
 print("Regression (MICE) imputation defined -- benchmarked against the rule-based methods below.")
 
-# --- from notebook cell 76 ---
+# %% [markdown]
+# ### Head-to-head: regression imputation vs. the rule-based methods, same benchmark as §7.6
+#
+# Same held-out masking test as before (hide real values, predict them blind, measure the
+# real error) -- now with `IterativeImputer` added as a fourth competitor, so the comparison
+# is apples-to-apples on identical held-out points.
+
+# %%
 def imputation_accuracy_benchmark_with_regression(systems, patient_ids, mask_fraction=0.2, seed=SEED, max_patients=300):
     rng = np.random.default_rng(seed)
     bench_ids = list(patient_ids)
@@ -439,7 +523,7 @@ else:
     IMPUTATION_BENCHMARK_V2 = imputation_accuracy_benchmark_with_regression(TIME_SERIES_SYSTEMS, TRAIN_IDS_FOR_STATS)
 IMPUTATION_BENCHMARK_V2
 
-# --- from notebook cell 77 ---
+# %%
 _systems_v2 = IMPUTATION_BENCHMARK_V2["system"].unique().tolist() if len(IMPUTATION_BENCHMARK_V2) else []
 if _systems_v2:
     n_sys = len(_systems_v2)
@@ -480,7 +564,19 @@ else:
     else:
         print("No systems had enough features/data to benchmark regression imputation on this sample.")
 
-# --- from notebook cell 79 ---
+# %% [markdown]
+# ## 7.8 Standardisation (z-score, fit on training data only)
+#
+# One deliberately non-optional step, separate from the §1.3 imputation choice: raw clinical
+# values live on wildly different scales (`glucose` in the hundreds, `potassium` around 4,
+# `wbc` in the thousands per µL) — feeding that directly into a neural network makes large-
+# magnitude features dominate the loss for reasons that have nothing to do with clinical
+# importance, and destabilises the autoencoder pre-training in §10.1 in particular (its loss
+# is a raw MSE, which is scale-sensitive in exactly this way). Mean/std are computed **once,
+# from `TRAIN_IDS_FOR_STATS` only** (§7.4's split, reused here — never refit on val/test, for
+# the same leakage reason given throughout Part 7), then applied to every patient.
+
+# %%
 def compute_train_std(train_ids):
     std_stats = {}
     for system in TIME_SERIES_SYSTEMS:
@@ -524,5 +620,5 @@ print(f"Example, patient {example_sid}, renal system, post-standardisation value
       f"[{IMPUTED_BUNDLE[example_sid]['renal'].min():.2f}, {IMPUTED_BUNDLE[example_sid]['renal'].max():.2f}] "
       f"(should now be roughly within a few units of 0, not raw clinical units)")
 
-# --- from notebook cell 80 ---
+# %%
 record_checkpoint("Part 7 -- missing-data imputation + standardisation")

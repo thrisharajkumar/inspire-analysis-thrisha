@@ -1,11 +1,29 @@
-"""
-Stage 1: data loading -- one patient per JSON file, chunked parsing with Parquet
-caching, item-name inventory, the recomputed 30-day mortality label, and the cohort
-table. Converted from cells 9-22, preserved verbatim (no logic changes in this stage).
-"""
-from config import *
+# %% [markdown]
+# # Part 3 -- Data loading
+#
+# Each patient is one JSON file (in `died/` or `survived/`) with six lists: `labs`, `vitals`
+# (intra-op), `ward_vitals`, `operations`, `diagnoses`, `medications`. This section parses
+# every file **exactly once** in a single streaming pass, building all six downstream tables
+# at the same time -- rather than parsing all patients into one big in-memory dict first and
+# then re-scanning that dict once per table, which is wasted work and wasted memory at full
+# scale. This pattern (one file open, one parse, extract everything needed, discard, move on)
+# matches the proven-fast approach already used in this project's other Colab notebook on the
+# full 99,886-patient cohort.
+#
+# **Note on folder labels (§1.6.3):** the `died`/`survived` folder is used only to know which
+# files to open -- the actual mortality label used for training is **recomputed from
+# `operations`** in §5.2, not trusted from the folder name, for the reason explained there.
+#
+# **Caching (new).** The parse above is the single most expensive CPU step in this notebook
+# at full scale -- tens of thousands of small JSON files, each opened and parsed individually.
+# The first run does that parse once, then saves the resulting tables as Parquet to
+# `CONFIG['CACHE_DIR']`. Every later run (this session or a future one, if `CACHE_DIR` is on
+# a mounted Drive) checks for that cache first and, if found, loads it directly -- seconds
+# instead of minutes-to-tens-of-minutes. The cache is keyed to `SUBJECTS_DIR`,
+# `MAX_SUBJECTS_PER_CLASS`, and `TIME_WINDOW` together, so a smoke-test run and a full run (or
+# a pre-op vs. peri-op run) never collide or silently load the wrong cache.
 
-# --- from notebook cell 10 ---
+# %%
 def _safe_float(x):
     try:
         if x is None or x == "":
@@ -49,7 +67,7 @@ def _load_from_cache(subdir):
 # turn off the chunked writes themselves, since those are what keep memory bounded during
 # parsing regardless of whether a cache is wanted afterward.
 
-# --- from notebook cell 11 ---
+# %%
 def stream_parse_subjects(subjects_dir, max_per_class, time_window, cache_subdir, chunk_size, seed=SEED):
     # Parses in CHUNKS, flushed to Parquet incrementally, instead of holding every row of
     # every table as a Python dict for the WHOLE cohort in memory at once. Two separate
@@ -276,7 +294,7 @@ def stream_parse_subjects(subjects_dir, max_per_class, time_window, cache_subdir
 
     return dfs, folder_label
 
-# --- from notebook cell 12 ---
+# %%
 if CONFIG["USE_CACHE"] and _cache_complete(CACHE_SUBDIR):
     print(f"Found a matching cache at {CACHE_SUBDIR} -- loading from Parquet (fast path).")
     _t0 = time.time()
@@ -333,135 +351,52 @@ for _name, _df in [("labs_df", labs_df), ("vitals_df", vitals_df), ("ward_vitals
     _total_mb += _mb
     print(f"  {_name:16s} {_mb:8.1f} MB")
 print(f"  {'TOTAL':16s} {_total_mb:8.1f} MB")
-print("\nNOTE: this dev subset (10 died / 20 survived, i.e. 33% mortality) is almost certainly "
-      "denser than the true full cohort's average patient -- the source repo's own README "
-      "states ~9.9M total medication administrations across 99,807 patients (~99/patient), "
-      "while this 30-patient dev sample averages ~413/patient. Sicker, more-monitored dev-subset "
-      "patients generate more data points than a typical patient, so a naive linear scale-up from "
-      "this run's memory number will likely OVERESTIMATE the real full-scale footprint -- another "
-      "reason to measure with a MAX_SUBJECTS_PER_CLASS smoke test rather than extrapolate blindly.")
+_n_loaded = max(len(FOLDER_LABEL), 1)
+print(f"\nMedication administrations per loaded patient: {len(medications_df) / _n_loaded:.0f} "
+      f"(the source repo's README gives ~99/patient for the full cohort). A run that keeps every "
+      f"death but caps survivors is sicker and denser than the full cohort, so scaling this "
+      f"run's memory linearly to ~99,886 patients will tend to OVERESTIMATE the real footprint.")
 
-# --- from notebook cell 13 ---
+# %%
 # Sanity check: exactly one operation row expected per (subject, op_id); most patients
 # have one operation in this dev subset, some have several (relevant to §6.10/§6.11).
 ops_per_subject = operations_df.groupby("subject_id")["op_id"].nunique()
 print(ops_per_subject.value_counts().sort_index().rename("n_subjects_with_this_many_ops"))
 operations_df.head(3)
 
-# --- from notebook cell 15 ---
+# %% [markdown]
+# ### A note on memory and speed strategy
+#
+# If the memory printout above is tight, or a fresh (uncached) parse is taking a long time,
+# the order of things to try is:
+#
+# 1. **Confirm `TIME_WINDOW='pre_op'`** (the default) — this now skips *parsing* intra-op
+#    `vitals` entirely, not just using it, which saves both time and memory versus the
+#    earlier version of this notebook.
+# 2. **Let the cache do its job.** The first parse of a given `SUBJECTS_DIR` is the expensive
+#    one; every subsequent run (this session or later, if `CACHE_DIR` is on Drive) should be
+#    loading Parquet in seconds. If it isn't, check `CONFIG['USE_CACHE']` is `True` and that
+#    `CACHE_DIR` actually points somewhere persistent.
+# 3. **Run a `MAX_SUBJECTS_PER_CLASS` smoke test first** (e.g. 2,000–5,000) and look at the
+#    real memory printout, rather than extrapolating from this dev subset — which, per the
+#    note above, is likely denser-than-average and will overestimate the real number.
+# 4. **Only if still constrained, downsample — but the training `survived` split only, never
+#    `died`, and never validation/test** (Part 8.4 implements this, off by default). Two
+#    real costs of downsampling `survived` patients that are worth knowing before you turn
+#    it on: it shrinks the unlabelled pool the Part 9.4 autoencoder pre-training specifically
+#    relies on (a design decision made explicitly *because* splitting into six systems
+#    already splits the scarce mortality labels six ways), and if it ever touched
+#    validation/test it would corrupt the true ~0.47% prevalence that makes AUPRC meaningful
+#    — which is why it's restricted to the training split only.
+# 5. **If you do downsample, stratify by `department`, not by ICD-10 "organ system."**
+#    Department is a single, always-populated categorical field per patient — clean to
+#    stratify on. ICD-10 diagnoses are multi-label (a patient's diagnoses can span several
+#    organ-system chapters at once), so there's no single unambiguous rule for assigning one
+#    patient to one "organ-system stratum" without inventing a new, separate convention just
+#    for this — and department is already the stratification key `§8.2`'s grouped SMOTENC
+#    uses, so reusing it keeps one consistent clinical-neighbourhood definition through the
+#    whole pipeline instead of two different ones.
+
+# %%
 record_checkpoint("Part 3 -- data loading")
 print(f"Part 3 complete. Elapsed so far: {time.time() - RUN_TIMER['checkpoints'][0][1]:.1f}s")
-
-# --- from notebook cell 18 ---
-def item_name_inventory(*dfs_and_names):
-    inv = {}
-    for df, name in dfs_and_names:
-        inv[name] = sorted(df["item_name"].dropna().unique().tolist()) if "item_name" in df.columns and len(df) else []
-    return inv
-
-INVENTORY = item_name_inventory((labs_df, "labs"), (vitals_df, "vitals (intra-op)"), (ward_vitals_df, "ward_vitals"))
-for name, items in INVENTORY.items():
-    print(f"{name}: {len(items)} distinct item_names")
-
-# GI/MSK check: do any of these look like GI- or MSK-specific measurements?
-gi_keywords = ["bowel", "stool", "gi_", "gastro", "bilirubin"]  # bilirubin included to show it's hepatic, see §1.2.3
-msk_keywords = ["mobility", "joint", "rom", "muscle", "ortho"]
-all_items = set(sum(INVENTORY.values(), []))
-print("\nItems matching GI-ish keywords:", [i for i in all_items if any(k in i.lower() for k in gi_keywords)])
-print("Items matching MSK-ish keywords:", [i for i in all_items if any(k in i.lower() for k in msk_keywords)])
-print("\n-> Confirms §1.2.3: no dedicated GI or MSK signal in labs/vitals/ward_vitals.")
-print("   GI and MSK must be built from ICD-10 diagnoses + department (done in §6.7-6.8).")
-
-# --- from notebook cell 20 ---
-MINUTES_PER_DAY = 24 * 60
-
-def compute_labels(operations_df):
-    # One row per subject. Mirrors subject.py's inhosp_death_30day() logic:
-    # died = inhosp_death_time is set AND inhosp_death_time < orout_time(last op) + 30 days.
-    # 'last op' = operation with the max orin_time for that subject (current repo convention;
-    # see §1.6.3/CONFIG note below for why this is a genuine open question, not a settled one).
-    rows = []
-    for sid, g in operations_df.groupby("subject_id"):
-        g = g.sort_values("orin_time")
-        first_op = g.iloc[0]
-        last_op = g.iloc[-1]
-        n_ops = len(g)
-
-        inhosp_death_time = first_op["inhosp_death_time"]   # same across all ops for a subject, per source repo's note
-        allcause_death_time = first_op["allcause_death_time"]
-
-        # NOTE: pandas stores our None sentinels as NaN once a column mixes numbers and
-        # missing values, so `x is not None` silently fails here -- must use pd.notna().
-        has_inhosp_death = pd.notna(inhosp_death_time)
-
-        died_30day_from_last = False
-        died_30day_from_first = False
-        if has_inhosp_death:
-            if pd.notna(last_op["orout_time"]):
-                died_30day_from_last = inhosp_death_time < (last_op["orout_time"] + 30 * MINUTES_PER_DAY)
-            if pd.notna(first_op["orout_time"]):
-                died_30day_from_first = inhosp_death_time < (first_op["orout_time"] + 30 * MINUTES_PER_DAY)
-
-        died_ever = has_inhosp_death
-
-        rows.append({
-            "subject_id": sid,
-            "n_operations": n_ops,
-            "age": last_op["age"],
-            "sex": last_op["sex"],
-            "asa": last_op["asa"],
-            "emop": last_op["emop"],
-            "department": last_op["department"],
-            "antype": last_op.get("antype"),
-            "weight": last_op["weight"],
-            "height": last_op["height"],
-            "op_id_last": last_op["op_id"],
-            "orin_time_last": last_op["orin_time"],
-            "orout_time_last": last_op["orout_time"],
-            "admission_time_last": last_op["admission_time"],
-            "discharge_time_last": last_op["discharge_time"],
-            "died_ever": died_ever,                                   # NOT the training label - see §1.6.3
-            "died_30day_from_last_op": died_30day_from_last,          # default training label (Path C = 'last operation', see §1.6.4/§11.7)
-            "died_30day_from_first_op": died_30day_from_first,        # sensitivity-analysis alternative
-        })
-    return pd.DataFrame(rows)
-
-cohort_df = compute_labels(operations_df)
-cohort_df = cohort_df.merge(
-    pd.Series(FOLDER_LABEL, name="folder_label").rename_axis("subject_id").reset_index(),
-    on="subject_id", how="left"
-)
-
-# Cross-check against the folder label, exactly the check §1.6.3 says not to skip.
-cohort_df["folder_says_died"] = cohort_df["folder_label"].eq("died")
-mismatch = cohort_df[cohort_df["folder_says_died"] != cohort_df["died_30day_from_last_op"]]
-print(f"Cohort: {len(cohort_df)} patients.")
-print(f"  died_ever (all-cause, any time)      : {cohort_df['died_ever'].sum()}")
-print(f"  died_30day_from_last_op (TRAINING LABEL) : {cohort_df['died_30day_from_last_op'].sum()}")
-print(f"  died_30day_from_first_op (sensitivity)   : {cohort_df['died_30day_from_first_op'].sum()}")
-print(f"  folder-label says 'died'             : {cohort_df['folder_says_died'].sum()}")
-print(f"  Rows where folder label != recomputed 30-day label: {len(mismatch)}  "
-      f"(non-zero here is expected and is exactly the §1.6.3 bug the recompute avoids inheriting)")
-mismatch[["subject_id", "folder_says_died", "died_ever", "died_30day_from_last_op"]]
-
-# --- from notebook cell 22 ---
-# Per-subject operation history (all ops, in order) — used later for the "operations in the
-# same area" feature (§6.10) and the post-cardiac-surgery exception flag (§6.11).
-OPS_HISTORY = {}
-for sid, g in operations_df.groupby("subject_id"):
-    g = g.sort_values("orin_time")
-    OPS_HISTORY[sid] = g.to_dict("records")
-
-print("Departments observed:", sorted(operations_df["department"].dropna().unique().tolist()))
-print("\nMortality (30-day, last-op label) by department:")
-tmp = cohort_df.groupby("department")["died_30day_from_last_op"].agg(["mean", "count"])
-print(tmp.sort_values("mean", ascending=False))
-
-fig, axes = plt.subplots(1, 2, figsize=(11, 4))
-cohort_df["n_operations"].value_counts().sort_index().plot(kind="bar", ax=axes[0], color="#0a7d6e")
-axes[0].set_title("Operations per patient"); axes[0].set_xlabel("n_operations"); axes[0].set_ylabel("n_patients")
-
-dep_mort = cohort_df.groupby("department")["died_30day_from_last_op"].mean().sort_values(ascending=False)
-dep_mort.plot(kind="bar", ax=axes[1], color="#c0392b")
-axes[1].set_title("30-day mortality rate by department"); axes[1].set_ylabel("mortality rate")
-plt.tight_layout(); plt.show()
