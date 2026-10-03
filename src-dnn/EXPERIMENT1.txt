@@ -1,0 +1,560 @@
+==============================================================================
+>>> 00_setup.py
+==============================================================================
+Setup check complete.
+Device: cpu
+Not running on Colab -- skipping the Drive-zip extraction step. On Kaggle, attach your dataset and Part 2's auto-detection will find it under /kaggle/input.
+CONFIG overrides applied: {'SUBJECTS_DIR': '/Users/james/Documents/inspire-mortality-research/dataset/derived/inspire_subjects'}
+Architecture: ENCODER_SIZE='medium' (embed=32, heads=4, layers=2), COUPLING_MODE='learned', ARBITRATION=True, WHOLE_PATIENT=True, SHARED_ENCODER=True, NEWS2=True, profile='subset', N_ENSEMBLE=3
+Environment: local/other
+SUBJECTS_DIR   -> /Users/james/Documents/inspire-mortality-research/dataset/derived/inspire_subjects
+CODES_DIR      -> None (optional — used only for richer ICD-10/ATC descriptions)
+CHECKPOINT_DIR -> ./inspire_checkpoints (local/ephemeral -- will NOT survive a Colab disconnect; mount Drive if you're on Colab)
+CACHE_DIR      -> ./inspire_parsed_cache (local/ephemeral -- re-parses every fresh session)
+Run-time tracking initialised.
+<<< 00_setup.py done in 19.8s
+
+==============================================================================
+>>> 01_data_loading.py
+==============================================================================
+No cache found at ./inspire_parsed_cache/parsed_11465f08bb43 -- parsing from scratch (this happens once; chunks are written to disk as they're parsed, see Part 3's note on memory).
+10942 subject files to parse, in chunks of 2000...
+  ...2000/10942 (37s elapsed, chunk flushed to disk)
+  ...4000/10942 (63s elapsed, chunk flushed to disk)
+  ...6000/10942 (89s elapsed, chunk flushed to disk)
+  ...8000/10942 (114s elapsed, chunk flushed to disk)
+  ...10000/10942 (141s elapsed, chunk flushed to disk)
+  ...10942/10942 (153s elapsed, chunk flushed to disk)
+Parsed 10942 subjects in 152.7s (chunked streaming, pre_op -- intra-op vitals skipped entirely, not just unused)
+
+Loaded 10942 subjects (942 in died/, 10000 in survived/ — folder-provided, unverified)
+
+DOWNSAMPLING REPORT (CONFIG['MAX_SUBJECTS_PER_CLASS']=10000):
+  died:     942 loaded -- ALL real deaths are always kept, this cap never touches them
+  survived: 10000 loaded (capped from the full cohort's ~99,417 survivors, randomly sampled per-file before parsing -- see load_all_subjects)
+  This is a real, intentional target run size, not a placeholder smoke test -- set MAX_SUBJECTS_PER_CLASS=None only once you have the time budget for the true full ~99,886-patient cohort (expect data loading alone to take several minutes more).
+TIME_WINDOW='pre_op' -- intra-op vitals table NOT parsed at all (not just unused), saving both time and memory. Switch to 'peri_op' in Part 2 if you need it.
+
+labs_df         (3510993, 4)
+vitals_df       (0, 5)  (intra-op)
+ward_vitals_df  (9593271, 4)
+operations_df   (14657, 29)
+diagnoses_df    (288206, 3)
+medications_df  (1679049, 9)
+
+Actual memory used by each table (post dtype-optimization) -- watch this number, not a guess extrapolated from a different-sized run:
+  labs_df              43.0 MB
+  vitals_df             0.0 MB
+  ward_vitals_df      116.0 MB
+  operations_df        10.6 MB
+  diagnoses_df          3.5 MB
+  medications_df       27.9 MB
+  TOTAL               201.1 MB
+
+Medication administrations per loaded patient: 153 (the source repo's README gives ~99/patient for the full cohort). A run that keeps every death but caps survivors is sicker and denser than the full cohort, so scaling this run's memory linearly to ~99,886 patients will tend to OVERESTIMATE the real footprint.
+op_id
+1     8451
+2     1780
+3      447
+4      156
+5       47
+6       29
+7       13
+8        7
+9        4
+10       5
+11       1
+12       1
+16       1
+Name: n_subjects_with_this_many_ops, dtype: int64
+Part 3 complete. Elapsed so far: 157.4s
+<<< 01_data_loading.py done in 157.4s
+
+==============================================================================
+>>> 02_labels_and_eda.py
+==============================================================================
+labs: 38 distinct item_names
+vitals (intra-op): 0 distinct item_names
+ward_vitals: 16 distinct item_names
+
+Items matching GI-ish keywords: ['total_bilirubin']
+Items matching MSK-ish keywords: []
+
+-> Confirms §1.2.3: no dedicated GI or MSK signal in labs/vitals/ward_vitals.
+   GI and MSK must be built from ICD-10 diagnoses + department (done in §6.7-6.8).
+Cohort: 10942 patients.
+  died_ever (all-cause, any time)      : 923
+  died_30day_from_last_op (TRAINING LABEL) : 469
+  died_30day_from_first_op (sensitivity)   : 358
+  folder-label says 'died'             : 942
+  Rows where folder label != recomputed 30-day label: 473  (non-zero here is expected and is exactly the §1.6.3 bug the recompute avoids inheriting)
+Departments observed: ['AN', 'CTS', 'GS', 'IM', 'NS', 'OG', 'OL', 'OS', 'OT', 'PED', 'PS', 'RAD', 'RO', 'UR']
+
+Mortality (30-day, last-op label) by department:
+                mean  count
+department                 
+AN          0.571429      7
+IM          0.300000     10
+CTS         0.105384    873
+NS          0.083818    859
+RAD         0.064516     31
+GS          0.054747   3160
+OL          0.052632   1102
+OS          0.029840   1374
+UR          0.011614    861
+PS          0.010695    374
+OG          0.005181   1158
+OT          0.003540   1130
+PED         0.000000      2
+RO          0.000000      1
+Cohort: 10942 patients -- 469 died within 30 days (4.3%), 10473 survived (95.7%)
+         mean  count
+asa                 
+1    0.007234   3594
+2    0.016007   5685
+3    0.152289   1136
+4    0.448598    107
+5    0.727273     11
+6    0.979167     48
+Lowest-coverage pre-op labs (candidates for the MNAR discussion in §1.3):
+item_name
+ica           0.096966
+hba1c         0.090294
+ck            0.055566
+ckmb          0.054926
+lacate        0.042223
+troponin_i    0.039390
+d_dimer       0.000731
+troponin_t    0.000183
+Name: subject_id, dtype: float64
+chapter
+II       50764
+XIV      36579
+IX       21002
+VII      20598
+XVIII    19848
+XIII     15432
+XI       15293
+IV       14450
+XXI      12438
+X        10937
+XIX       9675
+VI        3844
+I         3838
+VIII      3827
+XII       3151
+XV        2353
+III        403
+XXII       336
+XX          20
+Name: count, dtype: int64
+<<< 02_labels_and_eda.py done in 17.5s
+
+==============================================================================
+>>> 03_organ_system_features.py
+==============================================================================
+WARNING: vitals (intra-op)/renal references unseen item_names: ['uo']
+WARNING: vitals (intra-op)/cardiovascular references unseen item_names: ['hr', 'art_sbp', 'art_dbp', 'art_mbp', 'ci', 'cvp', 'svi', 'nibp_sbp', 'nibp_dbp', 'nibp_mbp', 'pap_sbp', 'pap_dbp', 'pap_mbp']
+WARNING: vitals (intra-op)/respiratory references unseen item_names: ['etco2', 'fio2', 'spo2', 'peep', 'pip', 'pplat', 'rr', 'minvol', 'vt']
+WARNING: vitals (intra-op)/metabolic_hepatic references unseen item_names: ['bt']
+WARNING: vitals (intra-op)/haematology references unseen item_names: ['ebl', 'rbc', 'ffp']
+WARNING: vitals (intra-op)/neurological references unseen item_names: ['bis']
+Routing map validated against §4.1 inventory (no warnings above = every referenced item_name exists).
+TIME_WINDOW = 'pre_op'  (see §1.6.3 for what each option represents)
+Synthetic benchmark table: 400,000 rows, 2,000 subjects (a small slice of the full cohort's scale, kept small here so the OLD method's demo below finishes quickly -- the gap only widens at the real ~99,886-patient size)
+
+900 lookups against a 400,000-row table:
+  old (full-scan every call):    0.54s total  (0.599 ms/call)
+  new -- one-time group build:   2.15s (paid ONCE per table for the whole notebook run)
+  new -- 900 grouped lookups: 0.0074s  (0.00821 ms/call)
+  marginal per-call speedup:     73x  (this is the number that matters at full scale, where millions of calls share one build)
+
+The one-time build cost scales with table size (more rows/groups to organise), so at the real full-cohort scale expect the build itself to take real minutes, not seconds -- that is an acceptable, one-time cost given it replaces what would otherwise be a multi-day total runtime under the old per-call scan.
+renal             : 10 features,  5.3% of (patient,timepoint,feature) cells observed in-window
+cardiovascular    :  8 features, 12.7% of (patient,timepoint,feature) cells observed in-window
+respiratory       : 11 features,  5.8% of (patient,timepoint,feature) cells observed in-window
+metabolic_hepatic : 10 features,  7.7% of (patient,timepoint,feature) cells observed in-window
+haematology       : 10 features,  6.0% of (patient,timepoint,feature) cells observed in-window
+neurological      :  3 features,  1.1% of (patient,timepoint,feature) cells observed in-window
+Cardiovascular summary built for 10942 patients (NaNs below reflect real missingness -- filled properly in §7, not here).
+Patients with >=1 diagnosis in each organ system's ICD-10 chapter (pre-op window):
+  renal                1449 / 10942
+  cardiovascular        684 / 10942
+  respiratory           673 / 10942
+  metabolic_hepatic     539 / 10942
+  haematology            13 / 10942
+  neurological          104 / 10942
+  gi                    855 / 10942
+  msk                   832 / 10942
+Patients with HFRS > 0 (i.e. aged 75+ with a matching code): 795 / 10942
+CRP 'elevated' threshold (75th percentile of all observed CRP in this cohort): 8.300000190734863
+
+Patients with infection_composite_score > 0: 1490 / 10942
+Patients with >=1 prior operation in the same department as their last: 1790 / 10942
+Patients flagged (last op within 6 months of a prior CTS op): 112 / 10942
+(Low or zero counts are expected on this 30-patient dev subset -- re-run on the full cohort, where cardiothoracic re-intervention is far more likely to appear.)
+Aggregated features built: 39 new static features (36 mean/min/max/std + 3 count-based)
+Patients with >=1 severe-hypotension reading: 354 / 10942
+Patients with >=1 vasopressor administration in-window: 677 / 10942
+<<< 03_organ_system_features.py done in 124.4s
+
+==============================================================================
+>>> 04_news2.py
+==============================================================================
+NEWS2 scoring self-test against the RCP 2017 chart: PASSED
+NEWS2 computed for 10942 patients in 3.7s
+  patients with >=1 scorable observation set: 10555 (96.5%)
+  core vitals observed per set (of 5): mean 4.20; sets with all 5: 45.7% -- the rest had a component carried forward or unscored (see the approximation note above)
+              mortality_rate  n_patients
+worst_band                              
+low (0-4)           0.018441       10032
+medium (5-6)        0.342391         184
+high (7+)           0.589971         339
+
+Mortality rises across NEWS2 bands: YES (a sanity check on the implementation, not a model result)
+<<< 04_news2.py done in 3.8s
+
+==============================================================================
+>>> 05_patient_bundle.py
+==============================================================================
+Bundle built for 10942 patients.
+Static feature vector length: 105
+Static features: ['age', 'agg_creatinine_max', 'agg_creatinine_mean', 'agg_creatinine_min', 'agg_creatinine_std', 'agg_glucose_max', 'agg_glucose_mean', 'agg_glucose_min', 'agg_glucose_std', 'agg_hb_max', 'agg_hb_mean', 'agg_hb_min', 'agg_hb_std', 'agg_hr_max', 'agg_hr_mean', 'agg_hr_min', 'agg_hr_std', 'agg_lacate_max', 'agg_lacate_mean', 'agg_lacate_min', 'agg_lacate_std', 'agg_nibp_mbp_max', 'agg_nibp_mbp_mean', 'agg_nibp_mbp_min', 'agg_nibp_mbp_std', 'agg_potassium_max', 'agg_potassium_mean', 'agg_potassium_min', 'agg_potassium_std', 'agg_spo2_max', 'agg_spo2_mean', 'agg_spo2_min', 'agg_spo2_std', 'agg_wbc_max', 'agg_wbc_mean', 'agg_wbc_min', 'agg_wbc_std', 'asa', 'cardiac_recovery_exception', 'cardio_has_iabp', 'cardio_map_deviation', 'cardio_mean_hr', 'days_since_last_op_any_dept', 'days_since_last_op_same_dept', 'dept_AN', 'dept_CTS', 'dept_GS', 'dept_IM', 'dept_NS', 'dept_OG', 'dept_OL', 'dept_OS', 'dept_OT', 'dept_PED', 'dept_PS', 'dept_RAD', 'dept_RO', 'dept_UR', 'emop', 'gi_department_flag', 'height', 'hfrs', 'high_alert_med_administration_count', 'infection_chapter_i_flag', 'infection_composite_score', 'infection_crp_elevated_flag', 'infection_fever_flag', 'infection_high_risk_code_flag', 'infection_wbc_abnormal_flag', 'msk_department_flag', 'n_diagnoses_in_window', 'n_distinct_atc2_classes', 'n_distinct_chapters_in_window', 'n_distinct_drug_names', 'n_medication_administrations', 'n_operations_total', 'n_prior_ops_any_dept', 'n_prior_ops_same_dept', 'news2_available', 'news2_high_flag', 'news2_last', 'news2_max', 'news2_mean', 'news2_n_sets', 'news2_red_flag', 'severe_hypotension_reading_count', 'sex_F', 'sysdx_cardiovascular_count', 'sysdx_cardiovascular_flag', 'sysdx_gi_count', 'sysdx_gi_flag', 'sysdx_haematology_count', 'sysdx_haematology_flag', 'sysdx_metabolic_hepatic_count', 'sysdx_metabolic_hepatic_flag', 'sysdx_msk_count', 'sysdx_msk_flag', 'sysdx_neurological_count', 'sysdx_neurological_flag', 'sysdx_renal_count', 'sysdx_renal_flag', 'sysdx_respiratory_count', 'sysdx_respiratory_flag', 'vasopressor_administration_count', 'weight']
+  renal              time-series features (10): ['bun', 'calcium', 'chloride', 'creatinine', 'ica', 'phosphorus', 'potassium', 'sodium', 'crrt', 'uo']
+  cardiovascular     time-series features (8): ['ck', 'ckmb', 'troponin_i', 'hr', 'nibp_sbp', 'nibp_dbp', 'nibp_mbp', 'iabp']
+  respiratory        time-series features (11): ['be', 'hco3', 'paco2', 'pao2', 'ph', 'sao2', 'fio2', 'rr', 'spo2', 'vent', 'ecmo']
+  metabolic_hepatic  time-series features (10): ['albumin', 'alp', 'alt', 'ast', 'glucose', 'hba1c', 'lacate', 'total_bilirubin', 'total_protein', 'bt']
+  haematology        time-series features (10): ['aptt', 'crp', 'fibrinogen', 'hb', 'hct', 'lymphocyte', 'platelet', 'ptinr', 'seg', 'wbc']
+  neurological       time-series features (3): ['gcs_e', 'gcs_m', 'gcs_v']
+Freed medications_df/diagnoses_df (~45.2 MB on this dev subset). labs_df/vitals_df/ward_vitals_df are kept alive -- needed by §11.8's risk-trajectory analysis, which re-queries them at custom time cutoffs after training.
+Positive rate in bundle: 4.3%  (469 / 10942)
+For reference, the full cohort's rate is ~0.5-0.9% (§1.4). A run that keeps every death but caps survivors (MAX_SUBJECTS_PER_CLASS=10000) has a higher rate than deployment -- AUPRC and calibration here are not deployment numbers.
+NEWS2 in the static vector: True  |  renal_cardiac_interaction (manual coupling feature) included: False
+<<< 05_patient_bundle.py done in 1.8s
+
+==============================================================================
+>>> 06_imputation.py
+==============================================================================
+Imputation strategy used: 'decision_tree'
+Remaining NaNs after imputation (should be 0): 0
+This is exactly the comparison to re-run (swap example_sid/example_system/example_feature_idx) as you experiment with §1.3's strategies on your own features of interest.
+CONFIG['SKIP_IMPUTATION_ACCURACY_BENCHMARKS']=True -- skipping this benchmark to keep total runtime inside the 20-30 minute budget. The function above is still defined -- set the flag to False and re-run this cell to get real numbers.
+Skipped (CONFIG['SKIP_IMPUTATION_ACCURACY_BENCHMARKS']=True) -- not a data problem.
+Regression (MICE) imputation defined -- benchmarked against the rule-based methods below.
+CONFIG['SKIP_IMPUTATION_ACCURACY_BENCHMARKS']=True -- skipping this benchmark. This is the single most expensive optional section in the notebook (IterativeImputer/MICE fitting is iterative) -- set the flag to False and re-run once you've confirmed your session's timing headroom.
+Skipped (CONFIG['SKIP_IMPUTATION_ACCURACY_BENCHMARKS']=True) -- not a data problem.
+Standardisation applied (train-fit z-score) to all time-series and static features.
+Example, patient 100017370, renal system, post-standardisation value range: [-1.23, 3.00] (should now be roughly within a few units of 0, not raw clinical units)
+<<< 06_imputation.py done in 94.3s
+
+==============================================================================
+>>> 07_split_and_sampling.py
+==============================================================================
+train: n=6565  positives=281  rate=4.3%
+val  : n=2188  positives=94  rate=4.3%
+test : n=2189  positives=94  rate=4.3%
+DOWNSAMPLE_TRAIN_SURVIVED_TO is None -- no downsampling applied (recommended default).
+Static features flagged categorical for SMOTENC: 37 / 105 (['asa', 'cardiac_recovery_exception', 'cardio_has_iabp', 'dept_AN', 'dept_CTS', 'dept_GS', 'dept_IM', 'dept_NS', 'dept_OG', 'dept_OL', 'dept_OS', 'dept_OT', 'dept_PED', 'dept_PS', 'dept_RAD', 'dept_RO', 'dept_UR', 'emop', 'gi_department_flag', 'infection_chapter_i_flag', 'infection_crp_elevated_flag', 'infection_fever_flag', 'infection_high_risk_code_flag', 'infection_wbc_abnormal_flag', 'msk_department_flag', 'news2_available', 'news2_high_flag', 'news2_red_flag', 'sex_F', 'sysdx_cardiovascular_flag', 'sysdx_gi_flag', 'sysdx_haematology_flag', 'sysdx_metabolic_hepatic_flag', 'sysdx_msk_flag', 'sysdx_neurological_flag', 'sysdx_renal_flag', 'sysdx_respiratory_flag'])
+Grouped SMOTENC: 8 strata synthesized (184 synthetic patients), 48 skipped (too few real positives, or already at/above target ratio), 0 ERRORED
+Tomek cleanup: removed 23 real (majority) patients, 0 synthetic patients as ambiguous boundary pairs
+Final effective training set: 6542 real + 184 synthetic patients. Residual pos_weight after sampling: 13.46 (sampling narrowed the gap; loss-weighting finishes it, per Part C step 8)
+
+SAMPLING_STRATEGY = 'grouped_smotenc_tomek'
+Effective training set size: 6542 real patients + 184 synthetic
+pos_weight passed to the loss function: 13.46
+feature                                    news2_max (SMOTENC)                     news2_mean (SMOTENC)
+n_before                                                   270                                      270
+n_after                                                    184                                      184
+median_before                                              6.0                                 3.069384
+median_after                                          2.613465                                 1.158928
+mean_before                                           6.388889                                 3.674405
+mean_after                                             3.95325                                 2.301056
+pct_high_before                                       0.481481                                 0.140741
+pct_high_after                                        0.217391                                 0.070652
+n_outside_range_after                                        0                                        0
+ks_stat                                               0.356884                                 0.311433
+ks_p                                                       0.0                                      0.0
+verdict                REVIEW: distribution shifted (KS > 0.2)  REVIEW: distribution shifted (KS > 0.2)
+pct_non_integer_after                                 0.755435                                      1.0
+Assigned time-series donors to 184 synthetic patients from 51 distinct real died patients (max reuse of one donor: 13).
+Sequence augmentation: 562 augmented copies (2 per real positive training patient, jitter_sigma=0.05)
+<<< 07_split_and_sampling.py done in 0.8s
+
+==============================================================================
+>>> 08_dataset_and_model.py
+==============================================================================
+Balanced sampler on: ~10% deaths per batch; pos_weight set to 9.0
+train_dataset: 7288 items (6542 real, 184 synthetic, 562 augmented)
+val_dataset:   2188 items
+test_dataset:  2189 items
+
+Example batch shapes:
+  renal_x              (256, 24, 10)
+  renal_mask           (256, 24, 10)
+  cardiovascular_x     (256, 24, 8)
+  cardiovascular_mask  (256, 24, 8)
+  respiratory_x        (256, 24, 11)
+  respiratory_mask     (256, 24, 11)
+  metabolic_hepatic_x  (256, 24, 10)
+  metabolic_hepatic_mask (256, 24, 10)
+  haematology_x        (256, 24, 10)
+  haematology_mask     (256, 24, 10)
+  neurological_x       (256, 24, 3)
+  neurological_mask    (256, 24, 3)
+  static               (256, 105)
+  label                (256,)
+feature                           news2 per time point (jitter + time-mask)
+n_before                                                               7547
+n_after                                                                7547
+median_before                                                           3.0
+median_after                                                            3.0
+mean_before                                                        4.009143
+mean_after                                                         3.560488
+pct_high_before                                                    0.242348
+pct_high_after                                                     0.188154
+n_outside_range_after                                                     0
+ks_stat                                                            0.069432
+ks_p                                                                    0.0
+verdict                                                                PASS
+mean_abs_change                                                    0.481251
+pct_band_changed                                                   0.100967
+pct_points_hidden_by_time_mask                                      0.10813
+dtype: object
+
+Reading this: jitter moved NEWS2 by 0.48 points on average and changed the risk band at 10.1% of scorable time points. Under ~10% band changes is a gentle augmentation; if it is much higher, lower CONFIG['JITTER_SIGMA'].
+Loss configured: pos_weight BCE, pos_weight=9.00
+renal              | over time: bun, calcium, chloride, creatinine, ica, phosphorus, potassium, sodium
+                   | static:    agg_creatinine_max, agg_creatinine_mean, agg_creatinine_min, agg_creatinine_std, agg_potassium_max, agg_potass
+cardiovascular     | over time: ck, ckmb, troponin_i, hr, nibp_sbp, nibp_dbp, nibp_mbp, iabp
+                   | static:    agg_hr_max, agg_hr_mean, agg_hr_min, agg_hr_std, agg_nibp_mbp_max, agg_nibp_mbp_mean, agg_nibp_mbp_min, agg_ni
+respiratory        | over time: be, hco3, paco2, pao2, ph, sao2, fio2, rr, spo2, vent, ecmo
+                   | static:    agg_spo2_max, agg_spo2_mean, agg_spo2_min, agg_spo2_std, sysdx_respiratory_count, sysdx_respiratory_flag
+metabolic_hepatic  | over time: albumin, alp, alt, ast, glucose, hba1c, lacate, total_bilirubin, total
+                   | static:    agg_glucose_max, agg_glucose_mean, agg_glucose_min, agg_glucose_std, agg_lacate_max, agg_lacate_mean, agg_laca
+haematology        | over time: aptt, crp, fibrinogen, hb, hct, lymphocyte, platelet, ptinr, seg, wbc
+                   | static:    agg_hb_max, agg_hb_mean, agg_hb_min, agg_hb_std, agg_wbc_max, agg_wbc_mean, agg_wbc_min, agg_wbc_std, sysdx_ha
+neurological       | over time: gcs_e, gcs_m, gcs_v
+                   | static:    sysdx_neurological_count, sysdx_neurological_flag
+gi                 | over time: (none in this dataset)
+                   | static:    gi_department_flag, sysdx_gi_count, sysdx_gi_flag
+msk                | over time: (none in this dataset)
+                   | static:    msk_department_flag, sysdx_msk_count, sysdx_msk_flag
+patient context    | over time: -
+                   | static:    age, asa, cardiac_recovery_exception, days_since_last_op_any_dept, days_since_last_op_same_dept, dept_AN, dept
+
+MortalityModel built: 189,973 parameters in total
+  organ-system encoder (one shared body): 40,672
+  whole-patient layer: 23,968   coupling layer: 4,552   arbitration layer: 1,320
+Terms in the risk (each reported separately): ['renal', 'cardiovascular', 'respiratory', 'metabolic_hepatic', 'haematology', 'neurological', 'gi', 'msk', 'whole_patient']
+Architecture fingerprint: 8f603514ea (checkpoints are tagged with this)
+
+Smoke test forward pass OK. logit shape: (256,)
+Terms sum exactly to the logit: True
+<<< 08_dataset_and_model.py done in 0.4s
+
+==============================================================================
+>>> 09_training.py
+==============================================================================
+Training-set AUPRC will be tracked on 5000 real training patients (215 deaths).
+Phase 1: label-free pre-training (own-data reconstruction + masked-system prediction)
+  epoch   0  own-data=8.5786  masked-system=9.0563
+  epoch   5  own-data=4.5649  masked-system=5.0669
+  epoch  10  own-data=4.1983  masked-system=4.9625
+  epoch  15  own-data=3.7318  masked-system=6.1714
+  epoch  20  own-data=3.1877  masked-system=5.0120
+  epoch  25  own-data=2.8623  masked-system=5.8324
+  early stopping at epoch 27
+The masked-system curve falling means the coupling layer is learning to predict a hidden organ system from the others -- i.e. it is finding real inter-system relationships before it ever sees a label.
+
+Phase 2: fine-tuning on 30-day mortality
+  epoch   0  loss=0.8788  train_auprc=0.584  val_auprc=0.468  val_auroc=0.939
+  epoch   7  loss=0.2100  train_auprc=0.738  val_auprc=0.462  val_auroc=0.925
+  early stopping at epoch 12 -- val AUPRC hasn't improved in 8 epochs
+
+Restored best epoch 4 (val AUPRC=0.496).
+At the chosen epoch: training AUPRC 0.653 vs validation 0.496 (gap +0.157). A gap that keeps widening after the chosen epoch is memorisation; early stopping is what protects the chosen model from it.
+Validation set: 2188 patients, 94 deaths -- read the trend, not single epochs.
+<<< 09_training.py done in 502.7s
+
+==============================================================================
+>>> 10_evaluation.py
+==============================================================================
+TEST  AUPRC=0.621 (95% CI 0.514-0.717)  AUROC=0.962 (95% CI 0.942-0.977)  (n=2189, deaths=94; chance AUPRC = 0.043)
+Brier score: 0.041  (0 = perfect calibration, 0.25 = a coin flip's worth of miscalibration)
+
+Confusion matrix @ threshold 0.5 (rows=true, cols=pred) [[TN, FP], [FN, TP]]:
+[[1998   97]
+ [  19   75]]
+0.5 is an arbitrary default threshold -- see §11.1b below for a threshold actually chosen from the PR curve, per Part C step 9.
+Test-set performance at the best-F1 threshold:
+                                     threshold    recall  precision deaths_caught  false_alarms
+chosen on                                                                                      
+validation (honest)                   0.698022  0.755319   0.510791         71/94            68
+test itself (v1 method, optimistic)   0.779647  0.744681   0.534351         70/94            61
+
+Confusion matrix on TEST @ validation-chosen threshold 0.698 [[TN, FP], [FN, TP]]:
+[[2027   68]
+ [  23   71]]
+
+Nearby thresholds on the test PR curve, for choosing a clinical trade-off by hand (then fix it on validation data before quoting it):
+  threshold=0.748  precision=0.52  recall=0.74
+  threshold=0.759  precision=0.53  recall=0.74
+  threshold=0.759  precision=0.53  recall=0.74
+  threshold=0.780  precision=0.53  recall=0.74
+  threshold=0.781  precision=0.53  recall=0.73
+  threshold=0.783  precision=0.53  recall=0.73
+  threshold=0.784  precision=0.53  recall=0.72
+Test Brier score: raw 0.0407 -> recalibrated 0.0238  (test prevalence 4.29%; mean predicted risk raw 9.09% -> recalibrated 4.41%)
+                             auprc  auroc   auprc_95ci
+logistic regression          0.552  0.933  0.437-0.660
+gradient boosting            0.621  0.957  0.507-0.728
+organ-system DNN (this run)  0.621  0.962  0.503-0.716
+chance                       0.043  0.500            -
+
+Test set: 2189 patients, 94 deaths. With this many deaths a gap of a few AUPRC points can be noise -- repeat over seeds (Part 12) before concluding.
+Training 2 more ensemble members (same recipe, different seeds)...
+  seed 143: best val AUPRC 0.507
+    (8.0 min)
+  seed 244: best val AUPRC 0.506
+    (8.0 min)
+ member  test_auprc  test_auroc
+      0       0.621       0.962
+      1       0.616       0.959
+      2       0.637       0.963
+
+Spread across members: AUPRC 0.616-0.637 (this spread is seed noise -- differences smaller than it are not real)
+ENSEMBLE of 3: AUPRC 0.639 (95% CI 0.529-0.748), AUROC 0.963 (95% CI 0.943-0.978)
+Per-patient disagreement between members: median SD of predicted risk 0.014, 90th percentile 0.122
+Even split for a single link = 14.3% (attention spread evenly over the other 7 systems).
+The 95% CI resamples PATIENTS for this one trained model -- it shows how consistent the pattern is across patients, not whether it would re-appear if the model were retrained. Part 11.4b tests that.
+                                                          in plain words  attention_%  95%_CI     died_%  survived_%  receiver_uses_messages  above_even_split
+0           The model's reading of Metabolism & liver draws on Digestive    43.200001  43-44%  21.040001   44.189999                    0.13              True
+1  The model's reading of Heart & circulation draws on Lungs & breathing    35.660000  35-36%  28.350000   35.980000                    0.12              True
+2  The model's reading of Lungs & breathing draws on Heart & circulation    41.180000  41-42%  28.530001   41.740002                    0.10              True
+3                        The model's reading of Blood draws on Digestive    34.169998  34-35%  12.040000   35.169998                    0.12              True
+4                      The model's reading of Kidneys draws on Digestive    28.580000  28-29%  18.459999   29.040001                    0.12              True
+5          The model's reading of Bones & joints draws on Brain & nerves    29.200001  29-29%  23.059999   29.469999                    0.12              True
+6               The model's reading of Digestive draws on Brain & nerves    30.480000  30-31%  24.570000   30.740000                    0.11              True
+7          The model's reading of Heart & circulation draws on Digestive    24.090000  24-24%  13.450000   24.570000                    0.12              True
+8            The model's reading of Kidneys draws on Heart & circulation    23.610001  23-24%  17.840000   23.870001                    0.12              True
+9                The model's reading of Lungs & breathing draws on Blood    24.549999  24-25%  12.580000   25.080000                    0.10              True
+
+Cardiorenal check (never given to the model): Kidneys <- Heart link ranks #9 of 56 by effective strength, above an even split.
+
+Full sheet for the surgeon (with blank verdict columns): ./inspire_checkpoints/coupling_validation_sheet.csv
+Mean say per system, by department (1.0 = equal share):
+               n  Kidneys  Heart & circulation  Lungs & breathing  Metabolism & liver  Blood  Brain & nerves  Digestive  Bones & joints
+department                                                                                                                             
+CTS          357     0.64                 1.99               2.40                0.60   0.67            0.49       0.67            0.54
+GS          1232     0.51                 2.36               2.86                0.44   0.53            0.35       0.56            0.39
+NS           359     0.59                 2.13               2.59                0.54   0.62            0.43       0.63            0.48
+OG           465     0.38                 2.75               3.29                0.28   0.38            0.22       0.45            0.25
+OL           421     0.52                 2.38               2.82                0.44   0.53            0.35       0.57            0.39
+OS           562     0.44                 2.54               3.12                0.36   0.45            0.28       0.49            0.32
+OT           468     0.51                 2.40               2.89                0.42   0.52            0.33       0.57            0.37
+PS           140     0.43                 2.60               3.16                0.33   0.44            0.26       0.50            0.29
+RAD           11     0.45                 2.47               3.15                0.37   0.46            0.28       0.50            0.32
+UR           348     0.45                 2.54               3.07                0.36   0.46            0.28       0.52            0.32
+
+Spread of say across all patients: min 0.07, max 4.00. If everything is ~1.0 the layer found no reason to re-weight systems -- a valid result, not a bug.
+                     change_own  change_other  own_share                     verdict
+Kidneys                   0.257         0.064      0.800                    own data
+Heart & circulation       0.346         0.036      0.906                    own data
+Lungs & breathing         0.406         0.160      0.718                    own data
+Metabolism & liver        0.275         0.054      0.836                    own data
+Blood                     0.219         0.056      0.795                    own data
+Brain & nerves            0.022         0.107      0.170  FLAG: mostly other systems
+Digestive                 0.172         0.063      0.732                    own data
+Bones & joints            0.037         0.071      0.344  FLAG: mostly other systems
+
+Share of risk (mean over val+test patients): whole_patient term 11%, eight organ systems 89%.
+<<< 10_evaluation.py done in 987.4s
+
+==============================================================================
+>>> 11_ablations_and_sensitivity.py
+==============================================================================
+CONFIG['SKIP_FUSION_ABLATION']=True -- skipping the ablation (6 retrainings).
+ member  spearman_vs_main  top5_overlap
+      1             -0.10           0.0
+      2             -0.25           0.0
+
+Mean rank agreement with the main model: -0.18
+ train_fraction  n_train  train_deaths  val_auprc  test_auprc  minutes
+           0.25     1635            70      0.507       0.623    2.504
+           0.50     3271           141      0.521       0.671    4.389
+           1.00     6542           281      0.496       0.621      NaN
+At the selected epoch (4): train AUPRC 0.653 vs validation 0.496 -> gap +0.157
+Donor check: median predicted risk 0.739 for 51 donor deaths vs 0.963 for 230 other real training deaths.
+                                mean       std  count
+cardiac_recovery_exception                           
+0.0                        -1.912753  0.923206  10830
+1.0                        -0.734604  0.974984    112
+Patients where last-op and first-op 30-day labels disagree: 111 / 10942
+      subject_id  n_operations  died_30day_from_last_op  died_30day_from_first_op
+38     100407302             4                     True                     False
+78     100833884             3                     True                     False
+181    101862780             2                     True                     False
+207    102124711             3                     True                     False
+228    102353443             2                     True                     False
+...          ...           ...                      ...                       ...
+10645  197368441             5                     True                     False
+10693  197722933             2                     True                     False
+10742  198139004             3                     True                     False
+10779  198462013             4                     True                     False
+10786  198516024             4                     True                     False
+
+[111 rows x 4 columns]
+
+A non-trivial disagreement rate here is exactly the evidence §1.6.4/Path C says to collect before picking one definition -- if the disagreement rate is high and concentrated among multi-operation patients specifically, that's a strong argument for running (not assuming) the full three-way sensitivity analysis the source repo's own roadmap already calls for.
+Plotting risk trajectory for patient 100033460
+Risk at each cutoff: ['0.96', '0.96', '0.96', '0.96', '0.96', '0.99']
+
+NOTE: the model behind this trajectory was trained on 6565 real patients (281 deaths) -- it shows what the mechanism produces; treat it as illustrative until repeated on the full cohort.
+Clinical story for patient 100033460 (reusing §11.8's example patient):
+Top contributing systems for this patient: ['metabolic_hepatic', 'haematology']
+Full per-system contribution at the final cutoff: {'renal': 0.13314513862133026, 'cardiovascular': -0.058086954057216644, 'respiratory': 0.3729240298271179, 'metabolic_hepatic': 1.631479263305664, 'haematology': 0.7590900659561157, 'neurological': 0.32340699434280396}
+<<< 11_ablations_and_sensitivity.py done in 433.9s
+
+==============================================================================
+>>> 12_wrapup.py
+==============================================================================
+Part                                   elapsed
+-----------------------------------------------
+Part 3 -- data loading                 157.4s
+Parts 4-6 -- labelling + organ-system feature engineering    147.5s
+Part 7 -- missing-data imputation + standardisation     94.3s
+Part 8 -- class-imbalance sampling       0.8s
+Parts 9-10 -- model build + two-phase training    502.9s
+Part 11 -- evaluation, interpretability, ablations   1421.4s
+Part 12 -- wrap-up                       0.0s
+-----------------------------------------------
+TOTAL                                 2324.4s  (38.7 min)
+
+Config used for this timing: MAX_SUBJECTS_PER_CLASS=10000, BATCH_SIZE=256, SKIP_IMPUTATION_ACCURACY_BENCHMARKS=True, SKIP_FUSION_ABLATION=True
+                                                           check result                                                                                     value                                                          what it means
+                      SMOTENC runs without errors (v1 bug fixed)   PASS                                                           184 synthetic, 0 errored strata                                     v1: every stratum errored silently
+                               pos_weight after sampling is sane   PASS                                                                                      9.00           v1 formula subtracted removed survivors from the death count
+                Synthetic patients have real-looking time series   PASS                                                              184 donors for 184 synthetic                                     no 'empty series => died' shortcut
+                             NEWS2 scoring matches the RCP chart   PASS                                                                                0 failures                                           band edges + worked examples
+                                     NEWS2 included as a feature   PASS                                                                                      True                                           only if the self-test passed
+                    Mortality rises with worst pre-op NEWS2 band   PASS                                                                                      True                               construct validity of the computed score
+             NEWS2 before vs after SMOTENC [news2_max (SMOTENC)]  CHECK      REVIEW: distribution shifted (KS > 0.2); median 6.0 -> 2.6, KS 0.36, outside 0-20: 0                                 synthetic deaths look like real deaths
+            NEWS2 before vs after SMOTENC [news2_mean (SMOTENC)]  CHECK      REVIEW: distribution shifted (KS > 0.2); median 3.1 -> 1.2, KS 0.31, outside 0-20: 0                                 synthetic deaths look like real deaths
+                             NEWS2 stable under jitter/time-mask  CHECK                                     10.1% of time points changed band, mean |change| 0.48                                                 augmentation is gentle
+                               No hand-defined inter-system link   PASS                                                                   mode=learned, priors=[]                                   the coupling layer learns every link
+                      All eight organ systems built the same way   PASS renal, cardiovascular, respiratory, metabolic_hepatic, haematology, neurological, gi, msk       GI/MSK are organ systems with no time series, not a special case
+                                    SMOTENC amplification capped   PASS                                   184 synthetic from 281 real deaths (cap 5x per stratum)                         no stratum inflated from a handful of patients
+                                    Coupling layer actually used   PASS                                                                             max gate 0.13                                        gate > 0 = systems use messages
+                     Cardiorenal link rediscovered (never given)   PASS                                                                              rank 9 of 56   a sanity signal, not a requirement -- surgeon reviews the full sheet
+                 Learned links replicate across ensemble members  CHECK                                               mean rank agreement -0.18, top-5 overlap 0%                     > 0.7 = safe to show individual links to a surgeon
+                    Each system answers mainly from its own data  CHECK                                                   flagged: Brain & nerves, Bones & joints    whole-patient + coupling layers are not leaking other systems' data
+                      Organ systems carry most of the prediction   PASS                                                          whole_patient term 11% of |risk|                                             systems are not decoration
+                  Per-system terms sum exactly to the prediction   PASS                                                                                     exact interpretability preserved with coupling + arbitration + whole-patient
+                        Threshold chosen on validation, not test   PASS                                                                                     0.698                                           removes v1's optimistic bias
+                         Train vs validation AUPRC gap is modest  CHECK                                                                  train 0.653 vs val 0.496                                                 large gap = memorising
+                                      SMOTE donors not memorised   PASS                                             donor median risk 0.739 vs other deaths 0.963                     donors reused many times should not be singled out
+DNN (ensemble of 3) matches or beats logistic regression (AUPRC)   PASS                                                                        DNN 0.639 vs 0.552                                    judge against the CI in 11.1d/11.1e
+  DNN (ensemble of 3) matches or beats gradient boosting (AUPRC)   PASS                                                                        DNN 0.639 vs 0.621                                    judge against the CI in 11.1d/11.1e
+<<< 12_wrapup.py done in 0.2s
+
+All 13 stages finished in 2344.3s. Figures in /Users/james/Documents/inspire-analysis-thrisha/src-dnn/run_figures
