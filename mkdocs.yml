@@ -13,7 +13,7 @@ site_dir: site
 nav:
   - Home: index.md
   - Current:
-      - INSPIRE_DNN_v4: INSPIRE_DNN_v4_explained_simply.md
+      - INSPIRE_DNN_v4: current/INSPIRE_DNN_v4_explained_simply.md
       - Current Work & Results (start here): current/Peri_Operative_Mortality_Risk_Current_Work.md
       - Surgeon-Facing Summary: current/Surgeon_Facing_Summary.md
   - Archive - Planning & Reference:
