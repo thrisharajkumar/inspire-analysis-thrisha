@@ -286,3 +286,14 @@ for chap in chapter_counts.index:
 chap_mort_df = pd.DataFrame(chap_mort, index=["mortality_rate", "n_patients"]).T.sort_values("mortality_rate", ascending=False)
 chap_mort_df["description"] = [chapter_desc.get(c, "") for c in chap_mort_df.index]
 chap_mort_df
+
+# %%
+# Fix patient allocation before fitting any feature thresholds or imputers.
+EXPERIMENT_SPLITS = fixed_splits(
+    cohort_df["subject_id"].tolist(), cohort_df["died_30day_from_last_op"].astype(int).tolist(),
+    seed=CONFIG["SPLIT_SEED"], val_fraction=CONFIG["VAL_FRACTION"], test_fraction=CONFIG["TEST_FRACTION"],
+    split_file=CONFIG["SPLIT_FILE"])
+TRAIN_IDS_FOR_STATS = list(EXPERIMENT_SPLITS["train"])
+VAL_IDS, TEST_IDS = list(EXPERIMENT_SPLITS["validation"]), list(EXPERIMENT_SPLITS["test"])
+_HOLD_IDS = VAL_IDS + TEST_IDS
+atomic_json(os.path.join(CONFIG["OUTPUT_DIR"], "splits.json"), EXPERIMENT_SPLITS)

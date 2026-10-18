@@ -161,7 +161,8 @@ CONFIG = {
     # 20-minute budget given the batch-size/early-stopping settings below. Set to None
     # for the true full run once you have the time budget for it (expect data loading
     # alone to take several minutes at that scale, per Part 3's own measured timing).
-    "MAX_SUBJECTS_PER_CLASS": 10000,
+    #"MAX_SUBJECTS_PER_CLASS": 10000,
+    "MAX_SUBJECTS_PER_CLASS": None,
 
     # --- memory safety for Part 3's parse (new) -- patients are parsed and flushed to
     # disk in chunks of this size, rather than holding every row of every table for the

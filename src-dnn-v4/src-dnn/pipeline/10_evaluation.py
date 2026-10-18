@@ -25,7 +25,7 @@
 # judge this model by.
 
 # %%
-def bootstrap_ci(labels, probs, metric, n=None, seed=SEED):
+def bootstrap_ci(labels, probs, metric, n=None, seed=CONFIG["BOOTSTRAP_SEED"]):
     # 95% percentile interval, resampling test patients with replacement (v3). With ~94
     # test deaths the interval is wide -- that width IS the honest uncertainty.
     n = n or CONFIG["N_BOOTSTRAP"]
@@ -37,6 +37,7 @@ def bootstrap_ci(labels, probs, metric, n=None, seed=SEED):
             vals.append(metric(labels[idx], probs[idx]))
     return (float(np.percentile(vals, 2.5)), float(np.percentile(vals, 97.5))) if vals else (np.nan, np.nan)
 
+val_result = evaluate(model, val_loader)  # restored best epoch, not stale last-epoch predictions
 test_result = evaluate(model, test_loader)
 TEST_CI = {}
 if len(np.unique(test_result["labels"])) > 1:

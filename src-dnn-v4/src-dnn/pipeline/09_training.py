@@ -27,16 +27,31 @@
 #   reload check proving the saved file gives identical predictions.
 
 # %%
+# INLINE: inspire_dnn/checkpointing.py
+from inspire_dnn.checkpointing import capture_random_state, restore_random_state
+
+# %%
+_CHECKPOINT_LOADERS = {"pretrain": pretrain_loader, "train": train_loader}
+_CHECKPOINT_CONTEXT = object_hash({
+    "config": {k: v for k, v in CONFIG.items() if k != "RESUME"},
+    "split": EXPERIMENT_SPLITS, "data": DATASET_FINGERPRINT,
+    "source": globals().get("SOURCE_FINGERPRINT", "notebook"),
+})
+
 def save_checkpoint(path, **state):
-    torch.save(state, path)
+    state.update(random_state=capture_random_state(_CHECKPOINT_LOADERS),
+                 context=_CHECKPOINT_CONTEXT, epoch_log=list(EPOCH_LOG))
+    tmp = path + ".tmp"
+    torch.save(state, tmp)
+    os.replace(tmp, path)
 
 def load_checkpoint_if_exists(path):
-    if os.path.exists(path):
-        try:
-            return torch.load(path, map_location=DEVICE, weights_only=False)
-        except Exception as e:
-            print(f"Found a checkpoint at {path} but failed to load it ({e}) -- starting fresh.")
-    return None
+    if not CONFIG["RESUME"] or not os.path.exists(path):
+        return None
+    state = torch.load(path, map_location=DEVICE, weights_only=False)
+    if state.get("context") != _CHECKPOINT_CONTEXT or "random_state" not in state:
+        raise ValueError("Checkpoint context differs or lacks RNG state; do not reuse it for this experiment")
+    return state
 
 def _to_device(batch):
     return {k: (v.to(DEVICE, non_blocking=True) if torch.is_tensor(v) else v) for k, v in batch.items()}
@@ -193,7 +208,7 @@ if _ckpt is not None and _ckpt.get("phase") == "pretrain":
         pretrain_history = _ckpt["history"]; start_epoch_pretrain = _ckpt["epoch"] + 1
         print(f"Resuming pre-training at epoch {start_epoch_pretrain}")
     except (RuntimeError, KeyError, ValueError) as e:
-        print(f"Checkpoint does not match this model ({e}) -- starting fresh.")
+        raise ValueError("Requested checkpoint cannot be resumed") from e
 
 if start_epoch_pretrain == 0:
     # v4: "before any training" -- random dials. Everything later is compared with this.
@@ -205,6 +220,12 @@ if start_epoch_pretrain == 0:
 
 print("Phase 1: label-free pre-training (own-data reconstruction + masked-system prediction)")
 _best, _stale = float("inf"), 0
+if _ckpt is not None:
+    _best, _stale = _ckpt["early_best"], _ckpt["stale"]
+    EPOCH_LOG[:] = _ckpt["epoch_log"]
+    restore_random_state(_ckpt["random_state"], _CHECKPOINT_LOADERS)
+    if _ckpt["completed"]:
+        start_epoch_pretrain = CONFIG["EPOCHS_PRETRAIN"]
 for epoch in range(start_epoch_pretrain, CONFIG["EPOCHS_PRETRAIN"]):
     tot, own, ms = run_pretrain_epoch(model, pretrain_loader, pretrain_optimizer)
     for k, v in zip(("total", "own", "masked_system"), (tot, own, ms)):
@@ -212,13 +233,15 @@ for epoch in range(start_epoch_pretrain, CONFIG["EPOCHS_PRETRAIN"]):
     log_epoch("pre-training", epoch, None, pretrain_own=own, pretrain_masked_system=ms)
     if epoch % max(CONFIG["EPOCHS_PRETRAIN"] // 6, 1) == 0 or epoch == CONFIG["EPOCHS_PRETRAIN"] - 1:
         print(f"  epoch {epoch:3d}  own-data={own:.4f}  masked-system={ms:.4f}")
-    if (epoch + 1) % CONFIG["CHECKPOINT_EVERY_N_EPOCHS"] == 0 or epoch == CONFIG["EPOCHS_PRETRAIN"] - 1:
-        save_checkpoint(PRETRAIN_CKPT_PATH, phase="pretrain", epoch=epoch, model_state=model.state_dict(),
-                        optimizer_state=pretrain_optimizer.state_dict(), history=pretrain_history)
     if tot < _best - 1e-5:
         _best, _stale = tot, 0
     else:
         _stale += 1
+    _done = _stale >= CONFIG["EARLY_STOPPING_PATIENCE"] or epoch == CONFIG["EPOCHS_PRETRAIN"] - 1
+    if _done or (epoch + 1) % CONFIG["CHECKPOINT_EVERY_N_EPOCHS"] == 0:
+        save_checkpoint(PRETRAIN_CKPT_PATH, phase="pretrain", epoch=epoch, model_state=model.state_dict(),
+                        optimizer_state=pretrain_optimizer.state_dict(), history=pretrain_history,
+                        early_best=_best, stale=_stale, completed=_done)
     if _stale >= CONFIG["EARLY_STOPPING_PATIENCE"]:
         print(f"  early stopping at epoch {epoch}")
         break
@@ -248,10 +271,16 @@ if _ckpt is not None and _ckpt.get("phase") == "finetune":
         start_epoch_finetune = _ckpt["epoch"] + 1
         print(f"Resuming fine-tuning at epoch {start_epoch_finetune} (best val {_SEL.upper()} so far {best_val_auroc:.3f})")
     except (RuntimeError, KeyError, ValueError) as e:
-        print(f"Checkpoint does not match this model ({e}) -- starting fresh.")
+        raise ValueError("Requested checkpoint cannot be resumed") from e
 
 print("\nPhase 2: fine-tuning on 30-day mortality")
 _stale = 0
+if _ckpt is not None:
+    _stale = _ckpt["stale"]
+    EPOCH_LOG[:] = _ckpt["epoch_log"]
+    restore_random_state(_ckpt["random_state"], _CHECKPOINT_LOADERS)
+    if _ckpt["completed"]:
+        start_epoch_finetune = CONFIG["EPOCHS_FINETUNE"]
 for epoch in range(start_epoch_finetune, CONFIG["EPOCHS_FINETUNE"]):
     train_dataset.epoch_seed = 1000 + epoch
     train_loss = run_finetune_epoch(model, train_loader, finetune_optimizer, POS_WEIGHT, CONFIG["USE_FOCAL_LOSS"], CONFIG["FOCAL_GAMMA"])
@@ -269,10 +298,11 @@ for epoch in range(start_epoch_finetune, CONFIG["EPOCHS_FINETUNE"]):
     if epoch % max(CONFIG["EPOCHS_FINETUNE"] // 8, 1) == 0 or epoch == CONFIG["EPOCHS_FINETUNE"] - 1:
         print(f"  epoch {epoch:3d}  loss={train_loss:.4f}  train_auprc={tr_result['auprc']:.3f}  "
               f"val_auprc={val_result['auprc']:.3f}  val_auroc={val_result['auroc']:.3f}")
-    if (epoch + 1) % CONFIG["CHECKPOINT_EVERY_N_EPOCHS"] == 0 or epoch == CONFIG["EPOCHS_FINETUNE"] - 1:
+    _done = _stale >= CONFIG["EARLY_STOPPING_PATIENCE"] or epoch == CONFIG["EPOCHS_FINETUNE"] - 1
+    if _done or (epoch + 1) % CONFIG["CHECKPOINT_EVERY_N_EPOCHS"] == 0:
         save_checkpoint(FINETUNE_CKPT_PATH, phase="finetune", epoch=epoch, model_state=model.state_dict(),
                         optimizer_state=finetune_optimizer.state_dict(), history=history,
-                        best_val_auroc=best_val_auroc, best_state=best_state)
+                        best_val_auroc=best_val_auroc, best_state=best_state, stale=_stale, completed=_done)
     if _stale >= CONFIG["EARLY_STOPPING_PATIENCE"]:
         print(f"  early stopping at epoch {epoch} -- val {_SEL.upper()} hasn't improved in {CONFIG['EARLY_STOPPING_PATIENCE']} epochs")
         break
@@ -327,7 +357,7 @@ def _model_payload(m):
     return {
         "model_state": {k: v.detach().cpu() for k, v in m.state_dict().items()},
         "architecture_fingerprint": ARCHITECTURE_FINGERPRINT, "version": "v4",
-        "config": dict(CONFIG), "run_profile": RUN_PROFILE,
+        "config": dict(CONFIG, POOLING=m.encoder.pooling), "run_profile": RUN_PROFILE,
         "static_feature_names": list(STATIC_FEATURE_NAMES),
         "ts_feature_names": {s: PATIENT_BUNDLE[TRAIN_IDS[0]]["ts"][s]["feature_names"] for s in TIME_SERIES_SYSTEMS},
         "ts_feature_counts": dict(TS_FEATURE_COUNTS), "system_static_idx": dict(SYSTEM_STATIC_IDX),
@@ -348,6 +378,13 @@ def load_inspire_model(path, **build_kwargs):
     # Rebuilds the model with THIS notebook's data layout and loads the saved weights.
     payload = torch.load(path, map_location=DEVICE, weights_only=False)
     assert payload["static_feature_names"] == list(STATIC_FEATURE_NAMES), "static features differ from this run"
+    # Use the saved choice rather than the current run's pooling setting. Legacy
+    # artifacts without this field require an explicit pooling argument from the caller.
+    if "pooling" not in build_kwargs:
+        saved_pooling = payload["config"].get("POOLING")
+        if saved_pooling not in ("mean", "attention"):
+            raise ValueError("Saved model has no pooling choice; explicitly pass pooling='mean' or 'attention'.")
+        build_kwargs["pooling"] = saved_pooling
     m = build_model(**build_kwargs)
     m.load_state_dict(payload["model_state"])
     m.eval()
@@ -369,7 +406,7 @@ else:
 def train_full_model(seed=SEED, train_ds=None, verbose=False, **model_kwargs):
     # The exact recipe above (pre-train -> gentle fine-tune -> best val epoch), without
     # checkpoint files. Used by the ensemble, the ablations and the learning curve.
-    m = build_model(seed=seed, **model_kwargs)
+    m = build_model(seed=seed, **{"pooling": CONFIG["POOLING"], **model_kwargs})
     torch.manual_seed(seed)
     ds = train_ds or train_dataset
     real_ids = ds.subject_ids

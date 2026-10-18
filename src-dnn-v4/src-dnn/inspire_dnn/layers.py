@@ -47,8 +47,11 @@ class OrganSystemEncoder(nn.Module):
     # Token layout per system: [summary token = own static features] + [T time tokens].
     # A system with no measurements (GI/MSK here) is just the summary token.
     def __init__(self, system_specs, embed_dim, n_heads, n_layers, ff_multiplier, target_seq_len,
-                 dropout=0.1, share_body=True):
+                 dropout=0.1, share_body=True, *, pooling):
         super().__init__()
+        if pooling not in ("mean", "attention"):
+            raise ValueError("pooling must be 'mean' or 'attention'")
+        self.pooling = pooling
         self.systems = list(system_specs)
         self.specs = {s: tuple(v) for s, v in system_specs.items()}   # s -> (n_ts_features, n_static_features)
         self.T = target_seq_len
@@ -69,6 +72,10 @@ class OrganSystemEncoder(nn.Module):
         else:
             self.bodies = nn.ModuleDict({s: make_body() for s in self.systems})
         self.out_norm = nn.LayerNorm(embed_dim)
+        # Shared learned query over contextualised tokens (including the static token).
+        # Zero initialisation starts at mean pooling and consumes no RNG draws, keeping
+        # all other initial weights identical between modes for a matched-seed comparison.
+        self.pool_query = nn.Parameter(torch.zeros(embed_dim)) if pooling == "attention" else None
 
     def _body(self, s):
         return self.body if self.share_body else self.bodies[s]
@@ -86,7 +93,12 @@ class OrganSystemEncoder(nn.Module):
 
     def forward(self, s, x, mask, static_s, batch_size):
         h = self.out_norm(self._body(s)(self.tokens(s, x, mask, static_s, batch_size)))
-        return h.mean(dim=1), (h[:, 1:] if s in self.ts_in else None)
+        if self.pooling == "mean":
+            pooled = h.mean(dim=1)   # original v4 behaviour, unchanged
+        else:
+            weights = torch.softmax(h @ self.pool_query, dim=1)
+            pooled = (h * weights.unsqueeze(-1)).sum(dim=1)
+        return pooled, (h[:, 1:] if s in self.ts_in else None)
 
     @torch.no_grad()
     def attention_map(self, s, x, mask, static_s):
@@ -263,7 +275,7 @@ class MortalityModel(nn.Module):
                  coupling_mode="learned", coupling_heads=2, coupling_prior_links=(),
                  coupling_prior_strength=1.0, coupling_gate_init=0.1,
                  use_arbitration=True, use_whole_patient=True, system_dropout=0.0, dropout=0.1,
-                 surgical_context_idx=None, surgical_context_exclusive=True):
+                 surgical_context_idx=None, surgical_context_exclusive=True, *, pooling):
         super().__init__()
         self.organ_systems = list(ts_feature_counts)
         self.ts_systems = [s for s in self.organ_systems if ts_feature_counts[s] > 0]
@@ -276,7 +288,7 @@ class MortalityModel(nn.Module):
 
         specs = {s: (ts_feature_counts[s], len(self.system_static_idx[s])) for s in self.organ_systems}
         self.encoder = OrganSystemEncoder(specs, embed_dim, n_heads, n_layers, ff_multiplier,
-                                          target_seq_len, dropout, share_body=share_encoder)
+                                          target_seq_len, dropout, share_body=share_encoder, pooling=pooling)
         self.recon_ts = nn.ModuleDict({s: ReconstructionHead(embed_dim, ts_feature_counts[s], target_seq_len)
                                        for s in self.ts_systems})
         self.recon_static = nn.ModuleDict({s: ReconstructionHead(embed_dim, len(self.system_static_idx[s]))

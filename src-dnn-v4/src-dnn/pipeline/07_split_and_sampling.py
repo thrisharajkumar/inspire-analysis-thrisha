@@ -31,9 +31,7 @@ TRAIN_IDS = TRAIN_IDS_FOR_STATS   # identical split object reused from Part 7, n
 HOLD_LABELS = np.array([PATIENT_BUNDLE[sid]["label"] for sid in _HOLD_IDS])
 val_frac_of_hold = CONFIG["VAL_FRACTION"] / (CONFIG["VAL_FRACTION"] + CONFIG["TEST_FRACTION"])
 
-VAL_IDS, TEST_IDS = train_test_split(
-    _HOLD_IDS, test_size=(1 - val_frac_of_hold), stratify=HOLD_LABELS, random_state=SEED
-)
+VAL_IDS, TEST_IDS = list(EXPERIMENT_SPLITS["validation"]), list(EXPERIMENT_SPLITS["test"])
 
 for name, ids in [("train", TRAIN_IDS), ("val", VAL_IDS), ("test", TEST_IDS)]:
     labels = [PATIENT_BUNDLE[sid]["label"] for sid in ids]
@@ -56,7 +54,7 @@ for name, ids in [("train", TRAIN_IDS), ("val", VAL_IDS), ("test", TEST_IDS)]:
 #   than randomly dropping an entire department's worth of survived patients by chance.
 
 # %%
-def downsample_train_survived(train_ids, target_n_survived, strata_col="department", seed=SEED):
+def downsample_train_survived(train_ids, target_n_survived, strata_col="department", seed=CONFIG["DATA_SEED"]):
     labels_by_id = {sid: PATIENT_BUNDLE[sid]["label"] for sid in train_ids}
     survived_ids = [sid for sid in train_ids if labels_by_id[sid] == 0.0]
     died_ids = [sid for sid in train_ids if labels_by_id[sid] == 1.0]

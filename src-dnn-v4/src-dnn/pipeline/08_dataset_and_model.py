@@ -39,7 +39,7 @@ import zlib
 def _stable_seed(sid, copy_idx, epoch_seed):
     # v2: Python's built-in hash() of a string is randomised per process (PYTHONHASHSEED),
     # so v1's augmentation noise was not reproducible between sessions. crc32 is.
-    return zlib.crc32(f"{sid}|{copy_idx}|{epoch_seed}".encode()) & 0xFFFFFFFF
+    return zlib.crc32(f"{SEED}|{sid}|{copy_idx}|{epoch_seed}".encode()) & 0xFFFFFFFF
 
 def _jitter_cols(system):
     # 1.0 for features that may be jittered, 0.0 for discrete/ordinal/binary ones (v2)
@@ -166,29 +166,30 @@ def item_labels(ds):
 # v4: worker processes + pinned memory for big runs (CONFIG['NUM_WORKERS'] > 0, e.g. Isambard-AI).
 LOADER_KW = {"num_workers": CONFIG["NUM_WORKERS"], "pin_memory": DEVICE.type == "cuda"}
 if CONFIG["NUM_WORKERS"] > 0:
-    LOADER_KW["persistent_workers"] = True
+    LOADER_KW["persistent_workers"] = False  # new workers receive updated epoch_seed
 
 def make_train_loader(ds, seed=SEED):
     # v3: balanced batches. At ~1:200 a plain shuffled batch of 256 has ~1.25 deaths on
     # average and ~29% of batches have none. The sampler draws each epoch's items so that
     # ~SAMPLER_TARGET_POSITIVE_RATE of them are deaths (real, synthetic or augmented).
     bs = min(CONFIG["BATCH_SIZE"], len(ds))
+    generator = torch.Generator().manual_seed(seed)
     if not CONFIG["BALANCED_SAMPLER"]:
-        return DataLoader(ds, batch_size=bs, shuffle=True, collate_fn=collate_bundle, **LOADER_KW)
+        return DataLoader(ds, batch_size=bs, shuffle=True, generator=generator, collate_fn=collate_bundle, **LOADER_KW)
     y = item_labels(ds)
     p = CONFIG["SAMPLER_TARGET_POSITIVE_RATE"]
     n_pos, n_neg = max(y.sum(), 1), max(len(y) - y.sum(), 1)
     w = np.where(y == 1, p / n_pos, (1 - p) / n_neg)
     sampler = WeightedRandomSampler(torch.tensor(w, dtype=torch.double), num_samples=len(ds), replacement=True,
                                     generator=torch.Generator().manual_seed(seed))
-    return DataLoader(ds, batch_size=bs, sampler=sampler, collate_fn=collate_bundle, **LOADER_KW)
+    return DataLoader(ds, batch_size=bs, sampler=sampler, generator=generator, collate_fn=collate_bundle, **LOADER_KW)
 
 train_loader = make_train_loader(train_dataset)
 # Pre-training is label-free, so it uses REAL training patients only, in their natural mix
 # (synthetic/augmented copies of deaths would only distort what "normal" looks like).
 pretrain_dataset = INSPIREDataset(EFFECTIVE_TRAIN_IDS)
 pretrain_loader = DataLoader(pretrain_dataset, batch_size=min(CONFIG["BATCH_SIZE"], len(pretrain_dataset)),
-                             shuffle=True, collate_fn=collate_bundle, **LOADER_KW)
+                             shuffle=True, generator=torch.Generator().manual_seed(SEED), collate_fn=collate_bundle, **LOADER_KW)
 if CONFIG["BALANCED_SAMPLER"]:
     # Batches are now ~10% deaths, so the loss weight that finishes the balancing is the
     # batch-level ratio, not the raw training ratio (recalibration in 11.1c maps the scores
@@ -392,7 +393,7 @@ for _, r in organ_system_feature_map.iterrows():
     print(f"{'':18s} | static:    {r['static_features'][:110]}")
 
 def build_model(fusion_strategy=None, coupling_mode=None, use_arbitration=None, use_whole_patient=None,
-                share_encoder=None, seed=SEED, use_surgical_context=None, drop_systems=(), encoder_size=None):
+                share_encoder=None, seed=SEED, use_surgical_context=None, drop_systems=(), encoder_size=None, *, pooling):
     # v4 options -- use_surgical_context: the separate surgical-context risk term;
     # drop_systems: e.g. ("gi", "msk") for the "6 systems vs 8" test (their static columns
     # then go to the whole-patient layer, nothing is thrown away); encoder_size: a preset
@@ -409,7 +410,7 @@ def build_model(fusion_strategy=None, coupling_mode=None, use_arbitration=None, 
         ts_feature_counts={s: TS_FEATURE_COUNTS[s] for s in keep},
         system_static_idx={s: SYSTEM_STATIC_IDX[s] for s in keep},
         context_idx=sorted(CONTEXT_IDX + dropped_cols),
-        n_static=N_STATIC_FEATURES,
+        n_static=N_STATIC_FEATURES, pooling=pooling,
         embed_dim=ed, n_heads=nh, n_layers=nl,
         ff_multiplier=ff, target_seq_len=CONFIG["TARGET_SEQ_LEN"],
         fusion_strategy=fusion_strategy or CONFIG["FUSION_STRATEGY"],
@@ -424,7 +425,7 @@ def build_model(fusion_strategy=None, coupling_mode=None, use_arbitration=None, 
         surgical_context_exclusive=CONFIG["SURGICAL_CONTEXT_EXCLUSIVE"],
     ).to(DEVICE)
 
-model = build_model()
+model = build_model(pooling=CONFIG["POOLING"])
 
 def _count(module):
     return sum(p.numel() for p in module.parameters()) if module is not None else 0
@@ -442,7 +443,7 @@ _fingerprint_source = repr((
     CONFIG["TRANSFORMER_LAYERS"], CONFIG["FF_MULTIPLIER"], CONFIG["TARGET_SEQ_LEN"], CONFIG["FUSION_STRATEGY"],
     CONFIG["SHARE_ENCODER"], CONFIG["COUPLING_MODE"], CONFIG["COUPLING_HEADS"], CONFIG["USE_ARBITRATION_LAYER"],
     CONFIG["USE_WHOLE_PATIENT_LAYER"], CONFIG["USE_SURGICAL_CONTEXT_TERM"], CONFIG["SURGICAL_CONTEXT_EXCLUSIVE"],
-    tuple(SURGICAL_CONTEXT_IDX), "v4",
+    tuple(SURGICAL_CONTEXT_IDX), CONFIG["POOLING"], "v4",
 ))
 ARCHITECTURE_FINGERPRINT = hashlib.sha256(_fingerprint_source.encode()).hexdigest()[:10]
 print(f"Architecture fingerprint: {ARCHITECTURE_FINGERPRINT} (checkpoints are tagged with this)")
@@ -480,7 +481,7 @@ def layer_size_table(m):
     rows += [
         ("+ system tag + position code", f"[B, {T}+1, {D}]", f"[B, {T}+1, {D}]", "which system, which time point"),
         (f"shared transformer body ({L} layers, {H} heads)", f"[B, {T}+1, {D}]", f"[B, {T}+1, {D}]", f"attention; feed-forward width {FF}"),
-        ("average over tokens + LayerNorm", f"[B, {T}+1, {D}]", f"[B, {D}]", "THE EMBEDDING of one organ system"),
+        (f"LayerNorm + {m.encoder.pooling} pooling", f"[B, {T}+1, {D}]", f"[B, {D}]", "THE EMBEDDING of one organ system"),
     ]
     if m.whole_patient is not None:
         n_in = m.whole_patient.net[0].in_features

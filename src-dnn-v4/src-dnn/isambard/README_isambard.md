@@ -27,10 +27,10 @@ e.g. one per embedding size — not one job across four GPUs.
    Pick a `<tag>` from Isambard's "containers on ARM" documentation page (it must support
    aarch64). Point `SIF` in the script at the file.
 3. **Edit the three `CHANGE-ME` lines** in `run_inspire_isambard.sbatch`.
-4. **Submit**: `sbatch run_inspire_isambard.sbatch`. The job first runs the unit tests (a
+4. **Submit**: `POOLING=mean TRAINING_SEED=101 sbatch run_inspire_isambard.sbatch` (or `POOLING=attention`; required, no default). The job first runs the unit tests (a
    couple of minutes); if any fail it stops instead of wasting hours.
 5. **Watch**: `squeue --me`, and `tail -f inspire_v4_<jobid>.out`.
-6. **Results** land in `$OUT/outputs/`: `figures/` (every plot, PNG), `models/` (final model
+6. **Results** land in `$OUT/`: `figures/` (every plot, PNG), `models/` (final model
    + ensemble members), `snapshots/` (embeddings per epoch), `tables/` (every results table
    as CSV, including `verification_summary.csv`).
 
@@ -60,3 +60,7 @@ Any setting can be overridden without editing code, e.g. add
   says so (PCA and t-SNE still run).
 - A bigger embedding is not automatically better: there are only ~469 deaths. The size
   sweep (Part 13.9) is there to decide this with data.
+
+Each job is one isolated run with `results.json`, `predictions.jsonl`, `history.json`,
+`splits.json` and `terminal.log`. Use the same split seed and matched training seeds
+for pooling comparisons; see `EXPERIMENTS.md`.

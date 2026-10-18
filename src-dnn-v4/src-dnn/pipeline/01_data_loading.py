@@ -24,6 +24,10 @@
 # a pre-op vs. peri-op run) never collide or silently load the wrong cache.
 
 # %%
+# INLINE: inspire_dnn/experiments.py
+from inspire_dnn.experiments import *
+
+# %%
 def _safe_float(x):
     try:
         if x is None or x == "":
@@ -43,7 +47,12 @@ def _safe_int(x):
 import hashlib
 
 def _cache_key():
-    src = repr((CONFIG["SUBJECTS_DIR"], CONFIG["MAX_SUBJECTS_PER_CLASS"], CONFIG["TIME_WINDOW"]))
+    # Include content + sampling seed so stale input or a different cohort cannot reuse a cache.
+    data_hash = globals().get("DATASET_FINGERPRINT")
+    if data_hash is None:
+        data_hash = dataset_provenance(CONFIG["SUBJECTS_DIR"], CONFIG["MAX_SUBJECTS_PER_CLASS"], CONFIG["DATA_SEED"])["sha256"]
+        globals()["DATASET_FINGERPRINT"] = data_hash
+    src = repr((data_hash, CONFIG["MAX_SUBJECTS_PER_CLASS"], CONFIG["TIME_WINDOW"], CONFIG["DATA_SEED"], "parser-v4-experiments-1"))
     return hashlib.sha256(src.encode()).hexdigest()[:12]
 
 CACHE_KEY = _cache_key()
@@ -68,7 +77,7 @@ def _load_from_cache(subdir):
 # parsing regardless of whether a cache is wanted afterward.
 
 # %%
-def stream_parse_subjects(subjects_dir, max_per_class, time_window, cache_subdir, chunk_size, seed=SEED):
+def stream_parse_subjects(subjects_dir, max_per_class, time_window, cache_subdir, chunk_size, seed=CONFIG["DATA_SEED"]):
     # Parses in CHUNKS, flushed to Parquet incrementally, instead of holding every row of
     # every table as a Python dict for the WHOLE cohort in memory at once. Two separate
     # memory wins stack here: (1) within each chunk, values are accumulated in parallel

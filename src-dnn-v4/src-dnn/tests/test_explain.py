@@ -7,7 +7,7 @@ from test_layers import TS, SYS_IDX, CONTEXT, N_STATIC, _batch
 def _m():
     d, h, l, ff = ENCODER_SIZE_PRESETS["small"]
     torch.manual_seed(3)
-    return MortalityModel(TS, SYS_IDX, CONTEXT, N_STATIC, embed_dim=d, n_heads=h, n_layers=l, ff_multiplier=ff,
+    return MortalityModel(TS, SYS_IDX, CONTEXT, N_STATIC, pooling="mean", embed_dim=d, n_heads=h, n_layers=l, ff_multiplier=ff,
                           surgical_context_idx=[16, 17, 18]).eval()
 
 

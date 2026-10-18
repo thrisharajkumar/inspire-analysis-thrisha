@@ -84,8 +84,7 @@ from sklearn.metrics import (roc_auc_score, average_precision_score, brier_score
 
 warnings.filterwarnings("ignore")
 
-SEED = 42
-random.seed(SEED); np.random.seed(SEED); torch.manual_seed(SEED)
+# Seeds are resolved after profile/config overrides below, before data or model work.
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Device:", DEVICE)
@@ -151,6 +150,14 @@ else:
 # CONFIG — every flag documented in Part 1 §1.7. Edit here, not below.
 # ---------------------------------------------------------------------------
 CONFIG = {
+    "TRAINING_SEED": None,  # required: independent model/augmentation/sampler randomness
+    "SPLIT_SEED": 42,       # keep fixed across repeated model training runs
+    "DATA_SEED": 42,        # cohort subsampling and preprocessing; independent of training
+    "BOOTSTRAP_SEED": 2026,
+    "SPLIT_FILE": None,     # optionally reuse a saved splits.json
+    "RESUME": False,        # checkpoint loading is opt-in
+    "DETERMINISTIC": True,  # fail rather than silently use unsupported nondeterministic ops
+
     # --- data location (auto-detected below; override if detection is wrong) ---
     "SUBJECTS_DIR": COLAB_SUBJECTS_DIR,   # folder containing died/ and survived/ subfolders of per-patient JSON
     "CODES_DIR": None,         # optional: folder with icd10.json.gz / WHO_ATC-DDD_*.csv (finer descriptions only)
@@ -165,7 +172,9 @@ CONFIG = {
     # 20-minute budget given the batch-size/early-stopping settings below. Set to None
     # for the true full run once you have the time budget for it (expect data loading
     # alone to take several minutes at that scale, per Part 3's own measured timing).
-    "MAX_SUBJECTS_PER_CLASS": 10000,
+    #"MAX_SUBJECTS_PER_CLASS": 10000,
+    "MAX_SUBJECTS_PER_CLASS": None,
+
 
     # --- memory safety for Part 3's parse (new) -- patients are parsed and flushed to
     # disk in chunks of this size, rather than holding every row of every table for the
@@ -243,6 +252,7 @@ CONFIG = {
     # v2: encoder capacity. The v1 model was 66k parameters in TOTAL, and only ~17k of that
     # was the six system encoders (~3k each) -- most of it was the reconstruction heads
     # and the static MLP. 'medium' is ~9x the encoder capacity; 'small' reproduces v1.
+    "POOLING": None,                       # REQUIRED: choose "mean" or "attention"; no automatic selection
     "ENCODER_SIZE": "medium",              # 'small' (v1) | 'medium' | 'large' -- sets the 4 keys below
     "EMBED_DIM": None, "TRANSFORMER_HEADS": None, "TRANSFORMER_LAYERS": None, "FF_MULTIPLIER": None,
     "DROPOUT": 0.1,
@@ -409,6 +419,22 @@ CONFIG.update(_overrides)
 if _overrides:
     print(f"CONFIG overrides applied: {_overrides}")
 
+if CONFIG["POOLING"] not in ("mean", "attention"):
+    raise ValueError('Explicitly choose POOLING="mean" or "attention" in CONFIG, '
+                     'or pass --pooling mean/attention to run_pipeline.py.')
+print(f"Encoder pooling: {CONFIG['POOLING']}")
+for _seed_key in ("TRAINING_SEED", "SPLIT_SEED", "DATA_SEED", "BOOTSTRAP_SEED"):
+    if not isinstance(CONFIG[_seed_key], int) or isinstance(CONFIG[_seed_key], bool) or not 0 <= CONFIG[_seed_key] < 2**32:
+        raise ValueError(f"{_seed_key} must be explicitly set to an integer in [0, 2**32)")
+SEED = CONFIG["TRAINING_SEED"]  # backward-compatible name: training randomness only
+random.seed(SEED); np.random.seed(SEED); torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+torch.use_deterministic_algorithms(CONFIG["DETERMINISTIC"])
+torch.backends.cudnn.benchmark = False
+if CONFIG["EPOCHS_FINETUNE"] < 1 or CONFIG["EPOCHS_PRETRAIN"] < 0 or CONFIG["N_BOOTSTRAP"] < 2:
+    raise ValueError("Require EPOCHS_FINETUNE >= 1, EPOCHS_PRETRAIN >= 0 and N_BOOTSTRAP >= 2")
+
 # Resolve the encoder-size preset (explicit values win over the preset).
 _ENCODER_PRESETS = {"small": (16, 2, 1, 2), "medium": (32, 4, 2, 4), "large": (64, 4, 2, 4),
                     "xlarge": (128, 8, 3, 4), "xxlarge": (256, 8, 4, 4)}   # (embed, heads, layers, ff) -- same as layers.py
@@ -527,6 +553,13 @@ if CONFIG["SUBJECTS_DIR"] is None:
     CONFIG["SUBJECTS_DIR"] = _find_subjects_dir()
 if CONFIG["CODES_DIR"] is None:
     CONFIG["CODES_DIR"] = _find_codes_dir()
+if CONFIG["OUTPUT_DIR"] is None:
+    import uuid
+    CONFIG["OUTPUT_DIR"] = os.path.abspath(os.path.join("experiments", f"{CONFIG['POOLING']}_s{SEED}_{uuid.uuid4().hex[:12]}"))
+if CONFIG["CHECKPOINT_DIR"] is None:
+    CONFIG["CHECKPOINT_DIR"] = os.path.join(CONFIG["OUTPUT_DIR"], "checkpoints")
+if not CONFIG["RESUME"] and os.path.isdir(CONFIG["CHECKPOINT_DIR"]) and glob.glob(os.path.join(CONFIG["CHECKPOINT_DIR"], "*.pt")):
+    raise ValueError("Checkpoint directory already has weights; use a new run directory or explicitly request resume")
 if CONFIG["CHECKPOINT_DIR"] is None:
     if IN_COLAB and os.path.isdir("/content/drive/MyDrive"):
         CONFIG["CHECKPOINT_DIR"] = "/content/drive/MyDrive/inspire_checkpoints"

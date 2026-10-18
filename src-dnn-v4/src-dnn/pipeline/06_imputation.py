@@ -183,10 +183,8 @@ def impute_static_vector(sid, train_static_df):
 # training; nothing here duplicates or conflicts with it.
 ALL_IDS = cohort_df["subject_id"].tolist()
 ALL_LABELS = np.array([PATIENT_BUNDLE[sid]["label"] for sid in ALL_IDS])
-TRAIN_IDS_FOR_STATS, _HOLD_IDS = train_test_split(
-    ALL_IDS, test_size=(CONFIG["VAL_FRACTION"] + CONFIG["TEST_FRACTION"]),
-    stratify=ALL_LABELS, random_state=SEED
-)
+# TRAIN_IDS_FOR_STATS and held-out IDs were fixed before feature fitting in Part 4.
+assert set(ALL_IDS) == set(EXPERIMENT_SPLITS["labels"])
 
 STATS = population_stats(TRAIN_IDS_FOR_STATS)
 train_static_df = pd.DataFrame({sid: PATIENT_BUNDLE[sid]["static"] for sid in TRAIN_IDS_FOR_STATS}).T
@@ -201,7 +199,11 @@ if strategy == "knn":
         if not fnames:
             continue
         mat = np.stack([PATIENT_BUNDLE[sid]["ts"][system]["raw"].reshape(-1) for sid in ALL_IDS])
-        mat_imputed = impute_knn(mat, CONFIG["KNN_NEIGHBORS"])
+        train_set = set(TRAIN_IDS_FOR_STATS)
+        train_rows = [i for i, sid in enumerate(ALL_IDS) if sid in train_set]
+        imputer = KNNImputer(n_neighbors=min(CONFIG["KNN_NEIGHBORS"], len(train_rows)), keep_empty_features=True)
+        imputer.fit(mat[train_rows])
+        mat_imputed = imputer.transform(mat)
         for i, sid in enumerate(ALL_IDS):
             IMPUTED_BUNDLE.setdefault(sid, {})[system] = mat_imputed[i].reshape(CONFIG["TARGET_SEQ_LEN"], len(fnames))
 else:
@@ -412,7 +414,7 @@ def build_regression_imputer(system, train_ids, fnames):
         for t in range(raw.shape[0]):
             rows.append(raw[t, :])
     X = np.array(rows)
-    imputer = IterativeImputer(max_iter=10, random_state=SEED, sample_posterior=False)
+    imputer = IterativeImputer(max_iter=10, random_state=CONFIG["DATA_SEED"], sample_posterior=False)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")   # IterativeImputer is verbose about near-constant/all-NaN columns on sparse data -- expected here, not a bug
         imputer.fit(X)

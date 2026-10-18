@@ -46,9 +46,9 @@ src-dnn/
 ```bash
 pip install -r requirements.txt
 python -m pytest -q tests                                  # ~20 s, no data needed
-python run_pipeline.py --subjects-dir /path/to/subjects    # folder with died/ and survived/
-python run_pipeline.py --subjects-dir ... --config '{"COUPLING_MODE": "none", "USE_ARBITRATION_LAYER": false}'
-python run_pipeline.py --profile isambard --subjects-dir ...   # full cohort on a big GPU (see isambard/)
+python run_pipeline.py --pooling mean --training-seed 101 --subjects-dir /path/to/subjects    # folder with died/ and survived/
+python run_pipeline.py --pooling mean --training-seed 101 --subjects-dir ... --config '{"COUPLING_MODE": "none", "USE_ARBITRATION_LAYER": false}'
+python run_pipeline.py --pooling mean --training-seed 101 --profile isambard --subjects-dir ...   # full cohort on a big GPU (see isambard/)
 python build_notebook.py                                   # rebuilds ALL THREE notebooks after any edit
 python build_notebook.py --check                           # fails if a notebook drifted from pipeline/
 ```
@@ -63,8 +63,41 @@ Quick variants without editing CONFIG: set the environment variable
 
 1. Change a stage in `pipeline/` (or a module in `inspire_dnn/`).
 2. `python -m pytest -q tests` and, for anything touching the data path, a dry run on fake
-   data: `python tools/make_synthetic_subjects.py --out /tmp/fake && python run_pipeline.py --subjects-dir /tmp/fake --config '{"EPOCHS_PRETRAIN": 2, "EPOCHS_FINETUNE": 3}'`.
+   data: `python tools/make_synthetic_subjects.py --out /tmp/fake && python run_pipeline.py --pooling mean --training-seed 101 --subjects-dir /tmp/fake --config '{"EPOCHS_PRETRAIN": 2, "EPOCHS_FINETUNE": 3}'`.
 3. `python build_notebook.py`, commit both.
 
 The earlier conversion in this folder (`config.py`, `model.py`, `news2_engine.py`,
 `system_correlation_layer.py`, …) is superseded; see CHANGES.md §"Replaced files".
+
+
+### Required encoder pooling choice
+
+Choose `pooling="mean"` (original v4 averaging) or `pooling="attention"` when
+constructing `MortalityModel`, `OrganSystemEncoder` or `build_model`. There is no
+default; omitted or invalid choices fail. In notebooks, set `CONFIG["POOLING"]`
+to one of these values in the setup cell (the shipped `None` is an unset sentinel).
+For headless runs, `--pooling` is required:
+
+```bash
+python run_pipeline.py --profile full --pooling mean --training-seed 101 --run-dir runs/mean101
+python run_pipeline.py --profile full --pooling attention --training-seed 101 --run-dir runs/attention101
+```
+
+Use the same cohort, split, seed, model size and training settings for both runs.
+Compare the saved validation metrics before any final test evaluation. The pooling
+choice is stored in CONFIG and included in checkpoint fingerprints. Saved-model
+reload uses the stored choice; older artifacts require an explicit choice.
+
+Attention pooling scores contextualised tokens with a shared learned query vector,
+normalises scores with softmax, and takes a weighted sum. It includes the static
+summary token as well as time tokens, just as mean pooling does. Missingness still
+enters via encoder inputs; this does not add a hard observation mask. Static-only
+organs have one token, whose weight is necessarily one. The query starts at zero,
+so initial attention weights are uniform and other weights match mean mode for
+the same seed. It adds exactly one embedding-width of parameters (32/64/128/etc.),
+shared across organs, and learns during both pretraining and mortality fine-tuning.
+The decoder and all other model layers are unchanged.
+
+
+For repeated runs, JSON artifacts, explicit resume and paired confidence intervals,
+see [EXPERIMENTS.md](EXPERIMENTS.md). Training seeds are now required.

@@ -22,7 +22,7 @@ def _batch(B=6, T=24, seed=0):
 
 def _model(**kw):
     d, h, l, ff = ENCODER_SIZE_PRESETS["medium"]
-    args = dict(embed_dim=d, n_heads=h, n_layers=l, ff_multiplier=ff)
+    args = dict(pooling="mean", embed_dim=d, n_heads=h, n_layers=l, ff_multiplier=ff)
     args.update(kw)
     torch.manual_seed(1)
     return MortalityModel(TS, SYS_IDX, CONTEXT, N_STATIC, **args).eval()
@@ -160,7 +160,7 @@ def test_dropping_gi_and_msk_builds_a_six_system_model():
     keep = {s: f for s, f in TS.items() if s not in ("gi", "msk")}
     d, h, l, ff = ENCODER_SIZE_PRESETS["small"]
     m = MortalityModel(keep, {s: SYS_IDX[s] for s in keep}, CONTEXT + SYS_IDX["gi"] + SYS_IDX["msk"], N_STATIC,
-                       embed_dim=d, n_heads=h, n_layers=l, ff_multiplier=ff).eval()
+                       pooling="mean", embed_dim=d, n_heads=h, n_layers=l, ff_multiplier=ff).eval()
     out = m(_batch())
     assert m.organ_systems == list(keep) and out["coupling_report"]["weights"].shape == (6, 6, 6)
 
@@ -168,5 +168,5 @@ def test_dropping_gi_and_msk_builds_a_six_system_model():
 def test_big_presets_build():
     for size in ("xlarge", "xxlarge"):
         d, h, l, ff = ENCODER_SIZE_PRESETS[size]
-        m = MortalityModel(TS, SYS_IDX, CONTEXT, N_STATIC, embed_dim=d, n_heads=h, n_layers=l, ff_multiplier=ff).eval()
+        m = MortalityModel(TS, SYS_IDX, CONTEXT, N_STATIC, pooling="mean", embed_dim=d, n_heads=h, n_layers=l, ff_multiplier=ff).eval()
         assert m(_batch(B=2))["logit"].shape == (2,)

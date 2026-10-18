@@ -526,13 +526,14 @@ HIGH_RISK_INFECTION_CODES = {"D65", "I46", "R57", "J80", "K72", "A41"}   # from 
 FEVER_THRESHOLD_C = 38.0
 WBC_NORMAL_RANGE = (4.0, 11.0)   # x10^9/L, standard adult reference range
 
-# Data-driven CRP threshold: computed once from the training-eligible population (here,
-# the whole cohort at bundle-build time, since this runs before the train/val/test split
-# in Part 8 -- acceptable for a threshold that's a description of the cohort's own
-# distribution, not a fitted statistic that could leak label information).
-_all_crp_values = labs_df.loc[labs_df["item_name"] == "crp", "value"].dropna()
+# Fit this data-driven feature threshold on training patients, within the feature window.
+_crp_training = []
+for _sid in TRAIN_IDS_FOR_STATS:
+    _lo, _hi = get_window(_sid, COHORT_INDEXED.loc[_sid])
+    _crp_training.extend(windowed_series(labs_df, _sid, "crp", _lo, _hi).values())
+_all_crp_values = pd.Series(_crp_training, dtype=float).dropna()
 CRP_ELEVATED_THRESHOLD = float(_all_crp_values.quantile(0.75)) if len(_all_crp_values) else None
-print(f"CRP 'elevated' threshold (75th percentile of all observed CRP in this cohort): "
+print(f"CRP 'elevated' threshold (75th percentile of training-window CRP): "
       f"{CRP_ELEVATED_THRESHOLD}")
 
 def infection_inflammation_features(sid, lo, hi):
