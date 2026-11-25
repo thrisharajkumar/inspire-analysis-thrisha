@@ -1,41 +1,44 @@
-site_name: INSPIRE DNN Mortality Pipeline
-site_description: Predicting 30-day post-surgical mortality from clinical time series with a two-phase transformer, on the INSPIRE Korean perioperative dataset.
+site_name: Organ-System Transformers for Peri-operative Mortality
+site_description: Code and documentation for the preprint "Organ-System Transformers with Additive Fusion for Mortality Prediction" on the INSPIRE peri-operative dataset.
 repo_url: https://github.com/thrisharajkumar/inspire-analysis-thrisha
 repo_name: thrisharajkumar/inspire-analysis-thrisha
 
-# All nav pages live directly inside docs/ — edit them there.
 docs_dir: docs
 site_dir: site
 
-# Nav is grouped into top-level sections. With navigation.tabs enabled below, each
-# top-level group becomes a tab in the header bar, with its pages in a dropdown —
-# rather than one long flat sidebar list.
+# "Paper" is everything a reviewer needs; the other tabs are development history.
 nav:
-  - Home: index.md
-  - Current:
-      - INSPIRE DNN: current/INSPIRE_DNN_v4_explained_simply.md
-      - Current Work & Results (start here): current/Peri_Operative_Mortality_Risk_Current_Work.md
-      - Surgeon-Facing Summary: current/Surgeon_Facing_Summary.md
-  - Archive - Planning & Reference:
-      - Original Project README: archive/planning_and_reference/index.md
-      - Research Aims & Objectives: archive/planning_and_reference/Research_Aim.md
-      - Roadmap & Architecture: archive/planning_and_reference/roadmap_and_architecture.md
-      - Research Notes & Questions: archive/planning_and_reference/research_notes.md
-      - Feature Audit Findings: archive/planning_and_reference/feature_audit_findings.md
-      - Data Imbalance & Imputation Reference: archive/planning_and_reference/Data_Imbalance_and_Imputation_Reference.md
-      - ICD-10 Architecture Research: archive/planning_and_reference/ICD10_Architecture_Research.md
-      - Clinical Questions: archive/planning_and_reference/Clinician_Questions.md
-      - Meeting Questions: archive/planning_and_reference/Clinician_Validation.md
-  - Archive - Results & History:
-      - INSPIRE Project Notes: archive/results_and_history/INSPIRE_Project_Notes.md
-      - EDA Findings (Full Dataset): archive/results_and_history/eda_findings.md
-      - Complete Findings Summary: archive/results_and_history/INSPIRE_Complete_Findings_Summary.md
-      - Model Baseline: archive/results_and_history/INSPIRE_Baseline_Pipeline_Summary.md
-      - First Full-Scale Run — Meeting Summary: archive/results_and_history/INSPIRE_Meeting_Summary.md
-      - Baseline Comparitive Study: archive/results_and_history/Base_Comparitive_Study_Models.md
-      - Multimodal Notebook Summary: archive/results_and_history/Multimodal_Notebook_Summary.md
-      - Novelty & Research Ledger (superseded): archive/results_and_history/Novelty_Research_Ledger.md
-      - PACO-Net Original Design (superseded): archive/results_and_history/PACO_Net_Architecture.md
+  - Paper:
+      - Overview: index.md
+      - Method: paper/method.md
+      - Results: paper/results.md
+      - Reproduce: paper/reproduce.md
+  - Project notes:
+      - Model explained simply (v4): current/INSPIRE_DNN_v4_explained_simply.md
+      - Current work & results log: current/Peri_Operative_Mortality_Risk_Current_Work.md
+      - Surgeon-facing summary: current/Surgeon_Facing_Summary.md
+  - Archive:
+      - Planning & reference:
+          - Original project README: archive/planning_and_reference/index.md
+          - Research aims & objectives: archive/planning_and_reference/Research_Aim.md
+          - Roadmap & architecture: archive/planning_and_reference/roadmap_and_architecture.md
+          - Research notes & questions: archive/planning_and_reference/research_notes.md
+          - Feature audit findings: archive/planning_and_reference/feature_audit_findings.md
+          - Imbalance & imputation reference: archive/planning_and_reference/Data_Imbalance_and_Imputation_Reference.md
+          - ICD-10 architecture research: archive/planning_and_reference/ICD10_Architecture_Research.md
+          - Clinical questions: archive/planning_and_reference/Clinician_Questions.md
+          - Meeting questions: archive/planning_and_reference/Clinician_Validation.md
+      - Results & history:
+          - Project notes: archive/results_and_history/INSPIRE_Project_Notes.md
+          - EDA findings (full dataset): archive/results_and_history/eda_findings.md
+          - Complete findings summary: archive/results_and_history/INSPIRE_Complete_Findings_Summary.md
+          - Model baseline: archive/results_and_history/INSPIRE_Baseline_Pipeline_Summary.md
+          - First full-scale run: archive/results_and_history/INSPIRE_Meeting_Summary.md
+          - Baseline comparative study: archive/results_and_history/Base_Comparitive_Study_Models.md
+          - Multimodal notebook summary: archive/results_and_history/Multimodal_Notebook_Summary.md
+          - Novelty & research ledger (superseded): archive/results_and_history/Novelty_Research_Ledger.md
+          - PACO-Net original design (superseded): archive/results_and_history/PACO_Net_Architecture.md
+
 theme:
   name: material
   palette:
@@ -52,13 +55,12 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-      - navigation.tabs
-      - navigation.tabs.sticky
-      - navigation.top
-      - navigation.sections
-      - navigation.collapse
-      - content.code.copy
-      - search.suggest  
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.sections
+    - content.code.copy
+    - search.suggest
 
 markdown_extensions:
   - tables
@@ -70,5 +72,11 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.arithmatex:
+      generic: true
   - admonition
   - pymdownx.details
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js
